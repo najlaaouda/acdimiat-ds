@@ -4,16 +4,18 @@ import {
   ElementRef,
   OnDestroy,
   afterNextRender,
-  inject,
-  isDevMode,
+  inject,
 } from '@angular/core';
 
 /**
  * نقطة تركيب فاحص النظام داخل غلاف التوثيق.
  *
  * ─── لماذا هنا ولماذا هكذا ─────────────────────────────────────────────────
- * • **وضع التطوير فقط.** الأداة تُحرّر التوكنات في المتصفّح ولا تكتب ملفًّا،
- *   فوجودها في الإنتاج يمنح الزائر مقبضًا يغيّر النظام أمامه بلا أثر.
+ * • **يُشحن مع موقع التوثيق المستقل.** في اللوحة تبقى الأداة محجوبة عن
+ *   الإنتاج، لأن وجودها هناك يمنح مستخدم اللوحة مقبضًا يغيّر النظام أمامه
+ *   بلا أثر يُحفظ. أمّا هذا التطبيق فهو *الموقع الذي يوثّق النظام*: التعديل
+ *   الحيّ على التوكنات هو ما جاء الزائر لأجله، وانعدام الحفظ ميزة لا عيب —
+ *   إعادة التحميل تُرجع النظام كما هو في الشيفرة.
  *
  * • **`afterNextRender` لا `ngOnInit`.** الأداة تقرأ `document.styleSheets`
  *   و`getComputedStyle`، وكلاهما غير موجود على الخادم — والوصول غير المحروس
@@ -22,8 +24,9 @@ import {
  * • **العنصر المضيف فارغ.** الأداة ترسم عبر `createPortal` إلى `body`، فلا
  *   يحمل هذا المكوّن أي تخطيط ولا يشغل حيّزًا في الغلاف.
  *
- * ⚠️ ورقة أنماط الأداة مسجَّلة في `angular.json` تحت تهيئة `development` وحدها.
- *    نقلها إلى قائمة `styles` العامّة يشحنها للإنتاج بلا مستهلك.
+ * ⚠️ ورقة أنماط الأداة في قائمة `styles` الأساسية في `angular.json`، فتُحقن
+ *    في التهيئتين معًا. لا تُعِدها إلى `development` وحدها: الأداة تعمل هنا
+ *    في الإنتاج، وبلا الورقة تُركَّب بلا نمط واحد.
  */
 @Component({
   selector: 'docs-system-inspector',
@@ -38,10 +41,6 @@ export class DocsSystemInspectorComponent implements OnDestroy {
   private destroyed = false;
 
   constructor() {
-    if (!isDevMode()) {
-      return;
-    }
-
     afterNextRender(() => {
       void import('./system-inspector.loader').then(async ({ mountSystemInspector }) => {
         const teardown = await mountSystemInspector(this.host);
