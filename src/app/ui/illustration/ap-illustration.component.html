@@ -1,0 +1,167 @@
+<!--
+  ⚠️ لا `<text>` في أي رسمة، ولا محرف واحد.
+     نصٌّ داخل الرسم يربطه بخطٍّ قد لا يكون حُمِّل بعد فيرتدّ إلى خطٍّ آخر
+     بمقاسٍ آخر ويكسر التوازن، ويُدخل اتجاه الكتابة في رسمٍ لا اتجاه له.
+     ولذلك «الصفحة غير موجودة» لافتةُ طرقٍ بلوحتين فارغتين لا الرقم 404.
+
+  ⚠️ ولا لون مكتوب هنا: كل شكل يحمل `data-tone` فقط، والقيمة تُحسم في
+     الورقة من طبقة `--ap-illustration-*`. لونٌ في السمة يتجمّد فلا يتبع
+     إعادة التلوين ولا الوضع المفروض.
+
+  والقياس 320×240 (4:3) في كل رسمة، والأرض بيضويّة في الموضع نفسه — فلا
+  ترتفع رسمة عن جارتها حين تتبدّلان في المكان ذاته.
+-->
+@switch (nameValue()) {
+
+  <!-- لا توجد بيانات — صندوق مفتوح خالٍ -->
+  @case ('no-data') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <path d="M92 112 L70 90 L86 74 L110 98 Z" data-tone="soft" />
+      <path d="M228 112 L250 90 L234 74 L210 98 Z" data-tone="soft" />
+      <path d="M104 128 L216 128 L206 192 L114 192 Z" data-tone="base" />
+      <path d="M92 112 L228 112 L216 128 L104 128 Z" data-tone="deep" />
+      <circle cx="132" cy="52" r="5" data-tone="accent" />
+      <circle cx="160" cy="38" r="6.5" data-tone="accent" />
+      <circle cx="188" cy="52" r="5" data-tone="accent" />
+    </svg>
+  }
+
+  <!-- لا نتائج مطابقة — عدسة على محتوى باهت -->
+  @case ('no-results') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <rect x="188" y="146" width="46" height="18" rx="9" data-tone="accent" transform="rotate(45 188 146)" />
+      <circle cx="148" cy="104" r="56" data-tone="deep" />
+      <circle cx="148" cy="104" r="44" data-tone="soft" />
+      <rect x="122" y="87" width="54" height="9" rx="4.5" data-tone="neutral" />
+      <rect x="122" y="107" width="38" height="9" rx="4.5" data-tone="neutral" />
+      <rect x="114" y="130" width="92" height="9" rx="4.5" data-tone="accent" transform="rotate(-48 114 130)" />
+    </svg>
+  }
+
+  <!-- الصفحة غير موجودة — لافتة طرق بلوحتين فارغتين -->
+  @case ('not-found') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <rect x="152" y="56" width="16" height="142" rx="6" data-tone="deep" />
+      <path d="M148 78 H72 l-18 19 18 19 h76 Z" data-tone="base" />
+      <path d="M172 124 h76 l18 19 -18 19 h-76 Z" data-tone="base" />
+      <rect x="88" y="92" width="44" height="9" rx="4.5" data-tone="surface" />
+      <rect x="188" y="138" width="44" height="9" rx="4.5" data-tone="surface" />
+      <circle cx="160" cy="46" r="10" data-tone="accent" />
+    </svg>
+  }
+
+  <!-- لا رسائل — ظرف مفتوح -->
+  @case ('no-messages') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <path d="M78 104 L160 46 L242 104 L242 116 L78 116 Z" data-tone="accent" />
+      <rect x="74" y="98" width="172" height="96" rx="12" data-tone="base" />
+      <path d="M74 194 L160 138 L246 194 Z" data-tone="soft" />
+    </svg>
+  }
+
+  <!-- لا إشعارات — جرس مشطوب -->
+  @case ('no-notifications') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <circle cx="160" cy="56" r="8" data-tone="deep" />
+      <path d="M160 64 c-26 0 -44 20 -44 46 v22 l-14 18 a4 4 0 0 0 3 6 h110 a4 4 0 0 0 3 -6 l-14 -18 v-22 c0 -26 -18 -46 -44 -46 Z" data-tone="base" />
+      <path d="M144 156 h32 a16 16 0 0 1 -32 0 Z" data-tone="deep" />
+      <rect x="96" y="176" width="150" height="13" rx="6.5" data-tone="accent" transform="rotate(-45 96 176)" />
+    </svg>
+  }
+
+  <!-- لا محتوى بعد — بطاقة بأسطر فارغة وزرّ إضافة -->
+  @case ('no-content') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <rect x="76" y="56" width="168" height="132" rx="14" data-tone="base" />
+      <rect x="96" y="80" width="128" height="14" rx="7" data-tone="soft" />
+      <rect x="96" y="106" width="96" height="14" rx="7" data-tone="soft" />
+      <rect x="96" y="132" width="112" height="14" rx="7" data-tone="soft" />
+      <circle cx="228" cy="172" r="26" data-tone="accent" />
+      <rect x="214" y="168" width="28" height="8" rx="4" data-tone="surface" />
+      <rect x="224" y="158" width="8" height="28" rx="4" data-tone="surface" />
+    </svg>
+  }
+
+  <!-- لا ملفات — مجلّد مفتوح بورقة واحدة -->
+  @case ('no-files') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <path d="M64 74 a10 10 0 0 1 10 -10 h48 l16 18 h68 a10 10 0 0 1 10 10 v78 H64 Z" data-tone="deep" />
+      <rect x="106" y="70" width="108" height="62" rx="8" data-tone="surface" />
+      <rect x="126" y="90" width="68" height="9" rx="4.5" data-tone="neutral" />
+      <rect x="126" y="108" width="46" height="9" rx="4.5" data-tone="neutral" />
+      <path d="M64 108 h192 v68 a10 10 0 0 1 -10 10 H74 a10 10 0 0 1 -10 -10 Z" data-tone="base" />
+      <circle cx="228" cy="172" r="8" data-tone="accent" />
+    </svg>
+  }
+
+  <!-- لا بيانات تحليلية — أعمدة باهتة على محور -->
+  @case ('no-analytics') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <rect x="68" y="46" width="184" height="140" rx="14" data-tone="soft" />
+      <rect x="90" y="138" width="28" height="26" rx="7" data-tone="base" />
+      <rect x="130" y="126" width="28" height="38" rx="7" data-tone="base" />
+      <rect x="170" y="146" width="28" height="18" rx="7" data-tone="base" />
+      <rect x="210" y="118" width="28" height="46" rx="7" data-tone="base" />
+      <rect x="86" y="166" width="156" height="6" rx="3" data-tone="accent" />
+    </svg>
+  }
+
+  <!-- لا نسخ محفوظة — ورقتان متراكبتان وساعة -->
+  @case ('no-versions') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <rect x="82" y="50" width="116" height="146" rx="12" data-tone="soft" transform="rotate(-8 140 123)" />
+      <rect x="100" y="50" width="116" height="146" rx="12" data-tone="base" />
+      <rect x="120" y="78" width="76" height="11" rx="5.5" data-tone="surface" />
+      <rect x="120" y="100" width="56" height="11" rx="5.5" data-tone="surface" />
+      <rect x="120" y="122" width="66" height="11" rx="5.5" data-tone="surface" />
+      <circle cx="216" cy="164" r="30" data-tone="accent" />
+      <rect x="213" y="144" width="6" height="22" rx="3" data-tone="surface" />
+      <rect x="213" y="160" width="20" height="6" rx="3" data-tone="surface" />
+    </svg>
+  }
+
+  <!-- لا قوالب — شبكة بطاقات وآخرها فارغة -->
+  @case ('no-templates') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <rect x="72" y="52" width="80" height="62" rx="12" data-tone="base" />
+      <rect x="168" y="52" width="80" height="62" rx="12" data-tone="base" />
+      <rect x="72" y="126" width="80" height="62" rx="12" data-tone="base" />
+      <rect x="168" y="126" width="80" height="62" rx="12" data-tone="deep" />
+      <rect x="194" y="153" width="28" height="8" rx="4" data-tone="accent" />
+      <rect x="204" y="143" width="8" height="28" rx="4" data-tone="accent" />
+    </svg>
+  }
+
+  <!-- الباقة لا تشمل الميزة — قفل مغلق -->
+  @case ('plan-locked') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <path d="M116 112 v-24 a44 44 0 0 1 88 0 v24 h-20 v-24 a24 24 0 0 0 -48 0 v24 Z" data-tone="deep" />
+      <rect x="100" y="108" width="120" height="88" rx="16" data-tone="base" />
+      <circle cx="160" cy="144" r="14" data-tone="accent" />
+      <rect x="153" y="150" width="14" height="26" rx="7" data-tone="accent" />
+    </svg>
+  }
+
+  <!-- لم يُختَر شيء — قائمة ومؤشّر -->
+  @case ('nothing-selected') {
+    <svg viewBox="0 0 320 240" aria-hidden="true" focusable="false">
+      <ellipse cx="160" cy="204" rx="94" ry="11" data-tone="ground" />
+      <rect x="64" y="50" width="192" height="128" rx="14" data-tone="soft" />
+      <rect x="84" y="72" width="152" height="26" rx="8" data-tone="base" />
+      <rect x="84" y="108" width="152" height="26" rx="8" data-tone="base" />
+      <rect x="84" y="144" width="152" height="26" rx="8" data-tone="base" />
+      <path d="M196 140 L196 202 L210 189 L219 209 L231 204 L222 184 L239 182 Z" data-tone="accent" />
+    </svg>
+  }
+}

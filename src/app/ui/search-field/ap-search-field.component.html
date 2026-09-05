@@ -1,0 +1,131 @@
+<!--
+  قالب خارجي لا `template:` سطري — أي backtick داخل قالب سطري (ولو في تعليق)
+  يُغلق النصّ الحرفي وينتج جدارًا من أخطاء TS تشير إلى أسطر خاطئة.
+-->
+
+<!--
+  الصندوق يحمل الحدّ والتعبئة وحلقة التركيز، لا `<input>` نفسه: داخله ثلاثة
+  عناصر (أيقونة وحقل وزرّ مسح) ويجب أن تُقرأ صندوقًا واحدًا. وهذه هي معاملة
+  الصفّ الملاصق نفسها الموثّقة في `ap-field-control.ts`.
+
+  و`:focus-within` عليه هو ما ينقل الحلقة من الحقل إلى الصندوق كلّه.
+-->
+<div
+  #box
+  class="ap-search__box"
+  [attr.data-invalid]="invalidValue() ? 'true' : null"
+  [attr.data-disabled]="disabledValue() ? 'true' : null"
+>
+  <!-- زينة فوق النصّ: المعنى في الـ label وفي placeholder، لا في العدسة. -->
+  <svg class="ap-search__icon" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" />
+  </svg>
+
+  <!--
+    `role="combobox"` على الحقل نفسه، والتركيز لا يغادره أبدًا: التمييز داخل
+    اللوحة بـ `aria-activedescendant`. فالكتابة تستمرّ بينما ينتقل التمييز،
+    وTab يغادر الحقل كلّه لا الاقتراح.
+
+    ⚠️ `type="search"` لا `text`: هو ما يعطي لوحة مفاتيح الجوّال زرّ «بحث»،
+       ويجعل المتصفّح يعامل الحقل بحثًا في الاسترجاع التلقائي.
+    ⚠️ و`autocomplete="off"` لأن اقتراحات المتصفّح المحفوظة تغطّي لوحتنا.
+  -->
+  <input
+    #input
+    class="ap-search__input"
+    type="search"
+    role="combobox"
+    autocomplete="off"
+    aria-haspopup="listbox"
+    [id]="controlId()"
+    [value]="queryValue()"
+    [placeholder]="placeholderValue()"
+    [disabled]="disabledValue()"
+    [attr.aria-expanded]="isOpen()"
+    [attr.aria-controls]="isOpen() ? listboxId : null"
+    [attr.aria-activedescendant]="activeOptionId()"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-required]="requiredValue() ? 'true' : null"
+    [attr.aria-invalid]="invalidValue() ? 'true' : null"
+    (input)="onInput($event)"
+    (keydown)="onKeydown($event)"
+    (focus)="onFocus()"
+    (blur)="onBlur()"
+  />
+
+  <!--
+    زرّ المسح يظهر مع وجود نصّ فقط. زرّ حقيقي في ترتيب التنقّل — لا أيقونة
+    عليها `(click)`: المسح فعل، ومن يستعمل لوحة المفاتيح يحتاجه.
+  -->
+  @if (hasQuery() && !disabledValue()) {
+    <button
+      type="button"
+      class="ap-search__clear"
+      aria-label="مسح البحث"
+      (click)="onClear()"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M18 6 6 18M6 6l12 12" />
+      </svg>
+    </button>
+  }
+</div>
+
+@if (isOpen()) {
+  <!--
+    `popover` لا z-index مرتفع: الطبقة العليا تُنهي أي تنازع تكديس مع القالب
+    المشترى. والأهمّ أن اللوحة **تبقى في موضعها من DOM** — أي إلحاق بـ body
+    (طبقات CDK وtippy) يخرج من الجذر الظلّي في مسرح التوثيق فيفقد أنماطه.
+
+    `[style]` إحداثيات محسوبة لحظيًا، لا قيم تصميم — تلك في `--ap-select-*`.
+  -->
+  <div
+    class="ap-search__panel"
+    popover="manual"
+    role="listbox"
+    [id]="listboxId"
+    [attr.data-placement]="placement()"
+    [attr.aria-labelledby]="controlId()"
+    [style.top.px]="panelTop()"
+    [style.left.px]="panelLeft()"
+    [style.width.px]="panelWidth()"
+    [style.maxHeight.px]="panelMaxHeight()"
+  >
+    @if (loadingValue()) {
+      <p class="ap-search__status">{{ loadingTextValue() }}</p>
+    } @else {
+      @for (option of optionsValue(); track option.value; let i = $index) {
+        <!--
+          `<div role="option">` لا `<button>`: التركيز الفيزيائي يبقى في الحقل،
+          فزرّ هنا يُدخل عناصر في ترتيب التنقّل لا يجب أن تكون فيه.
+
+          و`pointerdown` لا `click` — انظر تعليق `onOptionPointerDown`.
+        -->
+        <div
+          class="ap-search__option"
+          role="option"
+          [id]="optionId(i)"
+          [attr.aria-selected]="i === activeIndex()"
+          [attr.data-active]="i === activeIndex() ? 'true' : null"
+          (pointerenter)="onOptionPointerEnter(i)"
+          (pointerdown)="onOptionPointerDown($event, option)"
+        >
+          <span class="ap-search__option-label">{{ option.label }}</span>
+          @if (option.hint) {
+            <span class="ap-search__option-hint" dir="auto">{{ option.hint }}</span>
+          }
+        </div>
+      } @empty {
+        <p class="ap-search__status">{{ emptyTextValue() }}</p>
+      }
+    }
+  </div>
+}
+
+<!--
+  منطقة حيّة مستقلّة: `aria-expanded` تقول «مفتوح» ولا تقول **كم** نتيجة —
+  وهي المعلومة التي يبني عليها المستخدم قراره بمواصلة الكتابة أو بالتصفّح.
+
+  `polite` لا `assertive`: الإعلان يلحق بالكتابة ولا يقاطعها حرفًا بحرف.
+-->
+<span class="ap-search__live" role="status" aria-live="polite">{{ announcement() }}</span>

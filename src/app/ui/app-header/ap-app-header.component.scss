@@ -1,0 +1,352 @@
+@use '../state' as state;
+
+/* ============================================================================
+   Acadimiat UI — أنماط الشريط العلوي
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-app-header`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-app-header-*`.
+   ============================================================================ */
+
+ap-app-header,
+ap-app-header * {
+  /* يعلن box-sizing بنفسه — القاعدة العالمية لا تعبر الجذر الظلّي في مسرح
+     المعاينة، وهي الملاحظة نفسها الموثّقة في `ap-field.component.scss`. */
+  box-sizing: border-box;
+}
+
+/*
+  المضيف شفّاف تخطيطيًا: `<header>` بداخله هو ما يلتصق، واللصق يُحسب مقابل
+  أقرب حاوٍ يمرَّر — فطبقة إضافية بينهما تكسره بصمت.
+*/
+ap-app-header {
+  display: contents;
+}
+
+ap-app-header .ap-app-header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ap-app-header-group-gap);
+  block-size: var(--ap-app-header-height);
+  padding-inline: var(--ap-app-header-padding-x);
+  background: var(--ap-app-header-bg);
+  /*
+    ⚠️ الخطّ موجود وإن غاب عن المرجع البصري. الشريط أبيض والبطاقة تحته
+       بيضاء، والفاصل في اللقطة الساكنة هو فجوة الكانفاس — لكن أوّل تمرير
+       يُدخل حافّة البطاقة تحت الشريط فتلامسه، فيختفي الحدّ في اللحظة التي
+       يُحتاج فيها بالضبط.
+  */
+  border-block-end: var(--ap-app-header-border-width) solid
+    var(--ap-app-header-border-color);
+}
+
+/*
+  ⚠️ `sticky` لا `fixed`: الثابت يخرج من التدفّق فيصعد المحتوى تحته ويختفي
+     أوّل 72px منه، ويُعالَج ذلك عادةً بحشوة على الجسم تُنسى عند أوّل تغيير
+     في الارتفاع. واللاصق يحجز مكانه بنفسه.
+*/
+ap-app-header .ap-app-header__bar[data-sticky='true'] {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--ap-app-header-z-index);
+}
+
+/* ---------------------------------------------------------------------------
+   الهوية
+   --------------------------------------------------------------------------- */
+ap-app-header .ap-app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-app-header-brand-gap);
+  /* `min-width: 0` شرط لا تحسين: بدونه يرفض عنصر flex أن ينكمش دون عرض
+     محتواه، فيدفع الأدوات خارج الشريط بدل أن يُقصّ اسم الأكاديمية. */
+  min-inline-size: 0;
+  flex: 1 1 auto;
+}
+
+/*
+  الشعار أصل يملكه المستهلك، والمكوّن يحدّ ارتفاعه فقط. والعرض `auto` كي
+  تُحفظ نسبة الصورة أيًّا كانت: شعار عريض وآخر مربّع يجب أن يعطيا الارتفاع
+  نفسه لا العرض نفسه.
+*/
+ap-app-header [apAppHeaderBrand] {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+ap-app-header [apAppHeaderBrand] img,
+ap-app-header [apAppHeaderBrand] svg {
+  display: block;
+  block-size: var(--ap-app-header-logo-height);
+  inline-size: auto;
+  max-inline-size: 100%;
+}
+
+ap-app-header .ap-app-header__academy {
+  margin: 0;
+  min-inline-size: 0;
+  color: var(--ap-app-header-academy-fg);
+  font-size: var(--ap-app-header-academy-font-size);
+  font-weight: var(--ap-app-header-academy-font-weight);
+  /*
+    ⚠️ يُقصّ ولا يلتفّ: الشريط بارتفاع ثابت، فسطر ثانٍ يفيض منه بدل أن
+       يوسّعه. والاسم الكامل في `title` — انظر تعليق القالب.
+  */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* ---------------------------------------------------------------------------
+   رابط موقع الأكاديمية + فقاعته
+   ---------------------------------------------------------------------------
+   ⚠️ الفجوة هنا **ليست** `--ap-app-header-brand-gap`: تلك 16px تفصل الشعار
+      عن الاسم — مجموعتين مستقلّتين. وهذه 8px تلصق الأيقونة باسمها كي تُقرأ
+      لاحقةً له لا عنصرًا ثالثًا في الصفّ. والفجوة الواحدة على الحاوي كانت
+      ستسوّي بين الفصلين فتفكّ الارتباط الذي هو كلّ الفكرة.
+   ---------------------------------------------------------------------------
+   ⚠️ `position: relative` شرط لا زينة: الفقاعة `absolute` تُحلّ مقابل أقرب
+      سلفٍ متموضع — وبلا هذا السطر يكون الشريط اللاصق نفسه، فتهبط الفقاعة في
+      طرف الشاشة. اللدغة نفسها الموثّقة في عدّاد الإشعارات.
+   --------------------------------------------------------------------------- */
+ap-app-header .ap-app-header__site {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* الرابط صار يحمل الاسم، فيجب أن ينكمش وينقل الانكماش إلى الفقرة بداخله —
+     و flex: none كان سيدفع الأدوات خارج الشريط بدل أن يُقصّ الاسم. */
+  gap: var(--ap-app-header-site-gap);
+  min-inline-size: 0;
+  flex: 0 1 auto;
+  padding: var(--ap-app-header-site-padding);
+  border-radius: var(--ap-app-header-site-radius);
+  color: var(--ap-app-header-site-fg);
+  /* ⚠️ `panel-style.css` يكتب `a { color: #7e7e7e }` ويقتل الخطّ عند المرور.
+        هذا المحدّد (0,2,0) يهزمه بلا !important — القاعدة نفسها التي أوجدت
+        `[apTableLink]`. */
+  text-decoration: none;
+  transition:
+    color var(--ap-app-header-transition),
+    background-color var(--ap-app-header-transition);
+
+  @include state.hover {
+    color: var(--ap-app-header-site-fg-hover);
+    background: var(--ap-app-header-site-bg-hover);
+  }
+}
+
+ap-app-header .ap-app-header__site-icon {
+  display: block;
+  inline-size: var(--ap-app-header-site-icon-size);
+  block-size: var(--ap-app-header-site-icon-size);
+  flex: none;
+  /* اصطلاح أيقونات المكتبة: خطّية بلون النصّ. يُكتب هنا لا سمةً على الـ SVG
+     كي لا ترث تعبئةً سوداء من ورقة عالمية فتصير مربّعًا معتمًا. */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--ap-border-width-thick);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/*
+  الفقاعة — نصّها هو نفسه `aria-label` الرابط، وهي `aria-hidden` فلا تُنطق
+  مرّتين.
+
+  ⚠️ `opacity` لا `display: none`: الأخير يمنع الانتقال، ويجعل الفقاعة تقفز
+     ظهورًا بدل أن تحلّ. و`visibility` معها كي لا تبقى مساحةٌ تلتقط المؤشّر
+     وهي شفّافة.
+
+  ⚠️ وتظهر على `:focus-visible` كما على `:hover`: ظهورٌ بالمؤشّر وحده يجعلها
+     غير موجودة لمن يتنقّل بلوحة المفاتيح، وهي عندئذٍ تفسير الأيقونة الوحيد
+     الظاهر على الشاشة.
+*/
+ap-app-header .ap-app-header__site-tip {
+  position: absolute;
+  inset-block-start: calc(100% + var(--ap-app-header-tip-offset));
+  /* ⚠️ يُتمركز بالمنطق لا بالفيزياء، ويُقصّ الالتفاف: الاسم كلمتان في
+        العربية وسطرٌ ثانٍ يجعل الفقاعة تنمو لأعلى فتلامس الأيقونة. */
+  inset-inline-start: 50%;
+  translate: 50% 0;
+  z-index: var(--ap-app-header-tip-z-index);
+  padding: var(--ap-app-header-tip-padding);
+  border-radius: var(--ap-app-header-tip-radius);
+  background: var(--ap-app-header-tip-bg);
+  color: var(--ap-app-header-tip-fg);
+  font-size: var(--ap-app-header-tip-font-size);
+  white-space: nowrap;
+  box-shadow: var(--ap-app-header-tip-shadow);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--ap-app-header-transition),
+    visibility var(--ap-app-header-transition);
+}
+
+/*
+  ⚠️ `translate: 50% 0` وليس `-50%`: المحور الأفقي في `translate` فيزيائي لا
+     منطقي، والبداية في RTL هي اليمين — فالنصف يُدفع يمينًا كي يعود مركز
+     الفقاعة فوق مركز الأيقونة. وفي LTR يُقلب.
+*/
+ap-app-header:dir(ltr) .ap-app-header__site-tip {
+  translate: -50% 0;
+}
+
+ap-app-header .ap-app-header__site:hover .ap-app-header__site-tip,
+ap-app-header .ap-app-header__site:focus-visible .ap-app-header__site-tip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ---------------------------------------------------------------------------
+   الطرف المقابل — ثلاث مجموعات بثلاث فجوات
+   --------------------------------------------------------------------------- */
+ap-app-header .ap-app-header__end {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-app-header-group-gap);
+  flex: none;
+}
+
+ap-app-header .ap-app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-app-header-actions-gap);
+}
+
+/*
+  فجوة أضيق من فجوة الأزرار: هذه أيقونات عارية بلا حدّ ولا خلفية، فهي تُقرأ
+  صفًّا واحدًا من الأدوات. والفجوة الواسعة تفكّكه إلى ثلاثة أزرار متفرّقة لا
+  يجمعها شيء.
+*/
+ap-app-header .ap-app-header__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-app-header-tools-gap);
+}
+
+/* يُخفى حين لا يُسقَط فيه شيء — انظر تعليق القالب. */
+ap-app-header .ap-app-header__actions:empty,
+ap-app-header .ap-app-header__tools:empty {
+  display: none;
+}
+
+/*
+  حجم الأيقونة في الشريط يتجاوز ما يفرضه حجم الزرّ — 24px لا 16px.
+
+  الأيقونة داخل زرّ نصّي تتبع حجمه لأنها بجوار كلمة تحمل المعنى. وهنا
+  أربعة أزرار أيقونية بلا نصّ ظاهر: الأيقونة هي الرسالة كاملةً، و16px
+  داخل هدف لمس 40px تترك حلقة فارغة حولها فتبدو الأداة أصغر من مساحتها.
+
+  الخصوصية تكفي بلا !important: هذا المحدّد (0,2,2) يهزم
+  [apButton] .ap-button__icon svg (0,1,2) بعنصر الحاوي وحده.
+*/
+ap-app-header [apButton] .ap-button__icon svg {
+  inline-size: var(--ap-app-header-icon-size);
+  block-size: var(--ap-app-header-icon-size);
+}
+
+/* ---------------------------------------------------------------------------
+   زنّاد الحساب
+   ---------------------------------------------------------------------------
+   سمة عارية لا موجّه — النمط نفسه المتّبع في `[apPageHeaderActions]`: المحدّد
+   يعيش هنا، فلا يعمل الزنّاد خارج الشريط، وهي قاعدة الحاوي نفسها.
+   --------------------------------------------------------------------------- */
+ap-app-header [apAppHeaderAccount] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ap-app-header-account-gap);
+  padding: var(--ap-app-header-account-padding);
+  /* أرضية ارتفاع لا حساب: الزنّاد يقف في صفّ فيه أزرار بارتفاع 40px، وصورة
+     أصغر مما يتوقّعه المستهلك تجعله أقصر من جيرانه فيبدو الصفّ غير مستوٍ. */
+  min-block-size: var(--ap-control-height-md);
+  border: 0;
+  /* دائري لأن ما بداخله دائري: المستطيل حول صورة دائرية يُظهر أربع زوايا
+     فارغة تلمع عند المرور. */
+  border-radius: var(--ap-app-header-account-radius);
+  background: transparent;
+  color: var(--ap-app-header-account-chevron-fg);
+  cursor: pointer;
+  transition: background-color var(--ap-app-header-transition);
+
+  @include state.hover {
+    background: var(--ap-app-header-account-bg-hover);
+  }
+
+  /*
+    ⚠️ لا حلقة تركيز مكتوبة هنا عمدًا. `foundations/_focus.css` يرسم
+       `:focus-visible` بـ `outline` و`!important` على كل شيء، وهذا الزنّاد
+       لا يرسم حلقته الخاصّة — فكتابة القاعدة نفسها بلا `!important` تخسر
+       أمامها وتبقى كودًا ميتًا يوهم بأنه يفعل شيئًا.
+
+       والاستثناء الموثّق بـ `!important` محجوز للسبعة الذين يرسمون حلقتهم
+       بـ `box-shadow` كي تتبع نصف القطر (`[apInput]` وإخوته). وهذا ليس منهم.
+  */
+}
+
+/*
+  السهم يدور عند الفتح فيقول إن القائمة مفتوحة بلا نصّ إضافي — والحالة
+  مقروءة من `aria-expanded` نفسها لا من كلاس موازٍ، فلا مصدران للحقيقة.
+*/
+ap-app-header [apAppHeaderAccount] .ap-app-header__account-chevron {
+  inline-size: var(--ap-app-header-account-icon-size);
+  block-size: var(--ap-app-header-account-icon-size);
+  flex: none;
+  /* اصطلاح أيقونات المكتبة نفسه — خطّية بلون النصّ. يُكتب هنا لا سمةً على
+     الـ SVG عند كل مستهلك: من ينساها مرّة يرث تعبئة سوداء من ورقة عالمية
+     فتصير الشيفرة مثلّثًا معتمًا. */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--ap-border-width-thick);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: rotate var(--ap-app-header-transition);
+}
+
+ap-app-header [apAppHeaderAccount][aria-expanded='true'] .ap-app-header__account-chevron {
+  rotate: 180deg;
+}
+
+/* ---------------------------------------------------------------------------
+   الشاشة الضيّقة
+   ---------------------------------------------------------------------------
+   استعلام إطار عرض لا حاوٍ: `container-type: inline-size` يحسب عرض العنصر
+   كأن لا محتوى له، وهو ما قاس `<ap-pagination>` عند 0×66 داخل مسرح بعرض
+   870px. الشريط عنصر ممتدّ بعرض الشاشة، فالإطار هو مقياسه الصحيح أصلًا.
+   --------------------------------------------------------------------------- */
+@media (max-width: 767.98px) {
+  /*
+    اسم الأكاديمية أوّل ما يسقط: الشعار يقول العلامة، والأفعال والحساب
+    أدوات لا يُستغنى عنها — بينما الاسم سياق يُستعاد من أي شاشة إعدادات.
+  */
+  ap-app-header .ap-app-header__academy {
+    display: none;
+  }
+
+  /*
+    وبسقوط الاسم يسقط سببُ الهامش السالب: هو كان يلصق الأيقونة باسمها ضدّ
+    فجوة الحاوي، وبلا اسمٍ يصير سحبًا للأيقونة نحو الشعار.
+  */
+  ap-app-header .ap-app-header__site {
+    margin-inline-start: 0;
+  }
+
+  ap-app-header .ap-app-header__bar {
+    padding-inline: var(--ap-space-4);
+    gap: var(--ap-space-3);
+  }
+
+  ap-app-header .ap-app-header__end {
+    gap: var(--ap-space-2);
+  }
+}
+
+/* الاسم داخل الرابط: يرث لونه فيتحوّل معه عند المرور، ولا يحمل تسطيرًا —
+   الأيقونة هي ما يقول «رابط»، والتسطير على سطر بحجم 16px في شريط ثابت ضجيج. */
+ap-app-header .ap-app-header__site .ap-app-header__academy {
+  color: inherit;
+}

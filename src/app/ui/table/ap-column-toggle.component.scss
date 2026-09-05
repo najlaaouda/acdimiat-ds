@@ -1,0 +1,151 @@
+@use '../state' as state;
+@use '../select/menu';
+
+/* ---------------------------------------------------------------------------
+   Acadimiat UI — تخصيص الأعمدة
+   ---------------------------------------------------------------------------
+   ⚠️ اللوحة تستورد `ui/select/_menu` ولا تنسخ منه قيمة: هي القائمة المرسومة
+      الثالثة بعد `<ap-select>` و`<ap-search-field>`، وثلاث نسخ من بطاقة
+      واحدة تتباعد أوّل مرّة تُعدَّل إحداها.
+   --------------------------------------------------------------------------- */
+ap-column-toggle {
+  /* لا صندوق له: الزنّاد هو ما يُرى، واللوحة في الطبقة العليا. وبلا هذا
+     يصير المكوّن عنصرًا سطريًا يضيف فراغًا في شريط الأدوات. */
+  display: contents;
+}
+
+/*
+  عدّاد المخفيّ على الزنّاد.
+
+  ⚠️ ليس `<ap-badge>`: الشارة داخل الجدول تأخذ عرضًا أدنى موحَّدًا (80px)،
+     وهو صحيح في عمود ومُفسد داخل زرّ. وهذا رقم ملتصق بنصّ لا حالة صفّ.
+*/
+ap-column-toggle .ap-column-toggle__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ap-space-5);
+  height: var(--ap-space-5);
+  padding-inline: var(--ap-space-1);
+  border-radius: var(--ap-radius-full);
+  background: var(--ap-color-action-primary);
+  color: var(--ap-color-action-on-primary);
+  font-size: var(--ap-font-size-2xs);
+  font-weight: var(--ap-font-weight-semibold);
+  /* الأرقام لاتينية داخل نصّ عربي — والاتجاه على العنصر يمنع انزلاقها. */
+  direction: ltr;
+}
+
+ap-column-toggle .ap-column-toggle__panel {
+  @include menu.panel;
+  @include menu.panel-placement;
+
+  position: fixed;
+  /*
+    ⚠️ تحييد `inset` شرط عمل الإحداثيات المحسوبة، لا تنظيف.
+
+    ورقة الوكيل تضع على `[popover]` قيمة `inset: 0` مع `margin: auto`
+    لتوسيطه. و`menu.panel` يلغي التوسيط (`margin: 0`) ويجعل العرض
+    `auto` — لكن `inset: 0` يبقى، فتصير الحافّتان اليمنى واليسرى مثبّتتين
+    عند حافّتي الشاشة ويمتدّ اللوح من طرفها إلى طرفها في أعلى الصفحة،
+    وهو ما رُصد في اللقطة.
+
+    و`<ap-select>` لا يقع فيه لأنه يكتب `width` صريحًا يغلب الامتداد —
+    وهذه اللوحة عرضها من محتواها (أطول تسمية عمود)، فلا `width` لها.
+  */
+  inset: auto;
+  /* الحشوة الأفقية هنا موجودة — بخلاف قائمة `<ap-select>`: صفوف هذه اللوحة
+     مربّعات اختيار لها هدف لمس خاصّ بها، لا أشرطة تمتدّ إلى الحافّتين. */
+  padding-inline: var(--ap-space-2);
+}
+
+/*
+  ⚠️ الصفّ لا يحمل `padding` رأسيًا: `<ap-choice>` يفرض هدف لمس 40px بنفسه،
+     وإضافة حشوة فوقه تُنتج صفًّا بارتفاع 56px يبدو متباعدًا بلا سبب.
+*/
+ap-column-toggle .ap-column-toggle__row {
+  display: flex;
+  align-items: center;
+  /* المقبض في البداية، والتسمية تملأ ما بعده. */
+  gap: var(--ap-space-1);
+  border-radius: var(--ap-radius-md);
+}
+
+/*
+  الصفّ المحمول.
+
+  ⚠️ `opacity` لا `visibility` ولا إزالة من الشجرة: العنصر المحمول يجب أن
+     يبقى مرسومًا وإلّا ألغى المتصفّح عملية السحب من أصلها. والباهت يقول
+     «هذا ما تحمله» بينما ترى موضعه الجديد يتشكّل تحته.
+*/
+ap-column-toggle .ap-column-toggle__row[data-dragging='true'] {
+  opacity: var(--ap-table-row-dragging-opacity);
+  background: var(--ap-color-bg-hover);
+}
+
+ap-column-toggle .ap-column-toggle__row > ap-choice {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/*
+  المقبض.
+
+  في **بداية** الصفّ — اليمين في RTL — قبل مربّع الاختيار، فتصطفّ المقابض
+  كلّها على عمود واحد يُمسك منه.
+
+  ⚠️ يظهر دائمًا ولا يُكشف بالمرور — بخلاف `[apTableAction]` في الجدول:
+     هذه لوحة تُفتح بقصد، ومحتواها كلّه أدوات. والإخفاء داخل قائمة مفتوحة
+     يخفي الميزة عمّن فتحها ليستعملها.
+
+  ⚠️ و`cursor: grab` لا `pointer`: المؤشّر هو ما يقول إن هذا يُسحب. وبلاه
+     يبدو زرًّا يُنقر، فلا يجرّب أحد سحبه.
+*/
+ap-column-toggle .ap-column-toggle__grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-table-action-size);
+  height: var(--ap-table-action-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ap-table-action-radius);
+  background: transparent;
+  color: var(--ap-table-action-fg);
+  /* المؤشّر هو ما يقول إن هذا يُسحب — انظر التعليق أعلاه. */
+  cursor: grab;
+  /* المقبض لا ينكمش تحت تسمية طويلة. */
+  flex: none;
+  /* ولا يُحدَّد نصًّا أثناء السحب: التحديد يلتقط الصفّ بدل أن يحمله. */
+  user-select: none;
+
+  @include state.active {
+    cursor: grabbing;
+  }
+
+  @include state.hover {
+    background: var(--ap-table-action-bg-hover);
+    color: var(--ap-table-action-fg-hover);
+  }
+
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-color-focus-ring);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+
+  /* المقفل لا يُنقَل: يبقى مكانه معطَّلًا فيُرى أنه ثابت لا أنه غائب. */
+  @include state.disabled {
+    color: var(--ap-color-text-disabled);
+    cursor: not-allowed;
+  }
+}
+
+ap-column-toggle .ap-column-toggle__grip svg {
+  width: var(--ap-icon-sm);
+  height: var(--ap-icon-sm);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

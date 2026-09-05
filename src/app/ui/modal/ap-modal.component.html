@@ -1,0 +1,61 @@
+<!--
+  ⚠️ لا `role` ولا `aria-modal` هنا: `<dialog>` مفتوحًا بـ `showModal()`
+     يحملهما ضمنيًا، وكتابتهما يدويًا تكرار يَبطل حين يُغلق العنصر.
+
+  العنصر نفسه يملأ إطار العرض والبطاقة ابنه — فيصير «هل وقعت النقرة خارج
+  البطاقة؟» سؤالًا عن هدف الحدث، لا حسابًا لإحداثيات مقابل مستطيل.
+-->
+<dialog
+  #dialog
+  class="ap-modal__dialog"
+  [attr.data-size]="sizeValue()"
+  [attr.data-fit]="fitContentValue() ? 'content' : null"
+  [attr.aria-labelledby]="headingValue() ? titleId : null"
+  [attr.aria-describedby]="descriptionValue() ? descriptionId : null"
+  (cancel)="onCancel($event)"
+  (close)="onNativeClose()"
+  (pointerdown)="onDialogPointerDown($event)"
+  (click)="onDialogClick($event)"
+>
+  <div class="ap-modal__panel">
+    @if (hasHeader()) {
+      <header class="ap-modal__header">
+        <div class="ap-modal__heading">
+          @if (headingValue()) {
+            <h2 class="ap-modal__title" [id]="titleId">{{ headingValue() }}</h2>
+          }
+          @if (descriptionValue()) {
+            <p class="ap-modal__description" [id]="descriptionId">{{ descriptionValue() }}</p>
+          }
+        </div>
+
+        @if (dismissibleValue()) {
+          <!--
+            الأيقونة خطّية بلون موروث — كاصطلاح الأيقونات في المكتبة كلها،
+            فتتبع لون الزرّ في كل حالة بلا قاعدة لون واحدة إضافية.
+          -->
+          <button
+            type="button"
+            class="ap-modal__close"
+            [attr.aria-label]="closeLabelValue()"
+            (click)="onCloseButton()"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6 18 18" />
+              <path d="M18 6 6 18" />
+            </svg>
+          </button>
+        }
+      </header>
+    }
+
+    <!--
+      ⚠️ صفر مسافة بيضاء داخل الجسم والذيل — متعمّد.
+         كلاهما يُخفى بـ `:empty` حين لا يُسقَط فيه شيء، ومسافة واحدة داخله
+         تُبطل `:empty` فيبقى صندوق فارغ يأكل الفجوة التي قبله.
+    -->
+    <div class="ap-modal__body" #body [attr.data-overflow]="overflowingValue() ? 'true' : null"><ng-content /></div>
+
+    <footer class="ap-modal__footer"><ng-content select="[apModalFooter]" /></footer>
+  </div>
+</dialog>

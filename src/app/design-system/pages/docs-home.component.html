@@ -1,0 +1,118 @@
+<article class="docs-article">
+  <header class="docs-hero">
+    <p class="docs-hero__eyebrow">Acadimiat Design System</p>
+    <h1 class="docs-hero__title">نظام تصميم أكاديميات</h1>
+    <p class="docs-hero__lead">
+      مصدر واحد للحقيقة لواجهة لوحة الإدارة: الـ tokens، والمكوّنات، وحالاتها،
+      وقواعد كتابة نصوصها، ومعايير وصولها. ما يُوثَّق هنا هو ما يُرسم في المنتج —
+      لا نسخة موازية منه.
+    </p>
+  </header>
+
+  <section class="docs-block">
+    <h2 class="docs-block__title">هدف النظام</h2>
+    <p class="docs-prose">
+      رُصد في لوحة الإدارة 58 نمط واجهة متكرّرًا، منها ثمانية فقط لها تنفيذ واحد
+      متماسك. الباقي مكتوب أكثر من مرة بأسماء مختلفة وقيم متقاربة لا متطابقة —
+      خمسة أنظمة أزرار، ثلاثة أنظمة تبويبات، خمسة أشكال tooltip.
+    </p>
+    <p class="docs-prose">
+      هذا النظام يعالج السبب لا العَرَض: طبقات tokens تحسم القيمة مرة واحدة،
+      ومكوّنات تستهلكها، وتوثيق يجعل القرار مرئيًا قبل كتابة السطر الأول.
+    </p>
+  </section>
+
+  <section class="docs-block">
+    <h2 class="docs-block__title">سلسلة القرار</h2>
+    <!--
+      الترتيب هنا ليس زخرفة: أي اختصار لحلقة (مكوّن يقرأ primitive مباشرةً)
+      يكسر قابلية إعادة الثيم كلّها.
+    -->
+    <ol class="docs-chain">
+      <li class="docs-chain__step">
+        <span class="docs-chain__name">Primitive Tokens</span>
+        <span class="docs-chain__note">قيم خام بلا معنى — سلالم لونية، مسافات، أنصاف أقطار</span>
+      </li>
+      <li class="docs-chain__step">
+        <span class="docs-chain__name">Semantic Tokens</span>
+        <span class="docs-chain__note">المعنى داخل الواجهة — سطح، نصّ، حدّ، فعل، حالة</span>
+      </li>
+      <li class="docs-chain__step">
+        <span class="docs-chain__name">Component Tokens</span>
+        <span class="docs-chain__note">مربوطة بمكوّن وحالة — زرّ، حقل، بطاقة، جدول</span>
+      </li>
+      <li class="docs-chain__step">
+        <span class="docs-chain__name">Components</span>
+        <span class="docs-chain__note">ما يراه المستخدم</span>
+      </li>
+    </ol>
+  </section>
+
+  <section class="docs-block">
+    <h2 class="docs-block__title">الأقسام</h2>
+    <div class="docs-cards">
+      @for (branch of tree(); track branch.section.id) {
+        <a class="docs-card" [routerLink]="['/', docsRoot, branch.section.id]">
+          <span class="docs-card__icon" aria-hidden="true">{{ branch.section.icon }}</span>
+          <span class="docs-card__title">{{ branch.section.title }}</span>
+          <span class="docs-card__body">{{ branch.section.description }}</span>
+          <span class="docs-card__meta">
+            {{ branch.count }}
+            @if (branch.count === 1) { صفحة } @else { صفحات }
+          </span>
+        </a>
+      }
+    </div>
+  </section>
+
+  <section class="docs-block">
+    <h2 class="docs-block__title">حالة التوثيق</h2>
+    <p class="docs-prose">
+      محسوبة من السجلّ لحظة العرض — لا أرقام مكتوبة يدويًا.
+    </p>
+    <div class="docs-stats">
+      <div class="docs-stat">
+        <span class="docs-stat__value">{{ stats().published }}</span>
+        <span class="docs-stat__label">صفحة منشورة</span>
+      </div>
+      @for (branch of tree(); track branch.section.id) {
+        <div class="docs-stat">
+          <span class="docs-stat__value">{{ branch.count }}</span>
+          <span class="docs-stat__label">{{ branch.section.title }}</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (needsWork().length) {
+    <section class="docs-block">
+      <h2 class="docs-block__title">يحتاج توحيدًا</h2>
+      <p class="docs-prose">
+        صفحات توثّق واقعًا غير موحّد بعد. إظهارها هنا متعمّد: الفجوة المعلنة
+        تُغلق، والفجوة المخفيّة تتّسع.
+      </p>
+      <ul class="docs-list">
+        @for (item of needsWork(); track item.slug) {
+          <li class="docs-list__item">
+            <a class="docs-inline-link" [routerLink]="['/', docsRoot, item.category, item.slug]">
+              {{ item.title }}
+            </a>
+            — {{ item.summary }}
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <section class="docs-block">
+    <h2 class="docs-block__title">روابط سريعة</h2>
+    <div class="docs-cards docs-cards--compact">
+      @for (link of quickLinks(); track link.title) {
+        <a class="docs-card" [routerLink]="link.path">
+          <span class="docs-card__title">{{ link.title }}</span>
+          <span class="docs-card__body">{{ link.description }}</span>
+        </a>
+      }
+    </div>
+  </section>
+</article>

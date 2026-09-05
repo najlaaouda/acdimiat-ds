@@ -1,0 +1,289 @@
+@use '../state' as state;
+
+/* ============================================================================
+   Acadimiat UI — أنماط شريط الترقيم
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-pagination`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-pagination-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+
+   ─── المسافات ─────────────────────────────────────────────────────────────
+   مقيسة من المرجع البصري ومردودة إلى السلّم: خليّة 32px = control-height-sm،
+   وفجوة 4px بين الخلايا = space-1، وفجوة 12px قبل قائمة الحجم = space-3.
+   لا خطوة خارج السلّم.
+
+   ─── الخليّة مربّعة ───────────────────────────────────────────────────────
+   `min-width` = الارتفاع، لا `width` — الرقم من ثلاث خانات يوسّعها ولا
+   يُقصّ. وبلا التربيع أصلًا يتغيّر عرض الصفّ بين «9» و«10»، فيزحف زرّ
+   «التالي» من تحت المؤشّر بين نقرتين متتاليتين.
+   ============================================================================ */
+
+ap-pagination,
+ap-pagination * {
+  /* يعلن box-sizing بنفسه — القاعدة العالمية لا تعبر الجذر الظلّي في مسرح
+     المعاينة، وهي الملاحظة نفسها الموثّقة في `ap-field.component.scss`. */
+  box-sizing: border-box;
+}
+
+/*
+  ⛔ لا `container-type: inline-size` هنا — جُرِّب وقِيس وأُزيل.
+
+     الاحتواء في البُعد السطري يعني أن عرض العنصر يُحسب **كأن لا محتوى له**،
+     فمساهمته في العرض الجوهري صفر. وكل سلف يتحجّم بمحتواه (عنصر flex بأساس
+     `auto`، وهو حال ذيل `<ap-table>` نفسه: `display: flex`) ينكمش حينها إلى
+     صفر — و`width: 100%` من صفرٍ صفر.
+
+     والقياس في مسرح التوثيق: المضيف 0×66 داخل مسرح عرضه 870. والعطل صامت —
+     العنصر في الـ DOM بخلاياه الثماني، ومرئيّته `visible`، وعرضه صفر.
+
+     والاستعلام أدناه على النافذة إذن. وهو مقبول هنا لا مبدأ عامًّا: هذا
+     الشريط يقع تحت جدول يمتدّ بعرض الصفحة، ولا يعيش في عمود ضيّق. ويوم
+     يحتاج ذلك يكون الحلّ عنصرًا حاويًا يأخذ عرضه من الخارج، لا احتواءً على
+     المضيف.
+*/
+ap-pagination {
+  display: block;
+  width: 100%;
+  /*
+    ينمو ولا ينكمش داخل حاوٍ مرن — وذيل `<ap-table>` هو `display: flex`.
+    وبأساس `auto` (لا `0`) يبقى عرضه الجوهري مرجعًا، فلا ينسحق دون محتواه
+    حين تضيق المساحة: يلتفّ بدل أن يفيض.
+  */
+  flex: 1 1 auto;
+}
+
+/*
+  ما يسعه أصغرُ صفحة ⇐ لا شريط. (يشمل صفر عنصر: الجدول يقول «لا توجد نتائج»
+  بحالته الفارغة.) الشرط نفسه في `unpaged` بالمكوّن، وتعليقه يشرح لماذا الحدّ
+  أصغرُ الخيارات لا حجم الصفحة الحالي.
+
+  ⚠️ و`display: none` لا حذف العنصر من القالب: يبقى المضيف في الـ DOM، وذيل
+     `<ap-table>` يرصده بـ `:has` فيطوي نفسه كذلك — انظر
+     `ap-table.component.scss`. ولولا ذلك بقيت فجوة الذيل العلوية تحت جدول
+     بلا شريط.
+*/
+ap-pagination[data-unpaged='true'] {
+  display: none;
+}
+
+ap-pagination .ap-pagination__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ap-pagination-row-gap);
+}
+
+/* ---------------------------------------------------------------------------
+   جملة المدى
+   --------------------------------------------------------------------------- */
+ap-pagination .ap-pagination__summary {
+  margin: 0;
+  color: var(--ap-pagination-summary-fg);
+  font-size: var(--ap-pagination-summary-size);
+  /* السطر لا يُقسَم: «عرض 16–30 من 150 نتيجة» جملة واحدة، وقسمتها تفصل
+     المدى عن إجماليه. والالتفاف يقع بين الجملة ومجموعة التحكّم. */
+  white-space: nowrap;
+}
+
+/*
+  المدى LTR — انظر تعليق القالب. والعرض `inline-block` كي يصير صندوقًا
+  مستقلًّا بترتيبه الخاصّ، لا نصًّا يذوب في تدفّق الفقرة RTL.
+*/
+ap-pagination .ap-pagination__range {
+  display: inline-block;
+}
+
+/* ---------------------------------------------------------------------------
+   مجموعة التحكّم
+   --------------------------------------------------------------------------- */
+ap-pagination .ap-pagination__controls {
+  display: flex;
+  align-items: center;
+  /* 12px قبل قائمة الحجم: هي نوع آخر من التحكّم — تغيّر ما أرى لا أين أنا. */
+  gap: var(--ap-pagination-group-gap);
+}
+
+ap-pagination .ap-pagination__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-pagination-gap);
+}
+
+/* ---------------------------------------------------------------------------
+   الخليّة
+   --------------------------------------------------------------------------- */
+ap-pagination .ap-pagination__cell {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ap-pagination-cell-size);
+  height: var(--ap-pagination-cell-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ap-pagination-cell-radius);
+  background: var(--ap-pagination-cell-bg);
+  color: var(--ap-pagination-cell-fg);
+  font: inherit;
+  font-size: var(--ap-pagination-cell-font-size);
+  font-weight: var(--ap-pagination-cell-weight);
+  /* تباعد موجب يكسر وصل الحروف العربية — والصفر قيمة تُكتب لا تُترك. */
+  letter-spacing: 0;
+  cursor: pointer;
+  transition:
+    background-color var(--ap-pagination-duration) var(--ap-pagination-ease),
+    color var(--ap-pagination-duration) var(--ap-pagination-ease);
+
+  @include state.hover {
+    background: var(--ap-pagination-cell-bg-hover);
+    color: var(--ap-pagination-cell-fg-hover);
+  }
+
+  @include state.active {
+    background: var(--ap-pagination-cell-bg-active);
+  }
+
+  /*
+    الحلقة معلَنة هنا رغم أن `foundations/_focus.css` يفرضها عالميًا بـ
+    `!important`: تلك ورقة عامّة، والمسارح في موقع التوثيق `ShadowDom` لا
+    تعبرها الأوراق العامّة. فبلا هذه القاعدة يظهر التركيز في اللوحة ويغيب في
+    المعاينة — وهو أسوأ ما يكون: توثيقٌ يعرض المكوّن بلا مؤشّر تركيز.
+  */
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-pagination-focus-ring-color);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+}
+
+/*
+  المعطَّل هنا `aria-disabled` لا `disabled` — انظر تعليق القالب. والنتيجة أن
+  السمة هي ما يجب أن تُنسَّق، فالسهم عند الطرف يبقى قابلًا للتركيز ويبدو
+  معطَّلًا. و`cursor: default` لا `not-allowed`: الثاني يقول «ممنوع»، والأوّل
+  يقول «لا شيء هنا» — وهذا هو الحال.
+*/
+ap-pagination .ap-pagination__cell[aria-disabled='true'] {
+  color: var(--ap-pagination-cell-fg-disabled);
+  background: var(--ap-pagination-cell-bg);
+  cursor: default;
+}
+
+/* ---------------------------------------------------------------------------
+   السهمان
+   ---------------------------------------------------------------------------
+   مرسومان LTR كما تُرسم كل أيقونة اتجاهية في المكتبة، ويُعكسان في RTL —
+   فيشير كلٌّ منهما إلى جهته في اتجاه القراءة. ولا حاجة إلى قلب ترتيبهما:
+   الحاوي مرن، فأوّل عنصر في الـ DOM يقع عند البداية أيًّا كان الاتجاه.
+   --------------------------------------------------------------------------- */
+ap-pagination .ap-pagination__arrow svg {
+  width: var(--ap-pagination-icon-size);
+  height: var(--ap-pagination-icon-size);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+ap-pagination .ap-pagination__arrow:dir(rtl) svg {
+  transform: scaleX(-1);
+}
+
+/* ---------------------------------------------------------------------------
+   الصفحة الحالية
+   ---------------------------------------------------------------------------
+   الخطّاف هو `aria-current="page"` نفسها لا كلاس — القاعدة نفسها في
+   `[apTabNavLink]`: زرٌّ ينسى إعلان نفسه لا يبدو حاليًا، فتصير الفجوة
+   الصامتة فجوةً مرئية.
+
+   وفارقان لا واحد: تعبئة **ووزن**. اللون وحده يسقط لمن لا يميّزه
+   (WCAG 1.4.1). ولا قفزة تخطيط من الوزن لأن الخليّة مربّعة بعرض أدنى ثابت.
+   --------------------------------------------------------------------------- */
+ap-pagination .ap-pagination__page[aria-current='page'] {
+  background: var(--ap-pagination-current-bg);
+  color: var(--ap-pagination-current-fg);
+  font-weight: var(--ap-pagination-current-weight);
+
+  /* المرور لا يغيّرها: هي حيث نحن، والنقر عليها بلا أثر. */
+  @include state.hover {
+    background: var(--ap-pagination-current-bg);
+    color: var(--ap-pagination-current-fg);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   الحذف
+   ---------------------------------------------------------------------------
+   يشغل خليّة كاملة لا فجوة: بلا ذلك يتغيّر عرض الصفّ بين حالة فيها حذف
+   وحالة بلا حذف — وهو ما يحدث عند الانتقال من الصفحة 4 إلى 5 بالضبط.
+   --------------------------------------------------------------------------- */
+ap-pagination .ap-pagination__ellipsis {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ap-pagination-cell-size);
+  height: var(--ap-pagination-cell-size);
+  color: var(--ap-pagination-ellipsis-fg);
+  font-size: var(--ap-pagination-cell-font-size);
+  /* مؤشّر النصّ يقول «قابل للتحديد»، وهذه علامة لا نصّ. */
+  user-select: none;
+}
+
+/* ---------------------------------------------------------------------------
+   قائمة حجم الصفحة
+   ---------------------------------------------------------------------------
+   ⚠️ `<ap-field>` يعلن `width: 100%` — وهو صواب داخل نموذج، وخطأ داخل صفّ:
+      بلا هذا التجاوز يبتلع الحقلُ الصفَّ كلّه ويدفع الأرقام خارج الشاشة.
+      والمحدّد `ap-pagination ap-field` (0,0,2) يغلب `ap-field` (0,0,1) بلا
+      `!important`.
+
+   والارتفاع 32px يأتي من `size="sm"` على العنصر نفسه — لا من قاعدة هنا.
+   ولذلك اختير 32px للخليّة أصلًا: القيمتان واحدة في السلّم، فيستوي الشريط
+   على سطر واحد بلا رقم مفصَّل لهذا المكوّن.
+   --------------------------------------------------------------------------- */
+ap-pagination ap-field {
+  width: auto;
+  flex: none;
+}
+
+/*
+  والقائمة نفسها تُقاس بمحتواها عبر `[fitContent]` في القالب لا بقاعدة هنا:
+  المكوّن وحده يعرف خياراته، فهو وحده يستطيع أن يحجز أوسعها.
+*/
+
+/* ---------------------------------------------------------------------------
+   الشريط الضيّق
+   ---------------------------------------------------------------------------
+   دون 640px من عرض النافذة تختفي الأرقام غير الحالية ويختفي الحذف، فيبقى
+   «‹ ٣ ›» وجملة المدى فوقه. والسهمان يبلغان كل صفحة، فلا وجهة تُفقد — يُفقد
+   القفز المباشر إليها وحده.
+
+   و`display: none` هنا مقصود بخلاف قاعدة `<ap-table>` في أزرار الصفّ: هناك
+   كانت الأزرار متاحة فعلًا وإخفاؤها يسقطها من ترتيب التنقّل بلا سبب. وهنا
+   هي غير متاحة عند هذا العرض أصلًا، فبقاؤها في الترتيب محطّات لا تُرى.
+
+   والقيمة 640px حرفية لا token: شروط الاستعلام لا تقبل `var()`.
+   --------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  ap-pagination .ap-pagination__page:not([aria-current='page']),
+  ap-pagination .ap-pagination__ellipsis {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   الألوان المفروضة
+   ---------------------------------------------------------------------------
+   في `forced-colors` تُلغى التعبئة، فيبقى الحالي بلا تمييز — ولذلك يُرسم له
+   حدّ. وهو الفارق الثالث بعد اللون والوزن، ويعمل حيث يسقط الأوّلان.
+   --------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  ap-pagination .ap-pagination__page[aria-current='page'] {
+    border: var(--ap-border-width-medium) solid Highlight;
+  }
+
+  ap-pagination .ap-pagination__cell[aria-disabled='true'] {
+    color: GrayText;
+  }
+}

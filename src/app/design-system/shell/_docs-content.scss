@@ -1,0 +1,601 @@
+/* ============================================================================
+   Acadimiat Design System Docs — أنماط المحتوى
+   ----------------------------------------------------------------------------
+   جزء من ورقة أنماط الغلاف (`@use` في docs-shell.component.scss)، فتسري
+   عليه القاعدة نفسها بلا استثناء:
+
+          كل محدّد يبدأ بـ `.ap-docs`.
+
+   القاعدة البصرية الحاكمة: الفصل بالبياض لا بالخطوط.
+   الحدود الشعرية للهيكل فقط (بطاقة، جدول، صندوق تنبيه). داخل المتن مسافات
+   فقط، وصفر `<hr>`.
+
+   البنفسجي وظيفي حصرًا — الرابط النشط، الروابط، حلقة التركيز، الشارات
+   الصغيرة. لا مساحة كبيرة مملوءة به. النتيجة المقصودة: أي مكوّن يُعرض داخل
+   هذه الصفحات يصبح تلقائيًا أعلى نقطة تشبّع على الشاشة، فلا ينافسه إطاره.
+   ============================================================================ */
+
+.ap-docs .docs-article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-12);
+}
+
+/* ---------------------------------------------------------------------------
+   رأس الصفحة
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-pagehead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-2);
+}
+
+.ap-docs .docs-pagehead__row {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-3);
+  flex-wrap: wrap;
+}
+
+.ap-docs .docs-pagehead__title {
+  font-size: var(--ap-font-size-4xl);
+  font-weight: var(--ap-font-weight-bold);
+}
+
+.ap-docs .docs-pagehead__alt {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-md);
+  font-family: var(--ap-font-mono);
+}
+
+.ap-docs .docs-pagehead__summary {
+  max-width: var(--docs-measure);
+  color: var(--ap-color-text-secondary);
+  font-size: var(--ap-font-size-lg);
+  line-height: var(--ap-leading-relaxed);
+}
+
+.ap-docs .docs-crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-2);
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+}
+
+.ap-docs .docs-crumbs a:hover {
+  color: var(--ap-color-text-brand);
+  text-decoration: underline;
+}
+
+.ap-docs .docs-crumbs__sep {
+  color: var(--ap-color-border-strong);
+}
+
+/* ---------------------------------------------------------------------------
+   الواجهة الأولى
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-3);
+}
+
+.ap-docs .docs-hero__eyebrow {
+  color: var(--ap-color-text-brand);
+  font-family: var(--ap-font-mono);
+  font-size: var(--ap-font-size-xs);
+  letter-spacing: var(--ap-tracking-normal);
+}
+
+.ap-docs .docs-hero__title {
+  font-size: var(--ap-font-size-5xl);
+  font-weight: var(--ap-font-weight-bold);
+}
+
+.ap-docs .docs-hero__lead {
+  max-width: var(--docs-measure);
+  color: var(--ap-color-text-secondary);
+  font-size: var(--ap-font-size-lg);
+  line-height: var(--ap-leading-relaxed);
+}
+
+/* ---------------------------------------------------------------------------
+   كتلة قسم
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-4);
+}
+
+.ap-docs .docs-block__title {
+  font-size: var(--ap-font-size-2xl);
+  font-weight: var(--ap-font-weight-semibold);
+}
+
+.ap-docs .docs-prose {
+  max-width: var(--docs-measure);
+  color: var(--ap-color-text-secondary);
+  line-height: var(--ap-leading-relaxed);
+}
+
+.ap-docs .docs-caption {
+  max-width: var(--docs-measure);
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+  line-height: var(--ap-leading-snug);
+}
+
+.ap-docs .docs-inline-link {
+  color: var(--ap-color-text-link);
+  font-weight: var(--ap-font-weight-medium);
+}
+
+.ap-docs .docs-inline-link:hover {
+  text-decoration: underline;
+}
+
+.ap-docs .docs-pending {
+  padding: var(--ap-space-3) var(--ap-space-4);
+  border: var(--ap-border-width-thin) dashed var(--ap-color-border-default);
+  border-radius: var(--ap-radius-md);
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-md);
+}
+
+/* ---------------------------------------------------------------------------
+   القوائم
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-2);
+  max-width: var(--docs-measure);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: docs-item;
+}
+
+.ap-docs .docs-list__item {
+  position: relative;
+  padding-inline-start: var(--ap-space-5);
+  color: var(--ap-color-text-secondary);
+  line-height: var(--ap-leading-relaxed);
+}
+
+.ap-docs .docs-list__item::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--ap-space-1-5);
+  inset-block-start: 0.65em;
+  width: var(--ap-space-1);
+  height: var(--ap-space-1);
+  border-radius: var(--ap-radius-full);
+  background: var(--ap-color-border-strong);
+}
+
+.ap-docs .docs-list--ordered .docs-list__item {
+  padding-inline-start: var(--ap-space-6);
+  counter-increment: docs-item;
+}
+
+.ap-docs .docs-list--ordered .docs-list__item::before {
+  content: counter(docs-item);
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  width: auto;
+  height: auto;
+  background: none;
+  color: var(--ap-color-text-tertiary);
+  font-family: var(--ap-font-mono);
+  font-size: var(--ap-font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   الجداول
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-tablewrap {
+  overflow-x: auto;
+  border: var(--ap-border-width-thin) solid var(--ap-table-border);
+  border-radius: var(--ap-table-radius);
+  background: var(--ap-table-bg);
+}
+
+.ap-docs .docs-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  /* أضيق ما يُقرأ به الجدول قبل أن يبدأ التمرير الأفقي داخل حاويته. */
+  min-width: 560px;
+}
+
+.ap-docs .docs-table th {
+  padding: var(--ap-table-cell-padding-y) var(--ap-table-cell-padding-x);
+  background: var(--ap-table-header-bg);
+  color: var(--ap-table-header-fg);
+  font-size: var(--ap-table-header-size);
+  font-weight: var(--ap-table-header-weight);
+  text-align: start;
+  white-space: nowrap;
+  border-block-end: var(--ap-border-width-thin) solid var(--ap-table-border);
+}
+
+.ap-docs .docs-table td {
+  padding: var(--ap-table-cell-padding-y) var(--ap-table-cell-padding-x);
+  color: var(--ap-table-cell-fg);
+  font-size: var(--ap-table-cell-size);
+  line-height: var(--ap-leading-snug);
+  vertical-align: top;
+  border-block-start: var(--ap-border-width-thin) solid var(--ap-table-border);
+}
+
+.ap-docs .docs-table tbody tr:hover td {
+  background: var(--ap-table-row-hover);
+}
+
+/*
+  الخلايا اللاتينية (أسماء tokens، قيم hex) أحادية المسافة.
+
+  الاختيار بـ `:dir(ltr)` لا بموضع العمود: `dir="auto"` في القالب يحسم اتجاه
+  كل خلية من محتواها، فيلتقط `:dir(ltr)` الخلايا اللاتينية أيًّا كان ترتيبها.
+
+  ⚠️ الاختيار بـ `:first-child` كان خطأً صريحًا: في RTL هو العمود **الأيمن**،
+     أي عمود العنوان العربي لا عمود الـ token.
+
+  تدهور آمن: متصفّح لا يدعم `:dir()` يفقد الخطّ أحادي المسافة فقط — واتجاه
+  النصّ يبقى صحيحًا لأنه من سمة HTML لا من هذه القاعدة.
+*/
+.ap-docs .docs-table td:dir(ltr) {
+  font-family: var(--ap-font-mono);
+  font-size: var(--ap-font-size-xs);
+  color: var(--ap-color-text-primary);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   صناديق التنبيه
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-callout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-2);
+  max-width: var(--docs-measure);
+  padding: var(--ap-space-4);
+  border: var(--ap-border-width-thin) solid;
+  border-radius: var(--ap-radius-md);
+  /* شريط جانبي أعرض: الحالة مقروءة بالشكل قبل اللون (WCAG 1.4.1). */
+  border-inline-start-width: var(--ap-space-0-5);
+}
+
+.ap-docs .docs-callout__title {
+  font-size: var(--ap-font-size-md);
+  font-weight: var(--ap-font-weight-semibold);
+}
+
+.ap-docs .docs-callout__body {
+  font-size: var(--ap-font-size-md);
+  line-height: var(--ap-leading-relaxed);
+}
+
+.ap-docs .docs-callout[data-tone="info"] {
+  background: var(--ap-color-info-bg);
+  border-color: var(--ap-color-info-border);
+  color: var(--ap-color-info-text);
+}
+
+.ap-docs .docs-callout[data-tone="success"] {
+  background: var(--ap-color-success-bg);
+  border-color: var(--ap-color-success-border);
+  color: var(--ap-color-success-text);
+}
+
+.ap-docs .docs-callout[data-tone="warning"] {
+  background: var(--ap-color-warning-bg);
+  border-color: var(--ap-color-warning-border);
+  color: var(--ap-color-warning-text);
+}
+
+.ap-docs .docs-callout[data-tone="danger"] {
+  background: var(--ap-color-error-bg);
+  border-color: var(--ap-color-error-border);
+  color: var(--ap-color-error-text);
+}
+
+/* ---------------------------------------------------------------------------
+   افعل / لا تفعل
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-guidance {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--ap-space-4);
+}
+
+.ap-docs .docs-guidance__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-3);
+  padding: var(--ap-space-4);
+  border: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+  border-radius: var(--ap-radius-lg);
+  background: var(--ap-color-bg-surface);
+}
+
+.ap-docs .docs-guidance__head {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-2);
+  font-size: var(--ap-font-size-md);
+  font-weight: var(--ap-font-weight-semibold);
+}
+
+.ap-docs .docs-guidance__mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-icon-lg);
+  height: var(--ap-icon-lg);
+  border-radius: var(--ap-radius-full);
+  font-size: var(--ap-font-size-xs);
+}
+
+.ap-docs .docs-guidance__col[data-kind="do"] .docs-guidance__head {
+  color: var(--ap-color-success-text);
+}
+
+.ap-docs .docs-guidance__col[data-kind="do"] .docs-guidance__mark {
+  background: var(--ap-color-success-bg);
+}
+
+.ap-docs .docs-guidance__col[data-kind="dont"] .docs-guidance__head {
+  color: var(--ap-color-error-text);
+}
+
+.ap-docs .docs-guidance__col[data-kind="dont"] .docs-guidance__mark {
+  background: var(--ap-color-error-bg);
+}
+
+/* ---------------------------------------------------------------------------
+   البطاقات
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--ap-grid-min-column), 1fr));
+  gap: var(--ap-grid-gap);
+}
+
+.ap-docs .docs-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-2);
+  padding: var(--ap-card-padding-md);
+  border: var(--ap-border-width-thin) solid var(--ap-card-border);
+  border-radius: var(--ap-card-radius);
+  background: var(--ap-card-bg);
+  box-shadow: var(--ap-card-shadow);
+  transition:
+    border-color var(--ap-card-transition),
+    box-shadow var(--ap-card-transition);
+}
+
+.ap-docs .docs-card:hover {
+  border-color: var(--ap-color-border-brand);
+  box-shadow: var(--ap-card-shadow-hover);
+}
+
+.ap-docs .docs-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ap-space-2);
+}
+
+.ap-docs .docs-card__icon {
+  color: var(--ap-color-text-brand);
+  font-size: var(--ap-font-size-xl);
+}
+
+.ap-docs .docs-card__title {
+  font-size: var(--ap-font-size-lg);
+  font-weight: var(--ap-font-weight-semibold);
+  color: var(--ap-color-text-primary);
+}
+
+.ap-docs .docs-card__body {
+  color: var(--ap-color-text-secondary);
+  font-size: var(--ap-font-size-md);
+  line-height: var(--ap-leading-snug);
+}
+
+.ap-docs .docs-card__meta {
+  margin-block-start: auto;
+  padding-block-start: var(--ap-space-2);
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+}
+
+.ap-docs .docs-cards--compact .docs-card {
+  padding: var(--ap-space-3) var(--ap-card-padding-md);
+}
+
+/* ---------------------------------------------------------------------------
+   سلسلة القرار
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-chain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-2);
+  max-width: var(--docs-measure);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: docs-chain;
+}
+
+.ap-docs .docs-chain__step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-0-5);
+  position: relative;
+  padding: var(--ap-space-3) var(--ap-space-4);
+  padding-inline-start: var(--ap-space-10);
+  border: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+  border-radius: var(--ap-radius-md);
+  background: var(--ap-color-bg-surface);
+  counter-increment: docs-chain;
+}
+
+.ap-docs .docs-chain__step::before {
+  content: counter(docs-chain);
+  position: absolute;
+  inset-inline-start: var(--ap-space-3);
+  inset-block-start: var(--ap-space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-icon-xl);
+  height: var(--ap-icon-xl);
+  border-radius: var(--ap-radius-full);
+  background: var(--ap-color-action-primary-subtle);
+  color: var(--ap-color-text-brand);
+  font-size: var(--ap-font-size-xs);
+  font-weight: var(--ap-font-weight-semibold);
+}
+
+/*
+  اسم الحلقة لاتيني داخل بطاقة عربية.
+
+  `isolate` لا `plaintext`: كلاهما يعزل الاسم فيُقرأ LTR صحيحًا، لكن
+  `plaintext` يجعل اتجاه الفقرة نفسها LTR فتُحاذى يسارًا — بعيدًا عن رقم
+  الحلقة الذي يجلس في inline-start (يمينًا في RTL). `isolate` يُبقي محاذاة
+  السطر RTL فيلتصق الاسم برقمه.
+*/
+.ap-docs .docs-chain__name {
+  font-family: var(--ap-font-mono);
+  font-size: var(--ap-font-size-md);
+  font-weight: var(--ap-font-weight-semibold);
+  unicode-bidi: isolate;
+  text-align: start;
+}
+
+.ap-docs .docs-chain__note {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+}
+
+/* ---------------------------------------------------------------------------
+   الإحصاءات
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--ap-space-3);
+}
+
+.ap-docs .docs-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-1);
+  padding: var(--ap-space-4);
+  border: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+  border-radius: var(--ap-radius-md);
+  background: var(--ap-color-bg-surface);
+}
+
+.ap-docs .docs-stat__value {
+  font-size: var(--ap-font-size-3xl);
+  font-weight: var(--ap-font-weight-bold);
+  line-height: var(--ap-leading-none);
+  font-variant-numeric: tabular-nums;
+}
+
+.ap-docs .docs-stat__label {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+}
+
+/* ---------------------------------------------------------------------------
+   التنقّل بين الصفحات
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-pager {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--ap-space-3);
+  padding-block-start: var(--ap-space-8);
+  border-block-start: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+}
+
+.ap-docs .docs-pager__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-space-1);
+  padding: var(--ap-space-3) var(--ap-space-4);
+  border: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+  border-radius: var(--ap-radius-md);
+  background: var(--ap-color-bg-surface);
+  transition: border-color var(--ap-card-transition);
+}
+
+.ap-docs .docs-pager__link:hover {
+  border-color: var(--ap-color-border-brand);
+}
+
+.ap-docs .docs-pager__link[data-dir="next"] {
+  text-align: end;
+}
+
+.ap-docs .docs-pager__label {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+}
+
+.ap-docs .docs-pager__title {
+  color: var(--ap-color-text-primary);
+  font-size: var(--ap-font-size-md);
+  font-weight: var(--ap-font-weight-medium);
+}
+
+/* ---------------------------------------------------------------------------
+   الحالة الفارغة
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ap-space-2);
+  padding: var(--ap-empty-padding-y) var(--ap-empty-padding-x);
+  border: var(--ap-border-width-thin) dashed var(--ap-empty-border);
+  border-radius: var(--ap-empty-radius);
+  text-align: center;
+}
+
+.ap-docs .docs-empty__title {
+  font-size: var(--ap-empty-title-size);
+  font-weight: var(--ap-font-weight-semibold);
+}
+
+.ap-docs .docs-empty__body {
+  max-width: var(--docs-measure);
+  color: var(--ap-empty-text-color);
+  font-size: var(--ap-font-size-md);
+}
+
+.ap-docs .docs-empty__action {
+  display: inline-flex;
+  align-items: center;
+  height: var(--ap-button-height-md);
+  margin-block-start: var(--ap-space-2);
+  padding-inline: var(--ap-button-padding-x-md);
+  border-radius: var(--ap-button-radius);
+  background: var(--ap-button-primary-bg);
+  color: var(--ap-button-primary-fg);
+  font-size: var(--ap-button-font-size);
+  font-weight: var(--ap-button-font-weight);
+  transition: background-color var(--ap-button-transition);
+}
+
+.ap-docs .docs-empty__action:hover {
+  background: var(--ap-button-primary-bg-hover);
+}

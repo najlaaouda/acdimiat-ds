@@ -1,0 +1,1339 @@
+@use '../state' as state;
+@use '../select/menu' as menu;
+
+/* ============================================================================
+   Acadimiat UI — أنماط الجدول
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-table` أو `[apTable]`، بلا استثناء. الورقة بلا
+      تغليف.
+
+      وكان في آخر الملف استثناءٌ واحد: `.ap-row-menu` تُنمِّط لوحة `mat-menu`
+      لأنها تُركَّب في overlay ملحق بـ `<body>` فلا يصلها محدّد ينطلق من
+      الحاوي. وسقط الاستثناء بسقوط سببه — قائمة الصفّ صارت `<ap-menu>`، وهي
+      تبقى في شجرتها وترتفع بسمة `popover` لا بالإلحاق، فتصلها أنماطها من
+      مكوّنها. وسقطت معه أربع قيم `--ap-row-menu-*`: شكل اللوحة كلّه اليوم
+      من `ui/select/_menu.scss` الذي تستورده اللوحات الستّ.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-table-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+   ⛔ ولا `!important` لهزيمة الورقة القديمة — الخصوصية وحدها تكفيها، انظر
+      أدناه. والاستثناء الوحيد إلغاءُ حلقة التركيز العامّة على زرّ الفرز:
+      تلك قاعدة مرفوعة الأولوية في `foundations/_focus.css`، ولا يُهزم
+      إعلانٌ مرفوع الأولوية إلّا بمثله مهما بلغت الخصوصية.
+
+   ─── كيف تُهزم القاعدتان العالميتان بلا `!important` ───────────────────────
+   `panel-style.css` يحكم كل جدول في التطبيق بقاعدتين:
+
+     :6616  thead:not(.no-bg) { background-color: #eee !important; }
+     :6620  .table-responsive, table { border: 1px solid #eee; padding: 10px;
+                                       border-radius: 10px; color: #000; }
+
+   الثانية بلا `!important` وخصوصيتها 0,0,1 — يغلبها `[apTable]` (0,1,0)
+   وتغلبها `ap-table table` (0,0,2). لا مشكلة.
+
+   الأولى بـ `!important`، ولا تُهزم بخصوصية مهما بلغت. والحلّ ليس `!important`
+   مضادّة ولا تعديل الورقة القديمة (80 جدولًا تعتمد عليها اليوم)، بل تغيير
+   **العنصر** الذي تُرسم عليه الخلفية: من `thead` إلى `th`.
+
+   خلفية الابن تُرسم فوق خلفية الأب في مساحته. والخلايا تملأ صفّ الرأس كاملًا
+   مع `border-collapse: collapse`، فتغطّي `#eee` تمامًا بلا أن تنازعها.
+
+   وهي الطريقة الأصحّ بذاتها لا حيلة: رأس لاصق بخلفية على `thead` يُظهر ما
+   تحته من خلال الصفّ في بعض المحرّكات، لأن `position: sticky` يقع على
+   الخلايا لا على الصفّ.
+
+   ─── ثلاثة أبواب للدخول ────────────────────────────────────────────────────
+       ap-table table    الجدول داخل الحاوي — لا سمة مطلوبة (يخدم الترحيل:
+                         `<table mat-table>` يأخذ المظهر بلا لمس منطقه)
+       table[apTable]    جدول خارج الحاوي — داخل بطاقة قائمة مثلًا
+       الاثنان معًا      الحالة الغالبة
+   ============================================================================ */
+
+/*
+  ⚠️ المكوّن يعلن box-sizing بنفسه ولا يعتمد على reset عالمي — القاعدة نفسها
+     الموثّقة في `ap-field.component.scss`: قاعدة bootstrap لا تعبر الجذر
+     الظلّي الذي يعزل مسرح المعاينة.
+*/
+ap-table,
+ap-table *,
+[apTable],
+[apTable] * {
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------------------------
+   الحاوي
+   --------------------------------------------------------------------------- */
+ap-table {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  color: var(--ap-table-cell-fg);
+}
+
+ap-table .ap-table__caption {
+  margin: 0 0 var(--ap-table-caption-gap);
+  color: var(--ap-table-caption-fg);
+  font-size: var(--ap-table-caption-size);
+  line-height: var(--ap-leading-snug);
+  text-align: start;
+}
+
+/*
+  الحدّ ونصف القطر على الحاوي وحده.
+
+  الورقة القديمة تضعهما على `table` **وعلى** `.table-responsive` معًا، فيظهر
+  حدّان متداخلان حول كل جدول في التطبيق. وواحد منهما لا يعمل أصلًا: نصف قطر
+  على `<table>` لا يقصّ خلفية خلايا الرأس، فتبرز زواياها القائمة فوق الاستدارة.
+
+  `overflow: hidden` هنا هو ما يجعل الاستدارة تقصّ فعلًا — ولذلك التمرير
+  في ابن مستقلّ أدناه لا على هذا العنصر: عنصر واحد لا يجمع القصّ والتمرير.
+*/
+ap-table .ap-table__scroll {
+  overflow-x: auto;
+  border: var(--ap-table-border-width) solid var(--ap-table-border);
+  border-radius: var(--ap-table-radius);
+  background: var(--ap-table-bg);
+  /* التمرير الأفقي لا يجرّ الصفحة معه عند بلوغ الطرف. */
+  overscroll-behavior-x: contain;
+
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-color-focus-ring);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+}
+
+/*
+  غلاف بلا صندوق: يوجد ليُخفى وحده عند التحميل أو الفراغ، بلا هدم المحتوى
+  المُسقَط — انظر التعليق في القالب.
+*/
+ap-table .ap-table__content {
+  display: contents;
+}
+
+ap-table[data-state='loading'] .ap-table__content,
+ap-table[data-state='empty'] .ap-table__content {
+  display: none;
+}
+
+ap-table .ap-table__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ap-space-3);
+  margin-block-start: var(--ap-space-3);
+}
+
+ap-table .ap-table__footer:empty {
+  display: none;
+}
+
+/*
+  ذيلٌ لا يحمل إلّا شريط ترقيم أخفى نفسه.
+
+  `<ap-pagination>` يغيب متى وسِع أصغرُ حجم صفحة الصفوفَ كلَّها، ويغيب بـ
+  `display: none` لا بحذفه من القالب. والذيل حينها ليس `:empty` — فيه عنصر —
+  فتبقى فجوته العلوية (`margin-block-start`) تحت جدول بلا شريط.
+
+  ⚠️ و`:only-child` لا `:has(> [data-unpaged])` وحدها: ذيلٌ فيه شريط مخفيّ
+     **وشيء آخر** ذيلٌ عامر، ويجب أن يظهر. وعقد التعليق في الـ DOM لا يحسبها
+     المحدّد طفلًا، فلفّ الشريط بـ `@if` أو `<ng-container>` لا يبطل القاعدة.
+*/
+ap-table .ap-table__footer:has(> ap-pagination[data-unpaged='true']:only-child) {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+   الجدول
+   --------------------------------------------------------------------------- */
+ap-table table,
+[apTable] {
+  width: 100%;
+  /* أضيق ما يُقرأ به الجدول. دونه يبدأ التمرير الأفقي في الحاوي — والتمرير
+     أصدق من السحق: جدول مسحوق يعرض أعمدة بعرض لا يستخدمه أحد فعلًا. */
+  min-width: var(--ap-table-min-width);
+  /* الحدود بين الخلايا خطّ واحد لا خطّان متجاوران. */
+  border-collapse: collapse;
+  border-spacing: 0;
+  /* ⚠️ الثلاثة تُلغي قاعدة `table { … }` العارية في panel-style.css.
+        خصوصية `[apTable]` = 0,1,0 و`ap-table table` = 0,0,2، وكلتاهما تغلب
+        `table` = 0,0,1 بلا `!important`. */
+  border: 0;
+  border-radius: 0;
+  /*
+    ⚠️ الخلفية هنا على الجدول، وهي شرط عمل **التثبيت** لا تجميل.
+
+    ثيم Material يضع `background: inherit` على `tbody` و`<tr>` و`<td>`
+    بمحدّدات (0,1,x) تغلب قاعدتنا على الصفّ (0,0,4). فيرث الصفُّ `tbody`
+    ويرث `tbody` الجدولَ — وإن لم يحمل الجدول لونًا انتهت السلسلة إلى
+    **شفّاف**. والخليّة المثبَّتة تقول `background: inherit` أيضًا، فتصير
+    شفّافة، فتمرّ الصفوف من خلفها عند التمرير الأفقي ويظهر نصّان فوق
+    بعضهما — وهو العطل الذي وُجد التثبيت لمنعه، ومعه يختفي ظلّ الحافّة
+    لأنه يقع خلف محتوى مارّ.
+
+    ولون الجدول لا قاعدة أعلى على `<tr>`: قاعدة (0,2,1) على الصفّ كانت
+    ستغلب التظليل والتحديد (0,1,4) فيفقد الصفّ المحدَّد لونه. والوراثة
+    تُصلح الأساس وحده وتترك الحالات تعلوه كما هي.
+  */
+  background: var(--ap-table-bg);
+  color: var(--ap-table-cell-fg);
+  font-size: var(--ap-table-cell-size);
+  text-align: start;
+}
+
+/* ---------------------------------------------------------------------------
+   الرأس
+   ---------------------------------------------------------------------------
+   ⛔ لا `text-transform` ولا تباعد حرفيّ موجب هنا، ولن يوجدا.
+      القاعدة القائمة `.table thead th` تحمل `uppercase` و`letter-spacing:.5px`:
+      الأولى بلا أثر على العربية أصلًا، والثانية **تكسر وصل الحروف** — وهي
+      المخالفة نفسها الموثّقة في أساس الطباعة (قيمة الـ token صفر).
+
+      وصفرٌ صريح يُكتب في قاعدة Material وحدها أسفل الملف: هناك يفرض الثيم
+      تباعدًا موجبًا بمحدّد يغلب هذه القاعدة، ولا يُردّ إلّا بكتابة الصفر.
+      الرأس يتميّز بالوزن والحجم واللون والخطّ السفليّ، وأربعتها تكفي.
+
+   ⚠️ ولا تعبئة له: `--ap-table-header-bg` هو `--ap-table-bg` نفسه، فالرأس
+      بلون سطح الجدول ويفصله الخطّ السفليّ وحده. والقيمة سطحٌ معتِم لا
+      `transparent` — الرأس يلصق والأعمدة تُثبَّت، وكلاهما تمرّ الصفوف خلفه
+      إن كانت خلفيته شفّافة.
+   --------------------------------------------------------------------------- */
+ap-table table th,
+[apTable] th {
+  padding: var(--ap-table-header-padding-y) var(--ap-table-cell-padding-x);
+  /* ⚠️ الخلفية على `th` لا على `thead` — هي ما يُلغي
+        `thead:not(.no-bg) { background: #eee !important }` بلا `!important`
+        مضادّة. انظر التعليق في رأس الملف.
+
+        ورفعُ التعبئة لا يُلغي الحاجة إليها: بلا هذه القاعدة يبقى `#eee`
+        القادم من الورقة القديمة هو ما يُرسم، فيصير «بلا خلفية» رماديًّا. */
+  background: var(--ap-table-header-bg);
+  color: var(--ap-table-header-fg);
+  font-size: var(--ap-table-header-size);
+  font-weight: var(--ap-table-header-weight);
+  line-height: var(--ap-leading-snug);
+  /* منطقي لا فيزيائي: `left` يضع رأس العمود في الطرف الخطأ في RTL. */
+  text-align: start;
+  /* رأس العمود لا يُلفّ: سطران في الرأس يزيحان الجدول كلّه. */
+  white-space: nowrap;
+  /* أقوى من حدّ الصفوف لونًا وسمكًا: هو وحده ما يفصل الرأس بعد رفع التعبئة. */
+  border-block-end: var(--ap-table-header-border-width) solid
+    var(--ap-table-header-border);
+}
+
+/* ---------------------------------------------------------------------------
+   رأس عمود الأوامر
+   ---------------------------------------------------------------------------
+   عمود الأوامر لا يحمل عنوانًا مرئيًّا: أزراره تشرح نفسها، وكلمة «الأوامر»
+   فوقها تكرار يشغل عرضًا في عمود عرضه هو المشكلة أصلًا.
+
+   ⚠️ لكن الاسم يبقى في الشجرة ولا يُحذف. خليّة رأس بلا اسم متاح تُعلَن
+      «عمود ١٠» عند تصفّح الجدول بقارئ شاشة، وتترك خلايا الجسم بلا رأس
+      تُنسب إليه. الإخفاء بصريّ لا دلاليّ — ولذلك `<span class="ap-sr-only">`
+      لا `<th></th>` فارغة.
+
+   ⚠️ والصنف يُصدَر من ورقة الجدول لا من ورقة عامّة: مسارح التوثيق
+      `ShadowDom`، والأوراق العامّة لا تعبر جذر الظلّ — فقاعدة عامّة تعمل في
+      لوحة الإدارة وتسقط في صفحة التوثيق بلا إشارة.
+   --------------------------------------------------------------------------- */
+ap-table .ap-sr-only,
+[apTable] .ap-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+}
+
+/* ---------------------------------------------------------------------------
+   الرأس داخل `<table mat-table>`
+   ---------------------------------------------------------------------------
+   الخلفية أعلاه لا تكفي وحدها متى كان الجدول جدولَ Material — وهو حال
+   الجداول كلّها اليوم في لوحة الإدارة. وسبب ذلك سلسلة من ثلاث حلقات:
+
+     1. `panel-style.css` يضع ‎thead:not(.no-bg){background:#eee!important}‎.
+     2. ثيم Material يضع ‎background: inherit‎ على خليّة الرأس بمحدّد
+        ‎.mat-mdc-table .mat-mdc-header-cell‎ = (0,2,0).
+     3. و(0,2,0) يغلب ‎ap-table table th‎ = (0,0,3).
+
+   فترث الخليّةُ الصفَّ، ويرث الصفُّ ‎<thead>‎، فيُرسم رأس الجدول رماديًّا
+   ‎#eee‎ بدل قيمة الـ token — أي أن الرأس كان **يبدو** موحَّدًا وهو ليس
+   كذلك. لا يُكتشف هذا بالنظر إلى الورقة وحدها: القاعدتان المتصارعتان في
+   ملفين لا يذكر أحدهما الآخر.
+
+   وبعد رفع التعبئة صار الأثر أوضح لا أخفى: الرأس المُعلَن أبيض يُرسم
+   رماديًّا، وهو الفرق كلّه بين «بلا خلفية» و«خلفية الورقة القديمة».
+
+   ⚠️ والحلّ محدّد أعلى لا `!important`: (0,2,1) يغلب (0,2,0) بفارق واحد.
+      و`!important` هنا كان سيُغلق الباب أمام أي تخصيص لاحق بلا حاجة.
+
+   ⚠️ ولا يُنقل شيء من هذا إلى `<thead>`: قاعدة `panel-style` هناك تحمل
+      `!important` ولا يغلبها محدّد مهما علا. الخلفية تبقى على الخليّة.
+   --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   ⛔ رمادي `<thead>` يُقتلع من مصدره
+
+   `panel-style.css:6616` يكتب `thead:not(.no-bg) { background-color: #eee
+   !important }`. وكانت خلفية `th` وحدها هي ما يخفيه — أي أن الرمادي باقٍ
+   تحتها، فأيّ ثغرة تكشفه: خليّة لم تُصبها قاعدتنا، أو رأسٌ لاصق يرتفع فوق
+   المحتوى فيُقرأ شريطًا رماديًّا ثانيًا تحت الشريط العلوي.
+
+   ⚠️ وكان مكتوبًا هنا أن قاعدة `panel-style` «لا يغلبها محدّد مهما علا»
+      لأنها تحمل `!important`. وذلك **غير صحيح**: `!important` يغلبه
+      `!important` آخر عند محدّد أعلى. و`thead:not(.no-bg)` = (0,1,1)،
+      و`ap-table table thead:not(.no-bg)` = (0,1,3) — فتُحسم بفارق عنصرين.
+
+   وهذا أحد المواضع القليلة التي يكون فيها `!important` مبرَّرًا: لا سبيل
+   إلى نقض `!important` إلّا بمثله.
+   --------------------------------------------------------------------------- */
+ap-table table thead:not(.no-bg),
+[apTable] thead:not(.no-bg) {
+  background: transparent !important;
+}
+
+ap-table .mat-mdc-table .mat-mdc-header-cell {
+  background: var(--ap-table-header-bg);
+  /*
+    ⚠️ والخطّ السفليّ معها، بالسبب نفسه ومحدّد آخر: ثيم Material يكتب
+       ‎border-bottom-color/-width/-style‎ **مفردةً** بمحدّد ‎.mat-mdc-header-cell‎
+       = (0,1,0)، وهو يغلب ‎ap-table table th‎ = (0,0,3) — صنف واحد يغلب ثلاثة
+       عناصر. فكان خطّ الرأس في كل جدول إدارة هو خطّ Material
+       (‎rgba(0,0,0,.12)‎ بسمك 1px) لا خطّ النظام.
+
+       ولم يكن هذا يُرى ما دام للرأس تعبئة رمادية تفصله. وبرفع التعبئة صار
+       الخطّ هو الفاصل الوحيد — فوجب أن يكون خطّنا نحن.
+  */
+  border-block-end: var(--ap-table-header-border-width) solid
+    var(--ap-table-header-border);
+  /*
+    ⚠️ وتصفير التباعد الحرفي ليس تجميلًا: ثيم Material يضع على خليّة الرأس
+       ‎letter-spacing: var(--mat-table-header-headline-tracking)‎ وقيمته
+       ‎.0071428571em‎ — تباعد موجب على نصّ عربي، وهو **يكسر وصل الحروف**.
+       وهي المخالفة نفسها التي يمنعها أساس الطباعة (قيمة الـ token صفر)،
+       تدخل من ورقة لا يذكرها أحد بمحدّد يغلب ورقتنا.
+  */
+  letter-spacing: var(--ap-table-tracking);
+}
+
+/*
+  والخلايا كذلك: ‎.mat-mdc-cell‎ يضع ‎--mat-table-row-item-label-text-tracking‎
+  وقيمته ‎.0178571429em‎ — أوسع من تباعد الرأس، وعلى نصّ الجدول كلّه.
+*/
+ap-table .mat-mdc-table .mat-mdc-cell {
+  letter-spacing: var(--ap-table-tracking);
+}
+
+/* ---------------------------------------------------------------------------
+   الرأس اللاصق
+   ---------------------------------------------------------------------------
+   `position: sticky` على الخلايا لا على `<thead>` ولا على `<tr>`: المحرّكات
+   لا تلصق صفوف الجداول اتفاقًا، والخلية هي الوحدة التي تلصق فعليًا.
+
+   والظلّ يظهر مع اللصق وحده، فيُقرأ الرأس طبقةً تمرّ الصفوف تحتها. الحدّ
+   السفليّ وحده لا يقول ذلك — يبقى خطًّا ملتصقًا كأن الجدول انقطع.
+   --------------------------------------------------------------------------- */
+ap-table[data-sticky='true'] table th {
+  position: sticky;
+  /* ⚠️ صفر لا ارتفاع الشريط العلوي: `sticky` تُحسب مقابل **حاوي التمرير**
+     لا مقابل النافذة، وحاوي الجدول هو أقرب واحد (`overflow-x: auto` يجعل
+     `overflow-y` تُحسب `auto` كذلك — القاعدة نفسها الموثّقة في جسم
+     `<ap-modal>`). فإزاحةٌ بمقدار 72px تدفع الرأس 72px إلى أسفل **داخل
+     الجدول**، فيظهر شريط فارغ فوقه من أوّل رسم بلا أي تمرير. */
+  inset-block-start: 0;
+  /* فوق محتوى الخلايا المارّ تحته، ودون أي طبقة عائمة في الصفحة. */
+  z-index: var(--ap-z-raised);
+  box-shadow: var(--ap-table-header-shadow);
+}
+
+/* ---------------------------------------------------------------------------
+   الخلايا والصفوف
+   --------------------------------------------------------------------------- */
+ap-table table td,
+[apTable] td {
+  padding: var(--ap-table-cell-padding-y) var(--ap-table-cell-padding-x);
+  color: var(--ap-table-cell-fg);
+  font-size: var(--ap-table-cell-size);
+  line-height: var(--ap-table-cell-leading);
+  text-align: start;
+  /* وسط الخليّة لا أعلاها: خلايا جدول الإدارة تحمل صورًا وشارات وأزرارًا
+     بارتفاعات مختلفة، ومحاذاتها إلى الأعلى تترك النصّ معلّقًا فوق ما بجواره.
+     المحاذاة إلى الأعلى تليق بجدول نصّي متعدّد الأسطر — لا بهذا. */
+  vertical-align: middle;
+  border-block-start: var(--ap-table-border-width) solid var(--ap-table-border);
+}
+
+/* ---------------------------------------------------------------------------
+   خلفية الصفّ — مصدر واحد
+   ---------------------------------------------------------------------------
+   ⚠️ الخلفية تُعلَن على `<tr>` **وحده**، وترثها الخلايا المثبَّتة بـ
+      `background: inherit`. ولا تُكتب خلفية على `<td>` في أي مكان آخر.
+
+   السبب عطل مرصود: كانت لكل حالة (تناوب، مرور، تحديد) قاعدتان — واحدة على
+   الخلايا العادية وأخرى على المثبَّتة. فحين اجتمع التحديد والمرور على صفّ
+   واحد فازت قاعدة المرور على الخلايا المثبَّتة وفازت قاعدة التحديد على
+   البقيّة، فظهر الصفّ بلونين: رمادي عند العمودين المثبَّتين وبنفسجي فيما
+   بينهما.
+
+   والوراثة تحلّ ذلك بنيويًا لا بترتيب القواعد: الخليّة المثبَّتة لا تملك
+   لونًا خاصًّا بها إطلاقًا، فيستحيل أن تخالف صفّها.
+
+   ⚠️ و`inherit` لا `transparent`: الشفافة تمرّ الصفوف من خلفها عند التمرير
+      الأفقي فيظهر نصّان فوق بعضهما — وهو ما يوجد التثبيت لمنعه.
+
+   الترتيب هو الأسبقية: تناوب ← مرور ← تحديد ← تحديد ومرور. والتحديد يغلب
+   المرور لأنه حالة يختارها المستخدم وتبقى، والمرور مؤقّت يتبع المؤشّر.
+   --------------------------------------------------------------------------- */
+ap-table table tbody tr,
+[apTable] tbody tr {
+  background: var(--ap-table-bg);
+  transition: background-color var(--ap-table-row-transition);
+}
+
+/* التظليل المتناوب اختياري: يفيد الجدول العريض كثير الأعمدة، ويُشوّش الضيّق. */
+ap-table[data-zebra='true'] table tbody tr:nth-child(even),
+[apTable][data-zebra='true'] tbody tr:nth-child(even) {
+  background: var(--ap-table-row-striped);
+}
+
+/*
+  ⚠️ المرور مقصور على الصفوف **غير المحدَّدة**.
+
+  لا لسبب جمالي: mixin المرور يولّد
+  `tr:hover:not(:disabled):not([aria-disabled='true'])` بخصوصية 0,3,1،
+  بينما `tr[data-selected='true']` خصوصيتها 0,1,1. فالمرور يغلب التحديد
+  مهما تأخّر في الترتيب، ويفقد الصفّ المحدَّد لونه تحت المؤشّر — وهو ما
+  رُصد بالقياس.
+
+  و`:not([data-selected])` يفصل المجموعتين فصلًا تامًّا، فلا تتنازعان
+  أصلًا ولا يعتمد الصواب على ترتيب القواعد.
+*/
+ap-table table tbody tr:not([data-selected='true']),
+[apTable] tbody tr:not([data-selected='true']) {
+  @include state.hover {
+    background: var(--ap-table-row-hover);
+  }
+}
+
+ap-table table tbody tr[data-selected='true'],
+[apTable] tbody tr[data-selected='true'] {
+  background: var(--ap-table-row-selected);
+
+  @include state.hover {
+    background: var(--ap-table-row-selected-hover);
+  }
+}
+
+/* الصفّ المحمول أثناء إعادة الترتيب — يبهت ليقول «هذا ما تحمله». */
+ap-table table tbody tr[data-dragging='true'],
+[apTable] tbody tr[data-dragging='true'] {
+  opacity: var(--ap-table-row-dragging-opacity);
+}
+
+/* أوّل صفّ في الجسم لا يحتاج حدًّا علويًا: حدّ الرأس السفليّ يؤدّي الدور. */
+ap-table table tbody tr:first-child td,
+[apTable] tbody tr:first-child td {
+  border-block-start: 0;
+}
+
+ap-table[data-density='sm'] table td,
+[apTable][data-density='sm'] td {
+  padding-block: var(--ap-table-cell-padding-y-sm);
+}
+
+ap-table[data-density='sm'] table th,
+[apTable][data-density='sm'] th {
+  padding-block: var(--ap-table-cell-padding-y-sm);
+}
+
+
+/*
+  الصفّ المحدَّد.
+
+  أقوى من الممرور عليه عمدًا: التحديد حالة يختارها المستخدم وتبقى، والمرور
+  مؤقّت يتبع المؤشّر. ولذلك يأتي هذا المحدّد **بعد** قاعدة المرور.
+
+  والشريط الجانبي ليس زخرفًا: اللون وحده لا ينقل الحالة (WCAG 1.4.1)، ومربّع
+  الاختيار في أوّل عمود قد يكون خارج الشاشة في جدول مُمرَّر أفقيًا.
+
+  ⚠️ والظلّ **فيزيائي فيحتاج قاعدتين**، بخلاف ما كان مكتوبًا هنا.
+
+  `box-shadow: inset X 0 0` بإزاحة موجبة يرسم الشريط على الحافّة اليسرى
+  للخليّة. و`td:first-child` في RTL هو العمود **الأيمن**، فالشريط كان يقع
+  على حافّته الداخلية — أي خطًّا رأسيًّا داخل الجدول لا على طرفه.
+
+  ولم يُلحظ في المعاينة لأن أوّل عمود فيها مقبض بعرض 1%: الشريط يقع على
+  بعد 24px من الطرف فيُقرأ كأنه عليه. وفي جدول المستخدمين أوّل عمود هو
+  الاسم بعرض 30%، فيقع الشريط في وسط الجدول — وهو الفرق الذي رُصد.
+
+  والحلّ عكس الإشارة في RTL، وهو الاصطلاح نفسه المتّبع في فاصل العمود
+  المثبَّت أسفل الملف. و`:dir()` لا `[dir='rtl']`: الاتجاه قد يُعلَن على أي
+  سلف، و`:dir()` يقرأ المحسوب لا وجود سمة بعينها.
+
+  ⛔ ولا `border-inline-start`: الحدّ يزيد عرض الخليّة فيُبطل كل إزاحة
+     `inset-inline-start` حسبها المكوّن للأعمدة المثبَّتة بعده.
+*/
+ap-table table tbody tr[data-selected='true'] td:first-child,
+[apTable] tbody tr[data-selected='true'] td:first-child {
+  box-shadow: inset var(--ap-table-row-selected-bar-width) 0 0
+    var(--ap-table-row-selected-bar);
+}
+
+ap-table table tbody tr[data-selected='true'] td:first-child:dir(rtl),
+[apTable] tbody tr[data-selected='true'] td:first-child:dir(rtl) {
+  box-shadow: inset calc(var(--ap-table-row-selected-bar-width) * -1) 0 0
+    var(--ap-table-row-selected-bar);
+}
+
+/* ---------------------------------------------------------------------------
+   محاذاة الأعمدة
+   ---------------------------------------------------------------------------
+   `data-align` على الخليّة لا محدّد موضع.
+
+   الجرد وجد صفر عمود أرقام محاذًى في المشروع، ووجد `td:first-child` و
+   `th:last-child` تُستعمل لضبط الأعمدة — وهي في RTL العمود المعاكس تمامًا
+   لما قصده كاتبها. المحاذاة تُعلَن على الخليّة، فتبقى صحيحة في الاتجاهين.
+
+   والأرقام بـ `tabular-nums`: بلا عرض ثابت للرقم لا تصطفّ الآحاد فوق الآحاد،
+   فيصير عمود المبالغ متعرّجًا ويستحيل مسحه بالعين.
+   --------------------------------------------------------------------------- */
+ap-table table [data-align='end'],
+[apTable] [data-align='end'] {
+  text-align: end;
+}
+
+/*
+  خليّة لا تُلفّ — التاريخ والمعرّف والرمز.
+
+  هذه وحدات لا تُقرأ مقطّعة: «12 أغسطس 2026» على سطرين يُقرأ تاريخين، ويرفع
+  ارتفاع الصفّ عن جيرانه فيختلّ مسح العمود بالعين. والمكان الصحيح للفيض هو
+  التمرير الأفقي للحاوي، لا لفّ المحتوى داخل عمود ضاق.
+*/
+ap-table table [data-nowrap='true'],
+[apTable] [data-nowrap='true'] {
+  white-space: nowrap;
+}
+
+ap-table table [data-align='center'],
+[apTable] [data-align='center'] {
+  text-align: center;
+}
+
+ap-table table [data-numeric='true'],
+[apTable] [data-numeric='true'] {
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+/*
+  عمود التحديد: أضيق ما يسع مربّعه، ولا يُلفّ.
+
+  ⚠️ سمة مستقلّة لا `data-actions`: العمودان يتقاسمان العرض ولا يتقاسمان
+     المعنى، و`data-actions` يحمل معه قواعد زرّ الصفّ (الكشف عند المرور،
+     التثبيت عند النهاية). ولولاها لاحتاج كل جدول صنفًا محلّيًا بعرضه —
+     وهو بالضبط ما يجعل جدولين يفترقان.
+*/
+ap-table table [data-select='true'],
+[apTable] [data-select='true'] {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* عمود الأفعال: لا ينكمش ولا يُلفّ، ومحتواه صفّ متباعد بانتظام. */
+ap-table table [data-actions='true'],
+[apTable] [data-actions='true'] {
+  width: 1%;
+  white-space: nowrap;
+  text-align: end;
+}
+
+/* ---------------------------------------------------------------------------
+   رابط داخل خليّة
+   ---------------------------------------------------------------------------
+   `panel-style.css` يضع ‎a { color: #7e7e7e }‎ ويمسح التسطير عند المرور، فاسم
+   المستخدم وبريده يُرسمان بلون النصّ العادي حرفيًا — ولا شيء يقول إنهما
+   يُنقران قبل أن يجرّب المستخدم النقر. والمحدّد هنا (0,1,2) يغلب (0,0,1)
+   بلا ‎!important‎ وبلا لمس الورقة القديمة.
+
+   ⚠️ التسطير عند المرور والتركيز معًا، ولا يُكتفى باللون: اللون وحده يسقط
+      عمّن لا يميّزه (WCAG 1.4.1) — وفي عمود كلّه روابط لا يوجد نصّ جار
+      يُقارَن به أصلًا.
+
+   ⚠️ ولا يُسطَّر دائمًا: عمودان مسطَّران في كل صفّ يجعلان الجدول شبكةً من
+      الخطوط، ويضيع معهما الخطّ الذي يعني «هنا مؤشّرك الآن».
+   --------------------------------------------------------------------------- */
+ap-table table [apTableLink],
+[apTable] [apTableLink] {
+  color: var(--ap-table-link-fg);
+  text-decoration: none;
+  /* الخطّ حين يظهر يقع تحت ذيول الحروف العربية النازلة لا خلالها. */
+  text-underline-offset: var(--ap-table-link-underline-offset);
+  cursor: pointer;
+
+  @include state.hover {
+    color: var(--ap-table-link-fg-hover);
+    text-decoration: underline;
+  }
+
+  @include state.focus {
+    text-decoration: underline;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   خليّة وسائط: شيء مرصوف بجانب نصّ
+   ---------------------------------------------------------------------------
+   أفاتار وأمامه اسم، أو مربّع تحديد ثم أفاتار ثم اسم، أو رقم وبجانبه زرّ
+   نسخ. الفجوة واحدة في الثلاثة — ومن هنا صنف واحد لا ثلاثة أصناف متطابقة
+   القيم تتباعد أوّل مرّة يُعدَّل أحدها.
+
+   ⚠️ `gap` لا هامش على الأفاتار: الهامش المنطقي يحتاج قاعدة، والفجوة تسقط
+      وحدها حين يغيب أحد الطرفين — وهو ما يقع فعلًا حين لا يُمرَّر اسم.
+
+   ⚠️ و`min-width: 0` على النصّ: عنصر مرن لا ينكمش دون عرض محتواه افتراضيًا،
+      فبدونه يدفع الاسمُ الطويل عمودَه ويتجاهل `text-overflow` كلّيًا.
+   --------------------------------------------------------------------------- */
+ap-table table [apTableMedia],
+[apTable] [apTableMedia] {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-table-cell-media-gap);
+}
+
+/* ---------------------------------------------------------------------------
+   الطبقة الثانية: قصّ بصريّ لِما لا يقبل القصّ بالكلمات
+   ---------------------------------------------------------------------------
+   القصّ بالكلمات لا يكفي وحده، والحالة التي تكسره ليست نادرة:
+
+       home_doctor_project home_doctor_project
+
+   كلمتان اثنتان — الشرطة السفلية ليست مسافة — فحدّ الثلاث كلمات يمرّرها
+   كاملةً بـ 39 محرفًا، ويمطّ العمود ويدفع بقيّة الأعمدة أمامه. وكل اسم بلا
+   مسافات (معرّف نظام، بريد وُضع في حقل الاسم، اسم لاتيني مركَّب) يفعل هذا.
+
+   ولا علاج لها بعدد الكلمات مهما نقص: الحدّ 1 يقصّ الأسماء العربية الثنائية
+   التي لا يجوز قصّها، ويترك الكلمة الواحدة الطويلة كما هي. المشكلة في
+   **العرض** لا في عدد الكلمات، فالعلاج على العرض.
+
+   ─── لماذا طبقتان لا واحدة ────────────────────────────────────────────────
+       بالكلمات (TS)   يحذف من الـ DOM   ← يبقي «الاسم مقروءًا» بحدّ دلالي
+       بالعرض  (CSS)   يُخفي ولا يحذف    ← شبكة أمان لِما لا حدّ لكلماته
+
+   والثانية لا تُغني عن الأولى: قصّ CSS وحده يترك اسمًا من ستّ كلمات يملأ
+   العمود إلى آخر بكسل ثم ينقطع، بلا حدّ دلالي يقول «يكفي ثلاث».
+
+   ⚠️ والقصّ البصري **لا يمسّ الـ DOM**: النصّ كامل لقارئ الشاشة وللنسخ،
+      بخلاف `appSliceInnerText` الذي كان يمحوه فعلًا.
+
+   ⚠️ و`min-width: 0` شرط عمله داخل flex لا تحسين: العنصر المرن لا ينكمش
+      دون عرض محتواه افتراضيًا، فبدونه يُتجاهل `text-overflow` كلّيًا. هي
+      القاعدة نفسها في `ap-media-cell__text`.
+   --------------------------------------------------------------------------- */
+ap-table table [apTableMedia] > [apTableLink],
+[apTable] [apTableMedia] > [apTableLink],
+ap-table table [apTableTruncate],
+[apTable] [apTableTruncate] {
+  /* ⚠️ `text-overflow` لا يعمل على عنصر `inline` إطلاقًا — و`<a>` سطريّ
+        افتراضيًا. داخل `[apTableMedia]` يصير عنصرًا مرنًا فيُكتَّل تلقائيًا،
+        أمّا وحده في خليّة فيبقى سطريًا ولا يُقصّ. والتصريح هنا يغطّي
+        الحالتين. */
+  display: block;
+  /* وسقف للعرض: عمود الجدول يتمدّد مع محتواه (`table-layout: auto`)، فبلا
+     سقف لا يفيض شيء أصلًا ولا يظهر القصّ — يتمدّد العمود بدل أن يُقصّ. */
+  max-width: var(--ap-table-truncate-max-width);
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------------------------------------------------------------------------
+   الشارة داخل خليّة
+   ---------------------------------------------------------------------------
+   عرض واحد لكل شارات العمود. خارج الجدول تأخذ الشارة عرض نصّها — وهو
+   الصحيح هناك؛ أمّا في عمود فهي مصفوفة، و«فعال» أضيق من «غير فعال» فتتعرّج
+   حافّة العمود ويصير الطول إشارةً بصرية ثانية لا يقصدها أحد.
+
+   ⚠️ و`justify-content: center` شرط لا زينة: بلا توسيط تلتصق التسمية
+      القصيرة بحافّة البداية داخل صندوقها الأعرض، فيظهر الفراغ كلّه في جهة
+      واحدة — وتبدو الشارة مزاحة لا موحَّدة العرض.
+   --------------------------------------------------------------------------- */
+ap-table table ap-badge,
+[apTable] ap-badge {
+  min-width: var(--ap-table-badge-min-width);
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------------------
+   رأس قابل للفرز
+   --------------------------------------------------------------------------- */
+th[apTableSort] {
+  /* الخليّة تفقد حشوتها والزرّ يستردّها: هدف النقر يصبح الخليّة كاملةً لا
+     نصًّا صغيرًا في وسطها. */
+  padding: 0;
+}
+
+th[apTableSort] .ap-table__sort {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-table-sort-gap);
+  width: 100%;
+  padding: var(--ap-table-header-padding-y) var(--ap-table-cell-padding-x);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--ap-table-header-weight);
+  text-align: start;
+  cursor: pointer;
+  transition: color var(--ap-table-row-transition);
+
+  /*
+    ⛔ لا خلفية عند المرور.
+
+    الرأس بلا حشو أصلًا — خطّ سفلي وحده يفصله عن الصفوف (انظر
+    `--ap-table-header-bg` أعلاه) — فخلفية تظهر تحت المؤشّر تنقض ذلك القرار
+    وتعيد رسم ما حُذف عمدًا، وتغري بقراءة العمود عمودًا مميّزًا لا خليّة
+    تحت المؤشّر.
+
+    وبديلها على المحتوى لا على المساحة: العنوان يعتم درجةً، ومؤشّر الفرز
+    الباهت يمتلئ. الإشارة حينئذٍ على العنصر الذي **سيفرز** لا على مساحة
+    الخليّة كلها.
+  */
+  @include state.hover {
+    color: var(--ap-table-sort-fg-hover);
+
+    /*
+      والمؤشّر الباهت يمتلئ معه — وهو ما حلّ محلّ الخلفية المحذوفة. لونه
+      لا يتغيّر: الامتلاء وحده يكفي، وتلوينه بلون العلامة كان سيدّعي
+      فرزًا مطبَّقًا وهو لم يُنقر بعد.
+    */
+    .ap-table__sort-icon {
+      opacity: 1;
+    }
+  }
+
+  /* الحلقة داخلية: الخليّة ملتصقة بجاراتها، وحلقة خارجية تُقصّ عند حافّتها
+     فتبدو ناقصة من جهة.
+
+     ⚠️ ورفع الأولوية قسرًا شرطُ إلغاء الحلقة الخارجية العامّة في
+        `foundations/_focus.css` — وبدونه تُرسَم الحلقتان معًا: داخلية
+        وخارجية مقصوصة، وهو أسوأ من أيّهما وحدها. الشرح الكامل على
+        `[apInput]` في `ui/field/ap-field.component.scss`.
+
+     ⚠️ وهذه **الاستثناء الوحيد** في هذه الورقة من قاعدة «لا رفع أولوية
+        هنا» المعلنة في رأسها: تلك القاعدة عن هزيمة الورقة المشتراة
+        بالخصوصية، وهذه عن هزيمة إعلانٍ مرفوع الأولوية — ولا تُهزم إلّا
+        بمثله. */
+  @include state.focus {
+    outline: none !important;
+    box-shadow: var(--ap-focus-ring-shadow-inset);
+  }
+}
+
+ap-table[data-density='sm'] th[apTableSort] .ap-table__sort,
+[apTable][data-density='sm'] th[apTableSort] .ap-table__sort {
+  padding-block: var(--ap-table-cell-padding-y-sm);
+}
+
+/*
+  رأس العمود الرقمي يقف فوق أرقامه.
+
+  `text-align` على الخليّة لا يحرّك محتوى الزرّ داخلها: الزرّ صندوق flex،
+  وتوزيع أبنائه يحكمه `justify-content` وحده. فكان الرأس يبقى في بداية
+  العمود بينما أرقامه في نهايته — عمودان بصريًا في عمود واحد.
+
+  رُصد هذا في اللقطة لا في القياس: القيم المحسوبة كانت صحيحة على الخليّة،
+  والخطأ في مكان المحتوى داخلها.
+*/
+th[apTableSort][data-numeric='true'] .ap-table__sort,
+th[apTableSort][data-align='end'] .ap-table__sort {
+  justify-content: flex-end;
+}
+
+th[apTableSort][data-align='center'] .ap-table__sort {
+  justify-content: center;
+}
+
+/* الاصطلاح نفسه في المكتبة كلها: خطّية ترث لون النصّ. */
+th[apTableSort] .ap-table__sort-icon {
+  flex: 0 0 auto;
+  width: var(--ap-table-sort-icon);
+  height: var(--ap-table-sort-icon);
+  color: var(--ap-table-sort-fg);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* باهت حتى يُفرز: يُعلن «هنا فرز» بلا أن يدّعي أنه مطبَّق. */
+  opacity: var(--ap-opacity-disabled);
+  transition: opacity var(--ap-table-row-transition);
+}
+
+th[apTableSort][data-sorted] .ap-table__sort-icon {
+  color: var(--ap-table-sort-fg-active);
+  opacity: 1;
+}
+
+th[apTableSort][data-sorted] .ap-table__sort-label {
+  color: var(--ap-table-sort-fg-active);
+}
+
+/* ---------------------------------------------------------------------------
+   الأعمدة المثبَّتة
+   ---------------------------------------------------------------------------
+   الشيك بوكس وعمود الاسم يبقيان بينما تنزلق بقيّة الأعمدة تحتهما.
+
+   الإزاحة (`inset-inline-start`) يكتبها المكوّن على كل خليّة بعد قياس عرض
+   ما قبلها — انظر `applyPinning`. وهي منطقية لا فيزيائية، فتُقاس من حافّة
+   البداية: اليمين في RTL واليسار في LTR، بلا قاعدة ثانية.
+
+   ⚠️ الخلفية إلزامية على الخليّة المثبَّتة: بدونها تكون شفّافة وتمرّ
+      الصفوف **من خلالها** فيظهر نصّان فوق بعضهما. وهي خلفية الجدول لا
+      لون خاصّ، فلا تُقرأ عمودًا مميّزًا.
+   --------------------------------------------------------------------------- */
+ap-table table th[data-pinned='true'],
+ap-table table td[data-pinned='true'] {
+  position: sticky;
+  z-index: var(--ap-z-raised);
+  /* ترث لون صفّها — انظر «خلفية الصفّ — مصدر واحد» أعلاه. */
+  background: inherit;
+}
+
+/* خليّة الرأس المثبَّتة تلتقي بالتثبيتين معًا (أفقي ورأسي) فتحتاج طبقة أعلى
+   من الاثنين، وإلّا مرّت تحت الرأس اللاصق أو تحت خلايا الجسم المثبَّتة. */
+ap-table table th[data-pinned='true'] {
+  z-index: var(--ap-z-sticky);
+  background: var(--ap-table-header-bg);
+}
+
+/*
+  الفاصل يظهر عند التمرير وحده.
+
+  بلا إزاحة لا شيء يمرّ خلف العمود المثبَّت، فالخطّ حينها يقسم الجدول بلا
+  سبب. ومع الإزاحة يصير هو ما يقول «ما بعد هذا الحدّ ينزلق».
+
+  وهو ظلّ لا حدّ: الحدّ يزيد عرض الخليّة فتختلّ الإزاحة المحسوبة لما بعدها.
+*/
+ap-table[data-scrolled='true'] table th[data-pinned-edge='true'],
+ap-table[data-scrolled='true'] table td[data-pinned-edge='true'] {
+  /* LTR: الإزاحة موجبة فيقع الظلّ يمينًا، حيث ينزلق ما بعده. */
+  box-shadow: var(--ap-table-pinned-shadow-size) 0 var(--ap-table-pinned-shadow-size)
+    calc(var(--ap-table-pinned-shadow-size) * -1) var(--ap-table-pinned-shadow-color);
+}
+
+/*
+  RTL: العمود المثبَّت على اليمين وما ينزلق على يساره، فتُعكس الإزاحة.
+
+  `:dir()` لا `[dir="rtl"]`: الاتجاه قد يُعلَن على أي سلف — على `<html>`
+  أو على مسرح المعاينة أو على الصفّ وحده — و`:dir()` يقرأ الاتجاه المحسوب
+  لا وجود سمة بعينها. وهو الاصطلاح نفسه المتّبع في `apIconFlip`.
+
+  تدهور آمن: متصفّح لا يدعمه يُبقي ظلّ LTR — فاصل في الجهة المقابلة، لا
+  فقدان للفاصل.
+*/
+ap-table[data-scrolled='true'] table th[data-pinned-edge='true']:dir(rtl),
+ap-table[data-scrolled='true'] table td[data-pinned-edge='true']:dir(rtl) {
+  box-shadow: calc(var(--ap-table-pinned-shadow-size) * -1) 0
+    var(--ap-table-pinned-shadow-size) calc(var(--ap-table-pinned-shadow-size) * -1)
+    var(--ap-table-pinned-shadow-color);
+}
+
+/* ---------------------------------------------------------------------------
+   عمود النهاية المثبَّت (الإجراءات)
+   ---------------------------------------------------------------------------
+   زرّ النقاط في آخر الصفّ. بلا تثبيته يخرج عن الشاشة في أي جدول عريض،
+   فيضطرّ المستخدم إلى التمرير أفقيًا **قبل** أن يستطيع فتح قائمة الصفّ —
+   وهو ما يجعل المرور على الصفّ بلا فائدة.
+
+   الإزاحة يكتبها المكوّن بعد قياس عرض الأعمدة التالية له، منطقيةً
+   (`inset-inline-end`) فتقع في الطرف الصحيح في الاتجاهين.
+   --------------------------------------------------------------------------- */
+ap-table table th[data-pinned-end='true'],
+ap-table table td[data-pinned-end='true'] {
+  position: sticky;
+  z-index: var(--ap-z-raised);
+  background: inherit;
+}
+
+ap-table table th[data-pinned-end='true'] {
+  z-index: var(--ap-z-sticky);
+  background: var(--ap-table-header-bg);
+}
+
+/* الفاصل يظهر ما دام هناك ما ينزلق تحته — ويسقط عند بلوغ النهاية، لأن
+   الخطّ حينها يقسم الجدول بلا شيء يفصله. والاتجاه معكوس عن فاصل البداية. */
+ap-table[data-scrolled-end='true'] table th[data-pinned-end-edge='true'],
+ap-table[data-scrolled-end='true'] table td[data-pinned-end-edge='true'] {
+  box-shadow: calc(var(--ap-table-pinned-shadow-size) * -1) 0
+    var(--ap-table-pinned-shadow-size) calc(var(--ap-table-pinned-shadow-size) * -1)
+    var(--ap-table-pinned-shadow-color);
+}
+
+ap-table[data-scrolled-end='true'] table th[data-pinned-end-edge='true']:dir(rtl),
+ap-table[data-scrolled-end='true'] table td[data-pinned-end-edge='true']:dir(rtl) {
+  box-shadow: var(--ap-table-pinned-shadow-size) 0 var(--ap-table-pinned-shadow-size)
+    calc(var(--ap-table-pinned-shadow-size) * -1) var(--ap-table-pinned-shadow-color);
+}
+
+/* ---------------------------------------------------------------------------
+   مقبض سحب الصفّ
+   ---------------------------------------------------------------------------
+   يظهر مع المرور في **بداية** الصفّ — يمينًا في RTL — حيث تبدأ العين قراءة
+   الصفّ، فيكون أوّل ما تصله اليد حين تريد نقله.
+
+   ⚠️ `cursor: grab` لا `move`: الأوّل يقول «يمكن الإمساك»، والثاني يقول
+      «يجري النقل» — والفرق بينهما هو الفرق بين دعوةٍ وحالة.
+   --------------------------------------------------------------------------- */
+ap-table table [apTableDrag],
+[apTable] [apTableDrag] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-table-drag-size);
+  height: var(--ap-table-drag-size);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ap-table-drag-fg);
+  cursor: grab;
+  opacity: 0;
+  transition:
+    opacity var(--ap-table-row-transition),
+    color var(--ap-table-row-transition);
+
+  border-radius: var(--ap-table-drag-radius);
+
+  @include state.hover {
+    background: var(--ap-table-drag-bg-hover);
+    color: var(--ap-table-drag-fg-hover);
+  }
+
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-color-focus-ring);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+}
+
+ap-table table [apTableDrag]:active,
+[apTable] [apTableDrag]:active {
+  cursor: grabbing;
+}
+
+/* يظهر بالقواعد نفسها التي تُظهر زرّ الإجراءات — انظر تعليقها أدناه. */
+ap-table table tbody tr:hover [apTableDrag],
+ap-table table tbody tr:focus-within [apTableDrag],
+[apTable] tbody tr:hover [apTableDrag],
+[apTable] tbody tr:focus-within [apTableDrag] {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  ap-table table [apTableDrag],
+  [apTable] [apTableDrag] {
+    opacity: 1;
+  }
+}
+
+ap-table table [apTableDrag] svg,
+[apTable] [apTableDrag] svg {
+  width: var(--ap-icon-md);
+  height: var(--ap-icon-md);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------------------
+   شريط الإجراءات الجماعية
+   ---------------------------------------------------------------------------
+   شريط داكن عائم يظهر متى حُدِّد صفّ. الداكن لا الفاتح: هو طبقة **فوق**
+   الجدول لا جزء منه، والتباين العكسي وحده يقول ذلك بلا حدّ ولا ظلّ ثقيل.
+
+   ⚠️ `position: sticky` بمرجع أسفل الشاشة، لا `fixed`: الشريط يخصّ هذا
+      الجدول وحده، و`fixed` كان سيُبقيه معلّقًا على الشاشة بعد أن يمرّر
+      المستخدم بعيدًا عن الجدول كلّه.
+   --------------------------------------------------------------------------- */
+ap-table .ap-table__bulk {
+  position: sticky;
+  inset-block-end: var(--ap-space-4);
+  z-index: var(--ap-z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--ap-table-bulk-gap);
+  width: fit-content;
+  max-width: 100%;
+  /* متوسّط أفقيًا بهامش تلقائي — لا `left: 50%` وتحويل، فذاك يكسر في RTL. */
+  margin-inline: auto;
+  margin-block-start: var(--ap-space-4);
+  padding: var(--ap-table-bulk-padding-y) var(--ap-table-bulk-padding-x);
+  border-radius: var(--ap-table-bulk-radius);
+  background: var(--ap-table-bulk-bg);
+  color: var(--ap-table-bulk-fg);
+  box-shadow: var(--ap-table-bulk-shadow);
+  font-size: var(--ap-table-bulk-font-size);
+  /* يتمرّر أفقيًا حين تكثر الأفعال، بدل أن يفيض عن الشاشة. */
+  overflow-x: auto;
+}
+
+ap-table .ap-table__bulk-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--ap-space-1);
+  white-space: nowrap;
+}
+
+ap-table .ap-table__bulk-total {
+  color: var(--ap-table-bulk-fg-muted);
+}
+
+ap-table .ap-table__bulk-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ap-space-1);
+  /* فاصل رأسي يفصل العدّاد عن الأفعال — منطقي فيقع في الجهة الصحيحة. */
+  padding-inline-start: var(--ap-table-bulk-gap);
+  border-inline-start: var(--ap-border-width-thin) solid var(--ap-table-bulk-divider);
+}
+
+ap-table .ap-table__bulk-actions:empty {
+  display: none;
+}
+
+/*
+  ⚠️ الغلاف الذي يحمل `apTableBulkActions` بلا صندوق.
+
+  المنفذ يقبل شكلين: عنصرًا يحمل السمة (`<div apTableBulkActions>`)، أو
+  `<ng-container ngProjectAs>` يُسقِط أزراره مباشرةً. وبلا هذه القاعدة
+  يُنتجان مظهرين مختلفين للشيء نفسه: في الأوّل تصير الأزرار أبناء `<div>`
+  كتليّ فتفقد `gap` الحاوي وتتباعد بمسافات النصّ البيضاء، وفي الثاني تكون
+  عناصر مرنة مباشرة فتأخذ الفجوة الصحيحة.
+
+  و`display: contents` يجعل الشكلين واحدًا: الغلاف يختفي من التخطيط وتصير
+  الأزرار أبناء الشريط في الحالتين. وهو آمن دلاليًا هنا — الغلاف `<div>`
+  بلا دور، لا عنصر تُفقده القاعدة معناه.
+*/
+ap-table .ap-table__bulk-actions > [apTableBulkActions] {
+  display: contents;
+}
+
+/*
+  أزرار الشريط: شفّافة على الداكن، ترث لونه.
+
+  ولا تستعمل `[apButton]` هنا: أنواعه كلها مقيسة على سطح **فاتح** — الثانوي
+  أبيض بحدّ رمادي فيصير رقعةً بيضاء على الشريط، والثالثي يعتم عند المرور
+  فيختفي. سطح معكوس يحتاج مجموعته الخاصّة.
+*/
+ap-table .ap-table__bulk-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ap-space-2);
+  padding: var(--ap-space-1-5) var(--ap-space-3);
+  border: 0;
+  border-radius: var(--ap-radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--ap-table-row-transition);
+
+  @include state.hover {
+    background: var(--ap-table-bulk-bg-hover);
+  }
+
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-color-focus-ring-inverse);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+
+  /*
+    المعطَّل: الفعل الجماعي طلبٌ إلى الخادم، والزرّ يُعطَّل ريثما يعود.
+
+    ⚠️ `opacity` لا لون نصّ معطَّل: الشريط سطح معكوس، و
+       `--ap-color-text-disabled` مقيس على سطح فاتح فيصير على الداكن أوضح
+       من الحالة العادية لا أخفت منها. والشفافية تعمل على أي سطح.
+
+    ⚠️ ويبقى الزرّ في الشجرة وفي ترتيب التنقّل حتى يُعلن `disabled` لقارئ
+       الشاشة — وإخفاؤه أثناء الطلب كان سيُسقط التركيز إلى `body`.
+  */
+  @include state.disabled {
+    opacity: var(--ap-opacity-disabled);
+    cursor: not-allowed;
+  }
+}
+
+/* المعطَّل لا يستجيب للمرور: تعبئة تحت مؤشّر «ممنوع» تناقض نفسها. */
+ap-table .ap-table__bulk-actions button:disabled:hover {
+  background: none;
+}
+
+ap-table .ap-table__bulk-actions button[data-tone='danger'] {
+  color: var(--ap-table-bulk-danger-fg);
+}
+
+ap-table .ap-table__bulk-actions button svg {
+  width: var(--ap-icon-md);
+  height: var(--ap-icon-md);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------------------
+   زرّ إجراءات الصفّ
+   ---------------------------------------------------------------------------
+   يظهر عند المرور على الصفّ — ويبقى ظاهرًا في ثلاث حالات إضافية، وكلها
+   إصلاح لعطل لا تجميل:
+
+     • `:focus-within` على الصفّ — وإلّا كان الزرّ محطّة تنقّل **غير مرئية**
+       لمستخدم لوحة المفاتيح: يصل إليها ولا يرى أين هو (WCAG 2.4.7).
+     • `aria-expanded="true"` — القائمة مفتوحة والمؤشّر غادر الصفّ إليها،
+       فلو اختفى الزرّ لبدت القائمة معلّقة بلا مصدر.
+     • `hover: none` — على اللمس لا وجود للمرور أصلًا، فالإخفاء يعني
+       أن الإجراءات لا تُبلَغ إطلاقًا.
+
+   ⚠️ `opacity` لا `visibility` ولا `display`: الأخيران يُخرجان الزرّ من
+      ترتيب التنقّل، فلا يصل إليه `:focus-within` أصلًا ولا يعود ظاهرًا أبدًا.
+   --------------------------------------------------------------------------- */
+ap-table table [apTableAction],
+[apTable] [apTableAction] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-table-action-size);
+  height: var(--ap-table-action-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ap-table-action-radius);
+  background: transparent;
+  color: var(--ap-table-action-fg);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--ap-table-row-transition),
+    background-color var(--ap-table-row-transition),
+    color var(--ap-table-row-transition);
+
+  @include state.hover {
+    background: var(--ap-table-action-bg-hover);
+    color: var(--ap-table-action-fg-hover);
+  }
+
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-color-focus-ring);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+}
+
+ap-table table tbody tr:hover [apTableAction],
+ap-table table tbody tr:focus-within [apTableAction],
+ap-table table [apTableAction][aria-expanded='true'],
+[apTable] tbody tr:hover [apTableAction],
+[apTable] tbody tr:focus-within [apTableAction],
+[apTable] [apTableAction][aria-expanded='true'] {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   الصيغة النصّية — `[apTableAction][data-shape='text']`
+   ---------------------------------------------------------------------------
+   فعلٌ **واحد** في الصفّ يُكتب بكلمته بدل أن يُخبَّأ خلف ⋯: القائمة تُبرَّر
+   بأنها تجمع أفعالًا وتُسمّيها، فإن كان الفعل واحدًا صارت نقرةً زائدة تُخفي
+   كلمةً كانت ستُقرأ بلا فتح.
+
+   ⚠️ ويرث الكشف بالمرور والتركيز والتثبيت في الطرف من `[apTableAction]`
+      نفسه: تلك القواعد تُطابق السمة وحدها، فهذه تُعدّل الصندوق واللون ولا
+      تمسّ السلوك. ونسخُ قواعد الكشف هنا كان يعني أن تصحيحًا في إحداها لا
+      يصل إلى الأخرى.
+
+   ⚠️ وزرّ لا رابط: الفعل يقع في الصفحة ولا يقود إلى عنوان — و
+      `<a href="javascript:void(0)">` يَعِد قارئ الشاشة برابط ولا يفي. والمظهر
+      وحده هو المستعار من `[apTableLink]`، وقيمُه من رموزه نفسها فلا يفترق
+      اللونان.
+
+   ⚠️ والتباعد الحرفي صفر صراحةً: الزرّ داخل `<table mat-table>` يرث
+      `letter-spacing` موجبًا من ثيمة Material — وهو يكسر وصل الحروف العربية.
+   --------------------------------------------------------------------------- */
+ap-table table [apTableAction][data-shape='text'],
+[apTable] [apTableAction][data-shape='text'] {
+  width: auto;
+  padding-inline: var(--ap-space-2);
+  border-radius: var(--ap-table-action-radius);
+  color: var(--ap-table-link-fg);
+  font-family: var(--ap-font-sans);
+  font-size: var(--ap-table-font-size);
+  font-weight: var(--ap-font-weight-medium);
+  letter-spacing: var(--ap-table-tracking);
+  white-space: nowrap;
+
+  @include state.hover {
+    background: transparent;
+    color: var(--ap-table-link-fg-hover);
+    text-decoration: underline;
+    text-underline-offset: var(--ap-table-link-underline-offset);
+  }
+
+  /*
+    والتسطير عند التركيز كذلك: اللون وحده لا يكفي (WCAG 1.4.1)، وقاعدة
+    `[apTableLink]` نفسها.
+  */
+  @include state.focus {
+    text-decoration: underline;
+    text-underline-offset: var(--ap-table-link-underline-offset);
+  }
+}
+
+/* لا مرور على اللمس — الإخفاء هناك يعني أن الإجراءات لا تُبلَغ إطلاقًا. */
+@media (hover: none) {
+  ap-table table [apTableAction],
+  [apTable] [apTableAction] {
+    opacity: 1;
+  }
+}
+
+ap-table table [apTableAction] svg,
+[apTable] [apTableAction] svg {
+  width: var(--ap-icon-lg);
+  height: var(--ap-icon-lg);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------------------
+   هيكل التحميل
+   --------------------------------------------------------------------------- */
+ap-table .ap-table__skeleton {
+  width: 100%;
+  min-width: var(--ap-table-min-width);
+  border-collapse: collapse;
+  border: 0;
+}
+
+ap-table .ap-table__skeleton td {
+  padding: var(--ap-table-cell-padding-y) var(--ap-table-cell-padding-x);
+  border-block-start: var(--ap-table-border-width) solid var(--ap-table-border);
+}
+
+ap-table .ap-table__skeleton tr:first-child td {
+  border-block-start: 0;
+}
+
+ap-table .ap-table__skeleton-bar {
+  display: block;
+  height: var(--ap-table-skeleton-height);
+  border-radius: var(--ap-table-skeleton-radius);
+  background: var(--ap-table-skeleton-bg);
+}
+
+/*
+  النبض من الشفافية لا من تدرّج متحرّك: الأخير يحتاج `background-position`
+  على تدرّج بقيم لونية خام، وهو ما لا يمكن التعبير عنه بـ token واحد.
+*/
+@keyframes ap-table-skeleton {
+  50% {
+    opacity: var(--ap-opacity-muted);
+  }
+}
+
+ap-table .ap-table__skeleton-bar {
+  animation: ap-table-skeleton var(--ap-duration-slow) var(--ap-ease-standard) infinite alternate;
+}
+
+/* ---------------------------------------------------------------------------
+   الحالة الفارغة
+   ---------------------------------------------------------------------------
+   تستهلك `--ap-empty-*` القائمة ولا تخترع مجموعة ثانية: «لا نتائج» في جدول
+   هي نفسها «لا نتائج» في أي مكان آخر، واختلاف مظهرها بحسب ما يحيط بها بلا
+   معنى للمستخدم.
+   --------------------------------------------------------------------------- */
+ap-table .ap-table__empty {
+  padding: var(--ap-empty-padding-y) var(--ap-empty-padding-x);
+  color: var(--ap-empty-text-color);
+  text-align: center;
+}
+
+/*
+  ونصٌّ واحد هو الحالة الشائعة، لكن المنفذ يقبل `<ap-empty-state>` كاملة —
+  بعنوان وأيقونة وفعل. وحينئذٍ تُصفَّر حشوة المنفذ: المكوّن يحمل حشوته
+  بنفسه، فتتضاعف الحشوتان ويصير الجدول الفارغ أطول من الممتلئ.
+
+  ⚠️ **بلا `>`**: المُسقَط لا يصير ابنًا مباشرًا لهذا العنصر. قالب الحاوي
+     يلفّ المنفذ (`<div class="ap-table__empty"><ng-content …/></div>`)،
+     والمستهلك يكتب `<div apTableEmpty>` حول محتواه — فالمكوّن حفيد لا
+     ابن، ومحدّد الابن المباشر لا يطابقه. ولا يظهر ذلك خطأً في أي مكان:
+     تُرسم الحشوتان معًا وتُقرأ فراغًا مقصودًا.
+
+  ⚠️ والمكوّن يُؤخذ `appearance="plain"` هنا: الحاوي يملك حدَّه ونصف قطره
+     أصلًا، و`card` تضع حدًّا ثانيًا داخل الأوّل.
+*/
+ap-table .ap-table__empty:has(ap-empty-state) {
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   تفضيل تقليل الحركة
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  ap-table .ap-table__skeleton-bar {
+    animation: none;
+  }
+
+  ap-table table tbody tr,
+  [apTable] tbody tr,
+  th[apTableSort] .ap-table__sort,
+  th[apTableSort] .ap-table__sort-icon {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   الألوان المفروضة (Windows High Contrast)
+   ---------------------------------------------------------------------------
+   خلفيات الصفوف كلها تُستبدل في هذا الوضع، فيختفي تمييز الصفّ المحدَّد
+   والمتناوب معًا. الحدّ هو ما ينجو.
+   --------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  ap-table table tbody tr[data-selected='true'] td,
+  [apTable] tbody tr[data-selected='true'] td {
+    border-block-end: var(--ap-border-width-thick) solid Highlight;
+  }
+
+  ap-table .ap-table__scroll {
+    border-color: CanvasText;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   زرّ صفٍّ بنغمة الخطر
+   ---------------------------------------------------------------------------
+   للحذف وحده — فعل غير قابل للتراجع. ولا يُوسَّع استعماله: لون يظهر في كل
+   صفّ يفقد معناه، والنغمة هنا **تسبق** التأكيد لا تحلّ محلّه.
+
+   ⚠️ اللون وحده لا يكفي (WCAG 1.4.1): الزرّ يحمل `aria-label` يقول «حذف»،
+      وأيقونته سلّة — فالمعنى مكتوب ومرسوم قبل أن يكون ملوّنًا.
+   --------------------------------------------------------------------------- */
+ap-table table [apTableAction][data-tone='danger'],
+[apTable] [apTableAction][data-tone='danger'] {
+  color: var(--ap-table-action-fg-danger);
+
+  @include state.hover {
+    background: var(--ap-table-action-bg-danger-hover);
+    color: var(--ap-table-action-fg-danger-hover);
+  }
+
+  @include state.focus {
+    outline-color: var(--ap-color-focus-ring-danger);
+  }
+}

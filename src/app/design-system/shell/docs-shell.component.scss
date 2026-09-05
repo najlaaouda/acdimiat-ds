@@ -1,0 +1,475 @@
+@use './docs-content';
+@use './docs-tokens';
+@use './docs-demo';
+
+/* ============================================================================
+   Acadimiat Design System Docs — أنماط الغلاف
+   ----------------------------------------------------------------------------
+   يُحمَّل معه `_docs-content.scss` (أنماط المتن). الفصل تنظيمي لا وظيفي:
+   الملفان يخرجان كورقة واحدة بلا تغليف، وتسري عليهما القاعدة نفسها.
+
+   ⛔ القاعدة الوحيدة غير القابلة للتفاوض في هذا الملف:
+
+          كل محدّد يبدأ بـ `.ap-docs`.
+
+      الملف يُحمَّل بـ ViewEncapsulation.None، فتبقى قواعده في `<head>` بعد
+      مغادرة مسار التوثيق. محدّد عارٍ واحد هنا يلوّث لوحة الإدارة والموقع
+      العام معًا — وهو بالضبط المرض الذي يعالجه هذا النظام.
+
+   ⛔ صفر قيم تصميمية جديدة. كل لون ومسافة ونصف قطر وظلّ وزمن من الـ tokens.
+      الاستثناء الوحيد المسموح: أبعاد هيكل التوثيق نفسه (عرض عمود القراءة)،
+      وهي معلَّمة أدناه بـ `--docs-*` لا `--ap-*` كي لا تُقرأ كـ tokens نظام.
+
+   ─── التحييد الموجَّه (لا reset شامل) ───────────────────────────────────────
+   التلوّث القادم من `panel-style.css` و `bootstrap.css` و `styles.scss` قابل
+   للحصر: محدّدات عناصر عارية بخصوصية 0,0,1. أي قاعدة `.ap-docs <element>`
+   خصوصيتها 0,1,1 فتهزمها بلا `!important` وبلا حرب خصوصية.
+
+   أما الـ 406 `!important` في `styles.scss` فتستهدف كلاسات لوحة الإدارة
+   بأسمائها — وصفحات التوثيق لا تستخدم أيًّا منها. التلوّث يصبح خاملًا
+   بالانضباط في التسمية، لا بالمواجهة.
+   ============================================================================ */
+
+.ap-docs {
+  /* ── أبعاد هيكل التوثيق ────────────────────────────────────────────────
+     ليست tokens نظام تصميم — هي مقاسات هذا الموقع وحده. البادئة `--docs-`
+     تجعل الفرق ظاهرًا في أي بحث لاحق.
+     عرض القراءة 68ch: مقيس بالحرف لا بالبكسل، فيتجاوب مع تكبير الخط في
+     التطبيق (`html[data-font-size]`) بدل أن يجمد عنده.
+     ──────────────────────────────────────────────────────────────────── */
+  --docs-topbar-height: calc(var(--ap-control-height-md) + var(--ap-space-4));
+  --docs-sidebar-width: var(--ap-sidebar-width);
+  --docs-measure: 68ch;
+  --docs-content-max: 920px;
+
+  display: flex;
+  flex-direction: column;
+
+  /* حاوية تمرير مستقلّة: `body { overflow-x: hidden }` في panel-style.css
+     يكسر `position: sticky` لكل ما تحته، فيملك الغلاف تمريره بدل مصارعتها. */
+  height: 100dvh;
+  overflow: hidden;
+
+  background: var(--ap-color-bg-page);
+  color: var(--ap-color-text-primary);
+  font-family: var(--ap-font-sans);
+  font-size: var(--ap-font-size-md);
+  line-height: var(--ap-leading-normal);
+}
+
+/* ---------------------------------------------------------------------------
+   التحييد الموجَّه — قائمة المعتدين المحصورة
+   `all: revert` يعيد العنصر إلى افتراضي المتصفّح، ثم نعيد بناءه بالـ tokens.
+   لا نستخدم `* { all: unset }` لأنه يقتل الوراثة التي تحمل الـ tokens نفسها.
+   --------------------------------------------------------------------------- */
+.ap-docs table,
+.ap-docs th,
+.ap-docs td,
+.ap-docs h1,
+.ap-docs h2,
+.ap-docs h3,
+.ap-docs h4,
+.ap-docs p,
+.ap-docs ul,
+.ap-docs ol,
+.ap-docs li {
+  all: revert;
+  font-family: inherit;
+  color: inherit;
+}
+
+.ap-docs h1,
+.ap-docs h2,
+.ap-docs h3,
+.ap-docs h4 {
+  margin: 0;
+  font-weight: var(--ap-font-weight-semibold);
+  line-height: var(--ap-leading-tight);
+  letter-spacing: var(--ap-tracking-normal);
+}
+
+.ap-docs p {
+  margin: 0;
+}
+
+.ap-docs ul,
+.ap-docs ol {
+  margin: 0;
+  padding: 0;
+}
+
+.ap-docs a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ap-docs button {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---------------------------------------------------------------------------
+   أدوات
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ap-docs .docs-skip {
+  position: absolute;
+  inset-inline-start: var(--ap-space-4);
+  inset-block-start: calc(var(--ap-space-4) * -4);
+  z-index: var(--ap-z-toast);
+  padding: var(--ap-space-2) var(--ap-space-4);
+  border-radius: var(--ap-radius-md);
+  background: var(--ap-color-action-primary);
+  color: var(--ap-color-action-on-primary);
+  font-size: var(--ap-font-size-md);
+  font-weight: var(--ap-font-weight-medium);
+  transition: inset-block-start var(--ap-duration-fast) var(--ap-ease-standard);
+}
+
+.ap-docs .docs-skip:focus-visible {
+  inset-block-start: var(--ap-space-4);
+}
+
+/* ---------------------------------------------------------------------------
+   الشريط العلوي
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-3);
+  flex: 0 0 auto;
+  height: var(--docs-topbar-height);
+  padding-inline: var(--ap-space-5);
+  background: var(--ap-color-bg-surface);
+  border-block-end: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+}
+
+.ap-docs .docs-topbar__spacer {
+  flex: 1 1 auto;
+}
+
+.ap-docs .docs-topbar__meta {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+}
+
+.ap-docs .docs-topbar__toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-control-height-sm);
+  height: var(--ap-control-height-sm);
+  border: var(--ap-border-width-thin) solid var(--ap-color-border-default);
+  border-radius: var(--ap-radius-sm);
+  background: var(--ap-color-bg-surface);
+  color: var(--ap-color-text-secondary);
+  cursor: pointer;
+}
+
+.ap-docs .docs-topbar__toggle:hover {
+  background: var(--ap-color-bg-hover);
+}
+
+.ap-docs .docs-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-2);
+}
+
+.ap-docs .docs-brand__mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-control-height-sm);
+  height: var(--ap-control-height-sm);
+  border-radius: var(--ap-radius-sm);
+  background: var(--ap-color-action-primary-subtle);
+  color: var(--ap-color-text-brand);
+  font-size: var(--ap-font-size-lg);
+}
+
+.ap-docs .docs-brand__text {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ap-space-2);
+}
+
+.ap-docs .docs-brand__name {
+  font-size: var(--ap-font-size-md);
+  font-weight: var(--ap-font-weight-semibold);
+}
+
+.ap-docs .docs-brand__label {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+}
+
+/* ---------------------------------------------------------------------------
+   الجسم
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-body {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   الشريط الجانبي
+   الاتجاه منطقي: `dir="rtl"` يضعه يمينًا و`ltr` يسارًا بلا قاعدة ثانية.
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-sidebar {
+  flex: 0 0 var(--docs-sidebar-width);
+  width: var(--docs-sidebar-width);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--ap-space-5) var(--ap-space-4) var(--ap-space-12);
+  background: var(--ap-color-bg-surface);
+  border-inline-end: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+}
+
+.ap-docs .docs-nav__home,
+.ap-docs .docs-nav__heading,
+.ap-docs .docs-nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-2);
+  border-radius: var(--ap-radius-sm);
+  transition: background-color var(--ap-duration-fast) var(--ap-ease-standard),
+              color var(--ap-duration-fast) var(--ap-ease-standard);
+}
+
+.ap-docs .docs-nav__home {
+  padding: var(--ap-space-2) var(--ap-space-3);
+  margin-block-end: var(--ap-space-5);
+  color: var(--ap-color-text-secondary);
+  font-size: var(--ap-font-size-md);
+  font-weight: var(--ap-font-weight-medium);
+}
+
+.ap-docs .docs-nav__home:hover {
+  background: var(--ap-color-bg-hover);
+  color: var(--ap-color-text-primary);
+}
+
+.ap-docs .docs-nav__home--active {
+  background: var(--ap-color-bg-selected);
+  color: var(--ap-color-text-brand);
+}
+
+.ap-docs .docs-nav__section + .docs-nav__section {
+  margin-block-start: var(--ap-space-6);
+}
+
+.ap-docs .docs-nav__heading {
+  padding: var(--ap-space-1-5) var(--ap-space-3);
+  color: var(--ap-color-text-secondary);
+  font-size: var(--ap-font-size-md);
+  font-weight: var(--ap-font-weight-semibold);
+}
+
+.ap-docs .docs-nav__heading:hover {
+  background: var(--ap-color-bg-hover);
+  color: var(--ap-color-text-primary);
+}
+
+.ap-docs .docs-nav__heading--active {
+  color: var(--ap-color-text-brand);
+}
+
+.ap-docs .docs-nav__heading-text {
+  flex: 1 1 auto;
+}
+
+.ap-docs .docs-nav__icon {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-md);
+}
+
+.ap-docs .docs-nav__count {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.ap-docs .docs-nav__list {
+  list-style: none;
+  margin: var(--ap-space-1) 0 0;
+  padding: 0;
+}
+
+/* الخيط الرأسي يربط عناصر المجموعة بصريًا بعنوانها — بديل عن الإزاحة وحدها. */
+.ap-docs .docs-nav__list {
+  padding-inline-start: var(--ap-space-3);
+  margin-inline-start: var(--ap-space-3);
+  border-inline-start: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+}
+
+.ap-docs .docs-nav__group {
+  margin-block-start: var(--ap-space-3);
+}
+
+.ap-docs .docs-nav__group-title {
+  padding-inline: var(--ap-space-3);
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-2xs);
+  font-weight: var(--ap-font-weight-medium);
+}
+
+.ap-docs .docs-nav__link {
+  padding: var(--ap-space-1-5) var(--ap-space-3);
+  color: var(--ap-color-text-secondary);
+  font-size: var(--ap-font-size-md);
+}
+
+.ap-docs .docs-nav__link-text {
+  flex: 1 1 auto;
+}
+
+.ap-docs .docs-nav__link:hover {
+  background: var(--ap-color-bg-hover);
+  color: var(--ap-color-text-primary);
+}
+
+.ap-docs .docs-nav__link--active {
+  background: var(--ap-color-bg-selected);
+  color: var(--ap-color-text-brand);
+  font-weight: var(--ap-font-weight-medium);
+}
+
+/* ---------------------------------------------------------------------------
+   المحتوى
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ap-docs .docs-main:focus-visible {
+  outline-offset: calc(var(--ap-focus-ring-offset) * -2);
+}
+
+.ap-docs .docs-main__inner {
+  max-width: var(--docs-content-max);
+  margin-inline: auto;
+  padding: var(--ap-space-10) var(--ap-space-6) var(--ap-space-16);
+}
+
+/* ---------------------------------------------------------------------------
+   شارة الحالة
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ap-badge-gap);
+  padding: var(--ap-badge-padding-y) var(--ap-badge-padding-x);
+  border-radius: var(--ap-badge-radius);
+  font-size: var(--ap-badge-font-size);
+  font-weight: var(--ap-badge-font-weight);
+  white-space: nowrap;
+}
+
+.ap-docs .docs-status__dot {
+  width: var(--ap-space-1-5);
+  height: var(--ap-space-1-5);
+  border-radius: var(--ap-radius-full);
+  background: currentcolor;
+}
+
+.ap-docs .docs-status--compact {
+  padding: 0;
+  background: none;
+}
+
+.ap-docs .docs-status[data-status='stable'] {
+  background: var(--ap-color-success-bg);
+  color: var(--ap-color-success-text);
+}
+
+.ap-docs .docs-status[data-status='in-progress'] {
+  background: var(--ap-color-info-bg);
+  color: var(--ap-color-info-text);
+}
+
+.ap-docs .docs-status[data-status='not-standardized'] {
+  background: var(--ap-color-warning-bg);
+  color: var(--ap-color-warning-text);
+}
+
+.ap-docs .docs-status[data-status='planned'] {
+  background: var(--ap-color-bg-muted);
+  color: var(--ap-color-text-tertiary);
+}
+
+/* ---------------------------------------------------------------------------
+   الدرج على الشاشات الضيّقة
+   `visibility: hidden` لا الإزاحة وحدها — وإلا بقي الشريط المخفيّ في ترتيب
+   التنقّل بلوحة المفاتيح.
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-scrim {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .ap-docs .docs-topbar__toggle {
+    display: inline-flex;
+  }
+
+  .ap-docs .docs-sidebar {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: var(--ap-z-sidebar);
+    visibility: hidden;
+    transform: translateX(0);
+    box-shadow: var(--ap-elevation-drawer);
+    transition: visibility var(--ap-duration-normal) var(--ap-ease-standard),
+                transform var(--ap-duration-normal) var(--ap-ease-standard);
+  }
+
+  .ap-docs .docs-sidebar--open {
+    visibility: visible;
+  }
+
+  .ap-docs .docs-scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: var(--ap-z-backdrop);
+    background: var(--ap-color-bg-overlay);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--ap-duration-normal) var(--ap-ease-standard),
+                visibility var(--ap-duration-normal) var(--ap-ease-standard);
+  }
+
+  .ap-docs .docs-scrim--visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .ap-docs .docs-main__inner {
+    padding-inline: var(--ap-space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-docs .docs-sidebar,
+  .ap-docs .docs-scrim,
+  .ap-docs .docs-skip {
+    transition: none;
+  }
+}

@@ -1,0 +1,17 @@
+# dependencies
+/node_modules
+
+# build output
+/dist
+/out-tsc
+/.angular
+
+# editors / OS
+/.idea
+/.vscode
+.DS_Store
+Thumbs.db
+
+# logs
+npm-debug.log*
+yarn-error.log*

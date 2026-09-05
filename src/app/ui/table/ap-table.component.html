@@ -1,0 +1,105 @@
+<!--
+  التعليق فوق المنطقة لا داخل `<caption>`.
+
+  `<caption>` يعيش داخل `<table>` — وهذا الحاوي لا يملك الجدول بل يستقبله
+  مُسقَطًا، فلا سبيل إلى الحقن داخله. والنصّ هنا يؤدّي الدور نفسه ويزيد:
+  يُربط بالمنطقة القابلة للتمرير بـ `aria-labelledby`، فيصير اسمًا لما
+  يمرّره المستخدم لا وصفًا لجدول قد لا يكون هو ما يتمرّر.
+-->
+@if (captionValue()) {
+  <p class="ap-table__caption" [id]="captionId">{{ captionValue() }}</p>
+}
+
+<!--
+  ⚠️ `tabindex` و`role` مشروطان بالفيض المقيس، لا معلنَين دائمًا:
+     منطقة لا تمرّ ولها `tabindex="0"` تضيف محطّة فارغة في ترتيب التنقّل عند
+     كل جدول في الصفحة، ومنطقة تمرّ وليس لها تحبس محتواها عن لوحة المفاتيح.
+-->
+<div
+  class="ap-table__scroll"
+  #scroll
+  [attr.tabindex]="scrollableValue() ? 0 : null"
+  [attr.role]="scrollableValue() ? 'region' : null"
+  [attr.aria-labelledby]="scrollableValue() && captionValue() ? captionId : null"
+  [attr.aria-label]="scrollableValue() && !captionValue() ? regionLabel() : null"
+>
+  @if (loadingValue()) {
+    <!--
+      الهيكل جدول حقيقي بالأبعاد نفسها، لا مستطيل رمادي: يحجز المساحة فلا
+      يقفز التخطيط عند وصول البيانات — وهو العطل الذي يُنتجه النمط القائم
+      (‎@if (!loading)‎ حول الجدول كلّه، فينهار الارتفاع إلى صفر).
+
+      `aria-hidden` عليه و`aria-busy` على الحاوي: قارئ الشاشة يُعلن الانشغال
+      ولا يقرأ صفوفًا وهمية.
+    -->
+    <table class="ap-table__skeleton" aria-hidden="true">
+      <tbody>
+        @for (row of skeletonRowList(); track row) {
+          <tr>
+            @for (col of skeletonColumnList(); track col) {
+              <td><span class="ap-table__skeleton-bar"></span></td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (emptyValue() && !loadingValue()) {
+    <div class="ap-table__empty"><ng-content select="[apTableEmpty]" /></div>
+  }
+
+  <!--
+    ⚠️ الجدول المُسقَط **يُصيَّر دائمًا** ويُخفى بالأنماط — لا يُلفّ بـ ‎@if‎.
+
+    `<ng-content>` داخل كتلة شرطية يُهدَم محتواه حين تُغلق الكتلة: يفقد
+    `mat-table` اشتراكاته ويُعاد بناؤه، ويضيع موضع التمرير، وتُعاد تهيئة كل
+    مكوّن في الخلايا عند كل دورة تحميل. و`display: contents` يجعل هذا الغلاف
+    بلا صندوق أصلًا، فلا يعترض `min-width` الجدول ولا لصق رأسه.
+  -->
+  <div class="ap-table__content"><ng-content /></div>
+</div>
+
+<!--
+  شريط الإجراءات الجماعية — يظهر متى حُدِّد صفّ.
+
+  `role="status"` و`aria-live="polite"`: التحديد يقع بالنقر على مربّع في
+  الصفّ، والشريط يظهر في مكان آخر من الشاشة. فبلا إعلانه لا يعرف مستخدم
+  قارئ الشاشة أن أفعالًا جديدة صارت متاحة — ولا سبب يدفعه للبحث عنها.
+
+  و`polite` لا `assertive`: الخبر مفيد لا عاجل، ولا يصحّ أن يقطع قراءة
+  جارية عند كل نقرة تحديد.
+-->
+@if (hasSelection()) {
+  <div class="ap-table__bulk" role="status" aria-live="polite">
+    <!--
+      «تم تحديد 10 من 48 عميل» لا «10 من 48 محدَّد».
+
+      الجملة تبدأ بالفعل فتُقرأ من أوّلها: العدد المجرَّد أوّلًا يجعل قارئ
+      الشاشة يُعلن رقمًا قبل أن يقول ما هو، والكلمة الأخيرة «محدَّد» تصل
+      بعد أن يكون الرقمان قد مرّا بلا سياق.
+
+      واسم المعدود يأتي من ‎[itemNoun]‎ عند المستهلك: الجدول واحد والاسم يتبع
+      الشاشة — عملاء هنا ومشرفون هناك. وبلا صيغه يبقى «تم تحديد 10 من 48».
+    -->
+    <span class="ap-table__bulk-count">
+      تم تحديد <strong>{{ selectedCountValue() }}</strong>
+      @if (totalCountValue()) {
+        <span class="ap-table__bulk-total">من {{ totalCountValue() }}</span>
+      }
+      @if (countedNoun()) {
+        {{ countedNoun() }}
+      }
+    </span>
+
+    <!-- ⚠️ صفر مسافة بيضاء: يُخفى بـ :empty حين لا تُسقَط أفعال. -->
+    <span class="ap-table__bulk-actions"><ng-content select="[apTableBulkActions]" /></span>
+  </div>
+}
+
+<!--
+  ⚠️ صفر مسافة بيضاء داخل الذيل — متعمّد: يُخفى بـ `:empty` حين لا يُسقَط فيه
+     شيء، ومسافة واحدة تُبطل `:empty` فيبقى صندوق فارغ يأكل حدّه العلوي.
+     مكانه الترقيم — 42 `mat-paginator` في المشروع، كلّها اليوم خارج أي حاوٍ.
+-->
+<div class="ap-table__footer"><ng-content select="[apTableFooter]" /></div>

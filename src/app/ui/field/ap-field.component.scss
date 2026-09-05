@@ -1,0 +1,624 @@
+@use '../state' as state;
+
+/* ============================================================================
+   Acadimiat UI — أنماط الحقل
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-field` أو `[apInput]` أو `[apSelect]`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقات `--ap-input-*` و`--ap-field-*` و`--ap-select-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+   ============================================================================ */
+
+/*
+  ⚠️ المكوّن يعلن box-sizing بنفسه ولا يعتمد على reset عالمي.
+
+  القاعدة العالمية «* { box-sizing: border-box }» تأتي من bootstrap.css، وهي
+  لا تعبر الجذر الظلّي الذي يعزل مسرح المعاينة. فداخل المسرح كان عنصر الإدخال
+  يعود إلى content-box: عرضه المحسوب 152px وصندوقه الفعلي 178px بعد الحشوة
+  والحدّ — فيفيض عن خليّته ويركب على جارتها.
+
+  والقاعدة أعمّ من المسرح: مكوّن مكتبة يعتمد على reset لا يملكه ينكسر في أول
+  سياق لا يحمله.
+*/
+ap-field,
+ap-field *,
+[apInput],
+[apSelect] {
+  box-sizing: border-box;
+}
+
+ap-field {
+  display: flex;
+  flex-direction: column;
+  /* مرجع تموضع الـ label المخفيّ بصريًا (position: absolute أدناه). */
+  position: relative;
+  /* يملأ عرض حاويه ولا ينكمش دون محتواه — يهمّ داخل خلايا الشبكة. */
+  width: 100%;
+  min-width: 0;
+  /* Label → Input و Input → Message تُضبطان بهوامش مفردة أدناه، لا بـ gap
+     واحد: المسافتان مختلفتان عمدًا (6px و4px) لتقريب ما ينتمي للحقل. */
+  gap: 0;
+}
+
+ap-field + ap-field {
+  margin-block-start: var(--ap-field-gap);
+}
+
+/*
+  الحاوي ينكمش مع قائمته حين تُقاس بمحتواها.
+
+  ⚠️ وهذه القاعدة شرطٌ لا تحسين: `ap-field` بعرض 100%، فقائمةٌ بمقدار محتواها
+     داخله تترك الفائض حوله بدل أن يزول — فلا يتغيّر شيء على الشاشة سوى أن
+     الفراغ انتقل من داخل الزنّاد إلى جواره.
+
+  ⚠️ و`:has` هنا لا سمة يكتبها المستهلك على `<ap-field>`: القرار يخصّ عنصر
+     التحكّم لا حاويه، وسمتان تقولان الشيء نفسه تتناقضان عند أوّل تعديل.
+*/
+ap-field:has(ap-select[data-fit-content]) {
+  width: fit-content;
+  max-width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+   الـ Label
+   --------------------------------------------------------------------------- */
+ap-field .ap-field__label {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-1);
+  margin-block-end: var(--ap-field-label-gap);
+  color: var(--ap-field-label-color);
+  font-size: var(--ap-field-label-size);
+  font-weight: var(--ap-field-label-weight);
+  line-height: var(--ap-leading-snug);
+  /* الـ label يجرّ التركيز إلى حقله عند النقر — مؤشّر يعلن ذلك. */
+  cursor: pointer;
+}
+
+/* مخفيّ بصريًا لا محذوف: قارئ الشاشة يقرؤه وبحث الصفحة يجده. */
+ap-field .ap-field__label--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+  «مطلوب إدخاله» لا نجمة.
+
+  النجمة اصطلاح متعلَّم لا معنى ذاتيًا، ويحتاج مفتاحًا في مكان ما من النموذج
+  («الحقول المعلَّمة بـ * إلزامية») نادرًا ما يُكتب فعلًا — فيبقى المستخدم
+  الجديد أمام رمز بلا شرح. الكلمة تشرح نفسها في موضعها.
+
+  والوزن العادي مقصود: العلامة معلومة ثانوية عن الـ label، فلا تنافسه.
+*/
+ap-field .ap-field__required {
+  color: var(--ap-field-required-color);
+  font-size: var(--ap-font-size-xs);
+  font-weight: var(--ap-font-weight-regular);
+  white-space: nowrap;
+}
+
+ap-field .ap-field__optional {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+  font-weight: var(--ap-font-weight-regular);
+}
+
+/* ---------------------------------------------------------------------------
+   النصّ المساعد والرسائل
+   --------------------------------------------------------------------------- */
+ap-field .ap-field__hint {
+  margin: 0 0 var(--ap-field-label-gap);
+  color: var(--ap-field-hint-color);
+  font-size: var(--ap-field-hint-size);
+  line-height: var(--ap-leading-snug);
+}
+
+ap-field .ap-field__message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ap-space-1);
+  margin: var(--ap-field-message-gap) 0 0;
+  font-size: var(--ap-field-error-size);
+  line-height: var(--ap-leading-snug);
+}
+
+ap-field .ap-field__message[data-tone='error'] {
+  color: var(--ap-field-error-color);
+}
+
+ap-field .ap-field__message[data-tone='success'] {
+  color: var(--ap-color-success-text);
+}
+
+/*
+  صفّ أفقي لا عمود: اللاصقة تجاور عنصر الإدخال ولا تعلوه. العمود كان يضعها
+  فوق الحقل فتُقرأ label ثانيًا لا جزءًا من القيمة.
+*/
+ap-field .ap-field__control {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  /* مرجع تموضع سهم القائمة المنسدلة. */
+  position: relative;
+  /* انظر تعليق min-width على [apInput] أدناه — القيد نفسه يسري على الحاوي. */
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   عنصر الإدخال
+   [D-08] التمييز بالتعبئة لا بالحدّ وحده.
+
+   حدّ `slate-300` تباينه ~2.1:1 ولا يبلغ 3:1 الذي يفرضه WCAG 1.4.11 لعناصر
+   الواجهة. ورفعه إلى `slate-500` يمرّ لكنه ثقيل بصريًا على نموذج بعشرين حقلًا.
+   الحلّ: تعبئة `bg-subtle` تحمل نصف عبء التمييز، فيصبح الحقل مميّزًا عن
+   السطح بالتعبئة والحدّ معًا لا بالحدّ وحده — فيُستوفى المعيار بلا ثقل.
+
+   وعند التركيز تصبح التعبئة بيضاء، فيتقدّم الحقل النشط بصريًا على جيرانه.
+   --------------------------------------------------------------------------- */
+[apInput] {
+  width: 100%;
+  /* يملأ ما تبقّى من الصفّ بعد اللاصقة. */
+  flex: 1 1 auto;
+  /*
+    ⚠️ min-width: 0 ليس تجميلًا — بدونه ينكسر الحقل داخل أي حاوٍ ضيّق.
+
+    عنصر <input> له عرض داخلي افتراضي (~178px، مشتقّ من سمة size الضمنية).
+    وكعنصر flex فإن min-width الافتراضية auto = ذلك العرض الداخلي، فلا يستطيع
+    width: 100% أن ينزل تحته: يفيض الحقل خارج حاويه ويركب على ما بجواره.
+
+    ظهر ذلك في مصفوفة الحالات (خلية 152px وحقل 178px)، لكنه يصيب أي شبكة أو
+    عمود ضيّق — وهو صامت تمامًا في التخطيطات الواسعة.
+  */
+  min-width: 0;
+  height: var(--ap-input-height-md);
+  padding-inline: var(--ap-input-padding-x);
+  border: var(--ap-input-border-width) solid var(--ap-input-border);
+  border-radius: var(--ap-input-radius-md);
+  background: var(--ap-input-bg);
+  color: var(--ap-input-fg);
+  font-family: var(--ap-font-sans);
+  font-size: var(--ap-input-font-size);
+  line-height: var(--ap-leading-snug);
+  transition:
+    border-color var(--ap-button-transition),
+    background-color var(--ap-button-transition),
+    box-shadow var(--ap-button-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [apInput] {
+    transition: none;
+  }
+}
+
+[apInput]::placeholder {
+  color: var(--ap-input-placeholder);
+  /* الشفافية الافتراضية في بعض المتصفّحات تُسقط التباين — تُثبَّت هنا. */
+  opacity: 1;
+}
+
+[apInput][data-size='sm'] {
+  height: var(--ap-input-height-sm);
+  border-radius: var(--ap-input-radius-sm);
+  font-size: var(--ap-font-size-xs);
+}
+
+[apInput][data-size='lg'] {
+  height: var(--ap-input-height-lg);
+  border-radius: var(--ap-input-radius-lg);
+  font-size: var(--ap-font-size-lg);
+}
+
+/* النصّ الطويل يحتاج ارتفاعًا لا سطرًا واحدًا. */
+textarea[apInput] {
+  height: auto;
+  min-height: calc(var(--ap-input-height-md) * 2);
+  padding-block: var(--ap-space-2);
+  /*
+    عالميًا في المشروع `textarea { resize: none }` — قيد قابلية استخدام حقيقي
+    يمنع تكبير حقول الوصف والبريد. هنا الرأسي مسموح والأفقي ممنوع (الأفقي
+    يكسر التخطيط).
+  */
+  resize: vertical;
+}
+
+/* ---------------------------------------------------------------------------
+   الحالات
+   --------------------------------------------------------------------------- */
+[apInput] {
+  @include state.hover {
+    border-color: var(--ap-input-border-hover);
+    background: var(--ap-input-bg-hover);
+  }
+
+  @include state.focus {
+    border-color: var(--ap-input-border-focus);
+    background: var(--ap-input-bg-focus);
+    box-shadow: var(--ap-input-focus-ring);
+    /*
+      الحلقة هنا `box-shadow` لا `outline`: تتبع نصف قطر الحقل تمامًا،
+      بينما `outline` مستطيل في بعض المتصفّحات فيبدو ناتئًا عن الزوايا.
+
+      ⚠️ وإلغاء `outline` يحتاج رفع الأولوية قسرًا: `foundations/_focus.css`
+         يفرض `outline: 3px solid var(--ap-color-focus-ring)` بإزاحة 2px على
+         **كل** عنصر مركَّز، مرفوعةَ الأولوية. والقاعدة صحيحة في ذاتها —
+         وُضعت لتبطل `* { outline: none }` في الورقة المشتراة — لكنها تفترض
+         أن العنصر المركَّز لا يرسم حلقته بنفسه. وهذا الحقل يرسمها.
+
+         والأثر المرصود: حقل في حالة خطأ مركَّز عليه يعرض **ثلاث** حلقات —
+         حدّ أحمر، ثم حلقة `--ap-focus-ring-shadow-danger` الحمراء، ثم حلقة
+         بنفسجية من القاعدة العامّة بينهما. أي أن لون الخطأ ينقطع بلون
+         الفعل في منتصفه.
+
+      ⚠️ ولا يُرى هذا في موقع التوثيق إطلاقًا: مسارح المعاينة
+         `ViewEncapsulation.ShadowDom`، والأوراق العامّة لا تعبر الجذر
+         الظلّي. فخليّة «Error + Focus» في مصفوفة الحالات كانت — وما زالت —
+         صحيحة، والعطل يعيش في لوحة الإدارة وحدها. تحقّق على شاشة حقيقية.
+    */
+    outline: none !important;
+  }
+
+  @include state.disabled {
+    border-color: var(--ap-input-border-disabled);
+    background: var(--ap-input-bg-disabled);
+    color: var(--ap-input-fg-disabled);
+    cursor: not-allowed;
+  }
+}
+
+/*
+  للقراءة فقط ≠ معطَّل. المعطَّل يقول «لا يعنيك»، وللقراءة فقط يقول «يعنيك
+  لكن لا يمكنك تغييره الآن» — فيبقى نصّه بتباين كامل وقابلًا للتحديد والنسخ.
+*/
+[apInput]:read-only:not([data-state~='disabled']),
+[apInput][data-state~='readonly'] {
+  border-color: var(--ap-input-border-disabled);
+  background: var(--ap-input-bg-readonly);
+  color: var(--ap-color-text-secondary);
+}
+
+[apInput][data-invalid='true'],
+[apInput][data-state~='error'] {
+  border-color: var(--ap-input-border-error);
+
+  @include state.focus {
+    border-color: var(--ap-input-border-error);
+    box-shadow: var(--ap-input-focus-ring-error);
+  }
+}
+
+[apInput][data-state~='success'] {
+  border-color: var(--ap-input-border-success);
+}
+
+/* ---------------------------------------------------------------------------
+   أيقونة الـ label وأيقونة النصّ المساعد
+   محدَّدتان (outline) وترثان لون النصّ المجاور — القاعدة نفسها المطبَّقة على
+   أيقونات الزرّ: fill: none + stroke: currentColor، فلا قاعدة لون لكل سياق.
+   --------------------------------------------------------------------------- */
+ap-field .ap-field__label-icon,
+ap-field .ap-field__hint-icon {
+  flex: 0 0 auto;
+}
+
+/* الغلاف يختفي حين لا يُسقَط فيه شيء، فلا يأكل gap ولا يزيح النصّ. */
+ap-field .ap-field__label-icon:empty {
+  display: none;
+}
+
+ap-field .ap-field__label-icon svg,
+ap-field .ap-field__hint-icon {
+  display: block;
+  width: var(--ap-icon-sm);
+  height: var(--ap-icon-sm);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+ap-field .ap-field__hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ap-space-1);
+}
+
+/* الأيقونة تحاذي السطر الأول من نصّ قد يمتدّ لسطرين. */
+ap-field .ap-field__hint-icon {
+  margin-block-start: 0.15em;
+}
+
+/* ---------------------------------------------------------------------------
+   اللواصق
+   وجود لاصقة ينقل الحدّ والتعبئة من عنصر الإدخال إلى الصفّ كلّه، فيُقرأ
+   الحقل صندوقًا واحدًا لا صندوقًا بجانبه نصّ.
+   --------------------------------------------------------------------------- */
+ap-field .ap-field__control[data-affixed] {
+  /* تقصّ خلفية اللاصقة عند الزوايا فتتبع استدارة الصفّ. */
+  overflow: hidden;
+  border: var(--ap-input-border-width) solid var(--ap-input-border);
+  border-radius: var(--ap-input-radius-md);
+  background: var(--ap-input-bg);
+  transition:
+    border-color var(--ap-button-transition),
+    background-color var(--ap-button-transition),
+    box-shadow var(--ap-button-transition);
+}
+
+/*
+  عنصر الإدخال داخل صفّ ملاصق يتخلّى عن حدّه وتعبئته للصفّ.
+  الارتفاع يبقى عليه كي لا يتغيّر مقاس الحقل بوجود لاصقة أو غيابها.
+*/
+/*
+  ⚠️ عنصر الإدخال داخل صفّ ملاصق يتخلّى عن حدّه وحلقة تركيزه للصفّ كلّه —
+     في كل الحالات لا في الحالة الساكنة وحدها.
+
+     بدون تغطية حالة التركيز صراحةً كان الحقل يستعيد حدّه عند التركيز، فيظهر
+     خطّ رأسي عند حافّته الملاصقة للاصقة: حدّان متداخلان داخل صندوق واحد.
+
+     الخصوصية هنا (0,3,2) تتجاوز محدّدات الحالة في mixin التركيز (0,2,0)،
+     فتكفي الخصوصية وحدها للحدّ والخلفية والظلّ.
+
+     ⚠️ لكنها **لا تكفي لـ `outline`**: القاعدة العامّة في
+        `foundations/_focus.css` مرفوعة الأولوية، وإعلانٌ مرفوع الأولوية لا
+        يُهزم بالخصوصية مهما بلغت — يُهزم برفعٍ مثله عند خصوصية أعلى.
+        وبدونه ترتسم حلقة بنفسجية حول **العنصر الداخلي** داخل صفٍّ يحمل
+        حلقته الخاصّة: مستطيل ثانٍ داخل الصندوق يُقرأ عطلًا.
+*/
+ap-field .ap-field__control[data-affixed] [apInput],
+ap-field .ap-field__control[data-affixed] [apInput]:hover,
+ap-field .ap-field__control[data-affixed] [apInput]:focus,
+ap-field .ap-field__control[data-affixed] [apInput]:focus-visible,
+ap-field .ap-field__control[data-affixed] [apInput][data-state~="focus"],
+ap-field .ap-field__control[data-affixed] [apInput][data-state~="hover"] {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  outline: none !important;
+}
+
+/* الحالات تنتقل إلى الصفّ: الحدّ صار له لا للعنصر. */
+ap-field .ap-field__control[data-affixed]:hover {
+  border-color: var(--ap-input-border-hover);
+}
+
+ap-field .ap-field__control[data-affixed]:focus-within {
+  border-color: var(--ap-input-border-focus);
+  background: var(--ap-input-bg-focus);
+  box-shadow: var(--ap-input-focus-ring);
+}
+
+ap-field[data-invalid] .ap-field__control[data-affixed] {
+  border-color: var(--ap-input-border-error);
+}
+
+ap-field[data-invalid] .ap-field__control[data-affixed]:focus-within {
+  box-shadow: var(--ap-input-focus-ring-error);
+}
+
+/*
+  اللاصقة نصّ ثابت لا حقل: لونها ثانوي كي لا تنافس القيمة المكتوبة، وهي
+  غير قابلة للتحديد فلا تُنسخ مع القيمة عن طريق الخطأ.
+*/
+ap-field .ap-field__affix {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding-inline: var(--ap-input-padding-x);
+  /* خلفية وخطّ فاصل: يفصلان الثابت عن القابل للتحرير، فيعرف المستخدم من
+     أين يبدأ ما يكتبه. */
+  background: var(--ap-color-bg-muted);
+  color: var(--ap-color-text-tertiary);
+  /*
+    الخط الأساسي لا الأحادي: اللاصقة قد تكون عربية (ر.س) أو لاتينية
+    (//:https). والخط الأحادي يفرض عرضًا متساويًا على الحروف العربية فتتباعد
+    وينكسر وصلها — والفائدة التي يقدّمها (اصطفاف رأسي) لا معنى لها لنصّ
+    ثابت لا يُقارن بغيره.
+  */
+  font-family: var(--ap-font-sans);
+  /* 14px لا 12px — اللاصقة تحمل معلومة تُقرأ (العملة، البروتوكول) لا زخرفة. */
+  font-size: var(--ap-input-font-size);
+  line-height: var(--ap-leading-none);
+  white-space: nowrap;
+  /* نصّ ثابت لا يُنسخ مع القيمة عن طريق الخطأ. */
+  user-select: none;
+}
+
+/* الفاصل منطقي: يقع دائمًا على الجهة الملاصقة للحقل مهما كان اتجاه الصفّ. */
+ap-field .ap-field__affix[data-affix="prefix"] {
+  border-inline-end: var(--ap-input-border-width) solid var(--ap-input-border);
+}
+
+ap-field .ap-field__affix[data-affix="suffix"] {
+  border-inline-start: var(--ap-input-border-width) solid var(--ap-input-border);
+}
+
+/* اللاصقة تلاصق الحقل، فتُلغى الحشوة المزدوجة بينهما. */
+ap-field .ap-field__affix[data-affix='prefix'] + [apInput] {
+  padding-inline-start: 0;
+}
+
+ap-field [apInput]:has(+ .ap-field__affix[data-affix='suffix']) {
+  padding-inline-end: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   محاذاة الأرقام
+   الرقم والسعر يُحاذيان إلى نهاية الحقل — وهي اليمين لأن اتجاه محتواهما ltr.
+
+   السبب ليس ذوقًا: الأرقام تُقارن بمنازلها. عمود أرقام محاذًى إلى النهاية
+   تصطفّ آحاده وعشراته ومئاته رأسيًا، فيُقرأ الفرق بين 100 و1000 من الطول
+   قبل قراءة الرقم. والمحاذاة إلى البداية تكسر ذلك.
+
+   `end` لا `right`: يُحلّ مقابل اتجاه العنصر نفسه (ltr) لا اتجاه الصفحة،
+   فيبقى صحيحًا لو أضيفت لغة LTR لاحقًا.
+   --------------------------------------------------------------------------- */
+[apInput][data-kind='number'],
+[apInput][data-kind='price'] {
+  text-align: end;
+  /* الأرقام بعرض ثابت فتصطفّ المنازل رأسيًا بلا اهتزاز أثناء الكتابة. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   القائمة المنسدلة — [apSelect]
+
+   أبعادها من مجموعة --ap-select-*، وهي بدورها تشير إلى --ap-input-*. فلا
+   قيمة مكرّرة بين الحقل والقائمة، ويستحيل أن يتباعدا: الفارق اليوم 19px على
+   السطر الواحد (36px للقائمة مقابل 55px للحقل — S-01).
+   --------------------------------------------------------------------------- */
+[apSelect] {
+  width: 100%;
+  flex: 1 1 auto;
+  /* القيد نفسه المشروح على [apInput]: بلا هذا يفيض العنصر خارج حاويه. */
+  min-width: 0;
+  height: var(--ap-select-height-md);
+  /*
+    البداية حشوة عادية، والنهاية تتّسع للسهم: مسافة الحافّة + عرض السهم +
+    مسافة تفصله عن النصّ. بلا ذلك يمرّ نصّ الخيار الطويل تحت السهم.
+  */
+  padding-inline: var(--ap-select-padding-x)
+    calc(var(--ap-select-padding-x) * 2 + var(--ap-select-arrow-size));
+  border: var(--ap-select-border-width) solid var(--ap-select-border);
+  border-radius: var(--ap-select-radius);
+  background: var(--ap-select-bg);
+  color: var(--ap-select-fg);
+  font-family: var(--ap-font-sans);
+  font-size: var(--ap-select-font-size);
+  line-height: var(--ap-leading-snug);
+  cursor: pointer;
+  /* يُزيل سهم المتصفّح الافتراضي. الجديد يرسمه قالب الحقل ويتبع الـ tokens
+     — انظر ap-field__chevron أدناه. */
+  appearance: none;
+  /* النصّ الطويل يُقصّ بثلاث نقاط بدل أن يدفع العنصر خارج حاويه. */
+  text-overflow: ellipsis;
+  transition:
+    border-color var(--ap-button-transition),
+    background-color var(--ap-button-transition),
+    box-shadow var(--ap-button-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [apSelect] {
+    transition: none;
+  }
+}
+
+[apSelect][data-size='sm'] {
+  height: var(--ap-select-height-sm);
+  font-size: var(--ap-font-size-xs);
+}
+
+[apSelect][data-size='lg'] {
+  height: var(--ap-select-height-lg);
+  font-size: var(--ap-font-size-lg);
+}
+
+/*
+  الخيار النائب بلون النصّ البديل، بمحدّد لا بـ JavaScript: القاعدة تسري
+  على الخادم والمتصفّح معًا فلا يومض اللون بعد الترطيب، ولا يحتاج الأمر
+  قراءة قيمة ولا مستمع تغيير.
+
+  ⚠️ الشرط [value=''] لا :first-child: الخيار النائب معرَّف بقيمته الفارغة
+     لا بموضعه، فلو أُعيد ترتيب القائمة ظلّ المحدّد صحيحًا.
+*/
+[apSelect]:has(option[value='']:checked) {
+  color: var(--ap-select-fg-placeholder);
+}
+
+/* اللائحة المفتوحة يرسمها النظام لا الصفحة، لكن بعض المتصفّحات تورّث لون
+   نصّ العنصر إلى خياراته — فيُعاد ضبطه كي لا يبهت الخيار الحقيقي. */
+[apSelect] option {
+  color: var(--ap-select-fg);
+}
+
+/* التعدّد لائحة لا صفّ: الارتفاع يتبع عدد الخيارات المعروضة، ولا سهم. */
+[apSelect][multiple] {
+  height: auto;
+  padding-inline-end: var(--ap-select-padding-x);
+  cursor: default;
+}
+
+[apSelect] {
+  @include state.hover {
+    border-color: var(--ap-select-border-hover);
+    background: var(--ap-select-bg-hover);
+  }
+
+  @include state.focus {
+    border-color: var(--ap-select-border-focus);
+    background: var(--ap-select-bg-focus);
+    box-shadow: var(--ap-select-focus-ring);
+    /* الحلقة box-shadow لا outline — تتبع نصف قطر العنصر تمامًا.
+       ورفع الأولوية قسرًا لهزيمة القاعدة العامّة — انظر شرحها الكامل على
+       `[apInput]` أعلاه. */
+    outline: none !important;
+  }
+
+  @include state.disabled {
+    border-color: var(--ap-select-border-disabled);
+    background: var(--ap-select-bg-disabled);
+    color: var(--ap-select-fg-disabled);
+    cursor: not-allowed;
+  }
+}
+
+[apSelect][data-invalid='true'],
+[apSelect][data-state~='error'] {
+  border-color: var(--ap-select-border-error);
+
+  @include state.focus {
+    border-color: var(--ap-select-border-error);
+    box-shadow: var(--ap-select-focus-ring-error);
+  }
+}
+
+/*
+  السهم فوق العنصر لا داخله.
+
+  pointer-events: none شرط لا تحسين: بدونه يبتلع السهم النقرة في المنطقة
+  التي يغطّيها، فلا تُفتح القائمة عند النقر على السهم نفسه — وهو أوّل ما
+  ينقره المستخدم.
+
+  والتموضع منطقي (inset-inline-end) فينتقل السهم إلى اليسار في RTL بلا
+  قاعدة ثانية.
+*/
+ap-field .ap-field__chevron {
+  position: absolute;
+  inset-inline-end: var(--ap-select-padding-x);
+  top: 50%;
+  translate: 0 -50%;
+  display: flex;
+  color: var(--ap-select-arrow-fg);
+  pointer-events: none;
+}
+
+ap-field .ap-field__chevron svg {
+  display: block;
+  width: var(--ap-select-arrow-size);
+  height: var(--ap-select-arrow-size);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* السهم يبهت مع القائمة المعطَّلة — أثر مجاني للون المشتقّ من token،
+   ومستحيل لو كان السهم صورة خلفية بلون مدفون فيها. */
+ap-field .ap-field__control:has([apSelect]:disabled) .ap-field__chevron,
+ap-field .ap-field__control:has([apSelect][data-state~='disabled']) .ap-field__chevron {
+  color: var(--ap-select-fg-disabled);
+}
+
+/* لا سهم فوق لائحة متعدّدة — لا شيء ينسدل. */
+ap-field .ap-field__control:has([apSelect][multiple]) .ap-field__chevron {
+  display: none;
+}

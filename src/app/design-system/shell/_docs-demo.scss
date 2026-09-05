@@ -1,0 +1,194 @@
+/* ============================================================================
+   Acadimiat Design System Docs — المعاينة · لوح الشيفرة · المصفوفة
+   ----------------------------------------------------------------------------
+   جزء من ورقة أنماط الغلاف. القاعدة نفسها: كل محدّد يبدأ بـ `.ap-docs`.
+
+   ⚠️ داخل مسرح المعاينة جذر ظلّي، فلا تصل إليه هذه القواعد ولا تصله الأنماط
+      العالمية. أنماط المسرح الداخلية تعيش في `docs-demo-stage.component.ts`.
+      ما هنا هو إطار المعاينة فقط: الحدّ، وشريط الأدوات، ولوح الشيفرة.
+   ============================================================================ */
+
+.ap-docs .docs-demo {
+  display: flex;
+  flex-direction: column;
+  border: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+  border-radius: var(--ap-radius-lg);
+  background: var(--ap-color-bg-surface);
+  overflow: hidden;
+}
+
+.ap-docs .docs-demo__pending {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-md);
+}
+
+.ap-docs .docs-demo__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ap-space-3);
+  padding: var(--ap-space-2) var(--ap-space-3);
+  border-block-start: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+  background: var(--ap-color-bg-subtle);
+}
+
+.ap-docs .docs-demo__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-2);
+}
+
+.ap-docs .docs-demo__toggle {
+  height: var(--ap-control-height-sm);
+  padding-inline: var(--ap-space-3);
+  border: var(--ap-border-width-thin) solid var(--ap-color-border-default);
+  border-radius: var(--ap-radius-sm);
+  background: var(--ap-color-bg-surface);
+  color: var(--ap-color-text-secondary);
+  font-size: var(--ap-font-size-xs);
+  cursor: pointer;
+  transition: background-color var(--ap-duration-fast) var(--ap-ease-standard);
+}
+
+.ap-docs .docs-demo__toggle:hover {
+  background: var(--ap-color-bg-hover);
+  color: var(--ap-color-text-primary);
+}
+
+.ap-docs .docs-demo__copied {
+  color: var(--ap-color-success-text);
+  font-size: var(--ap-font-size-xs);
+}
+
+/* ---------------------------------------------------------------------------
+   لوح الشيفرة
+   بلا تلوين تركيبي: مكتبة تلوين تبعية ثقيلة لعائد بصري ضئيل في مقتطفات
+   بهذا القِصر. الأولوية للوضوح — خط أحادي، جزيرة LTR، تمرير أفقي محصور.
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-code {
+  position: relative;
+  border-block-start: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+  background: var(--ap-color-bg-inverse);
+}
+
+.ap-docs .docs-code__pre {
+  margin: 0;
+  padding: var(--ap-space-4);
+  /* التمرير داخل اللوح لا في الصفحة. */
+  overflow-x: auto;
+  color: var(--ap-color-text-inverse);
+  font-family: var(--ap-font-mono);
+  font-size: var(--ap-font-size-xs);
+  line-height: var(--ap-leading-relaxed);
+  tab-size: 2;
+}
+
+.ap-docs .docs-code__copy {
+  position: absolute;
+  inset-block-start: var(--ap-space-2);
+  inset-inline-end: var(--ap-space-2);
+  z-index: var(--ap-z-raised);
+  height: var(--ap-control-height-sm);
+  padding-inline: var(--ap-space-3);
+  border: var(--ap-border-width-thin) solid var(--ap-color-border-inverse);
+  border-radius: var(--ap-radius-sm);
+  background: var(--ap-color-bg-inverse);
+  color: var(--ap-color-text-inverse);
+  font-size: var(--ap-font-size-xs);
+  cursor: pointer;
+}
+
+.ap-docs .docs-code__copy:hover {
+  border-color: var(--ap-color-border-strong);
+}
+
+/* ---------------------------------------------------------------------------
+   المصفوفة
+   `--docs-matrix-cols` يضبطه المكوّن من عدد الحالات، فتتبع الشبكة البيانات
+   بدل رقم ثابت يتعطّل مع أول حالة تُضاف.
+   --------------------------------------------------------------------------- */
+.ap-docs .docs-matrix {
+  display: grid;
+  /*
+    عرض أدنى للعمود ثم تمرير أفقي عند التجاوز — لا سحق.
+
+    minmax(0, 1fr) كان يسمح للعمود بالانكماش دون عرض محتواه، فيفيض الحقل
+    ورسالته خارج خلفية الخلية ويركبان على جارتها. والمصفوفة المسحوقة تعرض
+    المكوّن بعرض لا يستخدمه أحد فعلًا — أي أنها تكذب بينما تبدو مرتّبة.
+
+    القيمة تأتي من `columnMin` في بيانات القسم: الزرّ يكفيه الافتراضي،
+    والحقل يحتاج أكثر لأنه يحمل label ورسالة.
+  */
+  /*
+    عمود العناوين `max-content` لا `auto`: مع تجاوز الشبكة لعرض حاويها كان
+    `auto` ينكمش إلى بضعة بكسلات فتُقتطع أسماء الأنواع — وهي نصف مفتاح قراءة
+    المصفوفة. `max-content` يمنحه عرض أطول اسم ولا ينقص عنه.
+  */
+  grid-template-columns:
+    minmax(max-content, auto)
+    repeat(var(--docs-matrix-cols, 4), minmax(var(--docs-matrix-col-min, 7rem), 1fr));
+  gap: var(--ap-border-width-thin);
+  padding: var(--ap-border-width-thin);
+  border: var(--ap-border-width-thin) solid var(--ap-color-border-subtle);
+  border-radius: var(--ap-radius-lg);
+  background: var(--ap-color-border-subtle);
+  overflow-x: auto;
+}
+
+.ap-docs .docs-matrix__corner,
+.ap-docs .docs-matrix__head,
+.ap-docs .docs-matrix__side,
+.ap-docs .docs-matrix__cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ap-space-3);
+  background: var(--ap-color-bg-surface);
+  /* يمنع محتوى أعرض من نصيبه من دفع بقية الأعمدة. */
+  min-width: 0;
+}
+
+/*
+  الخلايا تُحاذى إلى الأعلى لا إلى المنتصف.
+
+  صفّ فيه حالة خطأ أطول من جاراتها (label + حقل + رسالة)، والمحاذاة الوسطى
+  تُزيح الحقول عن خطّ أفقي واحد — فتصعب مقارنة الحالة بالحالة، وهي كل
+  وظيفة المصفوفة.
+*/
+.ap-docs .docs-matrix__cell {
+  align-items: flex-start;
+}
+
+/* المكوّن يملأ عرض خليّته: لا يفيض عنها ولا ينكمش دونها. */
+.ap-docs .docs-matrix__cell > * {
+  width: 100%;
+  min-width: 0;
+}
+
+.ap-docs .docs-matrix__head,
+.ap-docs .docs-matrix__side {
+  color: var(--ap-color-text-tertiary);
+  font-size: var(--ap-font-size-xs);
+  font-weight: var(--ap-font-weight-medium);
+  white-space: nowrap;
+}
+
+.ap-docs .docs-matrix__head {
+  background: var(--ap-color-bg-subtle);
+}
+
+/*
+  عمود العناوين يلتصق بحافة البدء أثناء التمرير الأفقي.
+
+  المصفوفة العريضة تُمرَّر، وبلا التصاق يفقد المستخدم اسم النوع في اللحظة
+  التي يحتاجه فيها — يرى حقلًا بحالة ولا يعرف أي نوع هو. الخلفية المعتمة
+  إلزامية هنا وإلّا ظهر ما يمرّ تحته.
+*/
+.ap-docs .docs-matrix__side,
+.ap-docs .docs-matrix__corner {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: var(--ap-z-raised);
+  justify-content: flex-start;
+  background: var(--ap-color-bg-subtle);
+}

@@ -1,0 +1,42 @@
+<!--
+  ⚠️ صفر مسافة بيضاء داخل غلاف الأيقونة — يُخفى بـ `:empty` حين لا يُسقَط فيه
+     شيء، ومسافة واحدة تُبطله فيبقى غلاف فارغ يأكل فجوةً كاملة فوق العنوان.
+     القاعدة نفسها الموثّقة في منافذ الأيقونات وفي غلاف أفعال رأس الصفحة.
+-->
+<!--
+  الرسمة قبل الأيقونة في الشجرة، والاثنتان لا تجتمعان — يُرمى في وضع التطوير
+  إن أُسقِطتا معًا. ورسمةٌ فوق أيقونة رسمان يقولان الشيء نفسه مرّتين.
+
+  ⚠️ ولا مسافة بيضاء هنا أيضًا: الغلاف يُخفى بـ `:empty`.
+-->
+<div class="ap-empty-state__illustration" #illustrationSlot><ng-content select="[apEmptyStateIllustration]" /></div>
+
+<div class="ap-empty-state__icon" #iconSlot><ng-content select="[apEmptyStateIcon]" /></div>
+
+@if (headingValue()) {
+  <!--
+    مستوى العنوان مدخلٌ لا ثابت: الكتلة تظهر تحت `<h1>` الصفحة تارةً وداخل
+    قسمٍ له عنوانه تارةً، والمقاس واحد في الحالتين — الفرق في الشجرة وحدها.
+  -->
+  @if (isLevel3()) {
+    <h3 class="ap-empty-state__title">{{ headingValue() }}</h3>
+  } @else if (isLevel4()) {
+    <h4 class="ap-empty-state__title">{{ headingValue() }}</h4>
+  } @else {
+    <h2 class="ap-empty-state__title">{{ headingValue() }}</h2>
+  }
+}
+
+<!--
+  الوصف: محتوى مُسقَط لا نصّ مُمرَّر — فقرة، أو قائمة، أو الاثنتان. انظر
+  تعليق المكوّن: أحد نصوص اللوحة الحقيقية قائمةٌ نقطية من ستّة بنود.
+
+  ⚠️ ولا مسافة بيضاء هنا كذلك، للسبب نفسه.
+-->
+<div class="ap-empty-state__body"><ng-content /></div>
+
+<!--
+  ⚠️ زرّ داخل `@if` لا يُطابَق ضدّ هذا المنفذ ويهبط في الوصف بلا خطأ — لُفَّ
+     الكتلة بـ `<ng-container ngProjectAs="[apEmptyStateActions]">`.
+-->
+<div class="ap-empty-state__actions"><ng-content select="[apEmptyStateActions]" /></div>

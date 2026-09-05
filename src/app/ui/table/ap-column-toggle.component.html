@@ -1,0 +1,107 @@
+<!--
+  الزنّاد زرّ ثانوي عادي — نفس أزرار شريط الأدوات بجانبه، فلا يُقرأ نوعًا
+  ثالثًا من الأزرار.
+
+  `aria-expanded` و`aria-controls` يقولان لقارئ الشاشة إن هذا يفتح شيئًا
+  وأين هو — بلا الأولى يُعلَن زرًّا عاديًا ولا يُعرف أن له حالة.
+-->
+<button
+  type="button"
+  apButton
+  variant="secondary"
+  #trigger
+  class="ap-column-toggle__trigger"
+  [attr.aria-expanded]="openValue()"
+  [attr.aria-controls]="panelId"
+  (pointerdown)="onTriggerPointerDown()"
+  (click)="onTriggerClick()"
+>
+  <svg apIconStart viewBox="0 0 24 24">
+    <path d="M3 5h18M3 12h18M3 19h18" />
+  </svg>
+  تخصيص الأعمدة
+  <!--
+    العدّاد يظهر عند الإخفاء وحده. بلا إشارة أن الجدول منقوص يبحث المستخدم
+    عن عمود غائب في البيانات لا في هذه القائمة.
+  -->
+  @if (hiddenCount()) {
+    <span class="ap-column-toggle__count">{{ hiddenCount() }}</span>
+  }
+</button>
+
+<!--
+  ⚠️ `popover` لا `cdk-overlay`: اللوحة تبقى في شجرتها ولا تُلحق بـ `body`.
+     ما يُلحق بـ body يخرج من مسرح الظلّ في موقع التوثيق فيفقد أنماطه، وهو
+     يدخل الطبقة العليا فلا ينازع كاسكاد القالب المشترى على z-index.
+-->
+<div
+  #panel
+  [id]="panelId"
+  popover="auto"
+  class="ap-column-toggle__panel"
+  role="group"
+  aria-label="الأعمدة الظاهرة"
+  (toggle)="onPanelToggle($event)"
+>
+<!--
+    ⚠️ `track column.key` لا الفهرس: الترتيب يتغيّر، والتتبّع بالفهرس يجعل
+       Angular يعيد استعمال الصفّ في موضعه بدل أن ينقله — فيسقط التركيز عن
+       الزرّ المضغوط بعد كل نقلة، ويخسر مستخدم لوحة المفاتيح موضعه.
+  -->
+  @for (column of orderedColumns(); track column.key) {
+    <!--
+      كل صفّ `<ap-choice>` بحاويه — لا `<input apCheckbox>` عاريًا: أنماطه
+      تعيش في ورقة الحاوي، والحاوي هو ما يولّد الـ id ويربط الـ label.
+
+      والمقفل `disabled` ويبقى مؤشَّرًا: يُرى أنه ظاهر وأنه غير قابل
+      للإخفاء معًا. وحذفه من القائمة كان سيُقرأ سهوًا لا قاعدة.
+    -->
+    <div
+      class="ap-column-toggle__row"
+      [attr.data-dragging]="dragKey() === column.key ? 'true' : null"
+      [draggable]="armedKey() === column.key"
+      (dragstart)="onDragStart(column)"
+      (dragover)="onDragOver($event, column)"
+      (dragend)="onDragEnd()"
+      (drop)="onDragEnd()"
+    >
+      <!--
+        المقبض في **بداية** الصفّ — اليمين في RTL — ويسبق مربّع الاختيار.
+
+        ⚠️ مقبض واحد يعمل بالسحب وبلوحة المفاتيح معًا، لا سحبٌ وحده.
+
+        السحب وحده غير متاح لمن لا يستعمل فأرة — وهو فشل WCAG 2.1.1 لا نقص
+        رفاهية. ولذلك المقبض زرّ حقيقي لا عنصر بسمة سحب: السهمان ↑↓ عليه ينقلان
+        العمود، فيبقى المسار واحدًا لا مسارين يُصانان.
+
+        ⚠️ و`draggable` تُرفع عند الضغط على المقبض وحده وتُخفض بعده: سمة
+           دائمة على الصفّ تجعل أي سحب داخله — تحديد نصّ التسمية مثلًا —
+           يبدأ عملية نقل.
+
+        ⚠️ ولا `apIconFlip`: نقاط المقبض متماثلة، ولا معنى لانعكاسها.
+      -->
+      <button
+        type="button"
+        class="ap-column-toggle__grip"
+        [disabled]="!!column.locked"
+        [attr.aria-label]="'نقل ' + column.label"
+        (pointerdown)="armedKey.set(column.key)"
+        (pointerup)="armedKey.set(null)"
+        (keydown)="onGripKey($event, column)"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01" />
+        </svg>
+      </button>
+
+      <ap-choice [label]="column.label">
+        <input
+          apCheckbox
+          [checked]="isVisible(column.key)"
+          [disabled]="!!column.locked"
+          (change)="toggle(column)"
+        />
+      </ap-choice>
+    </div>
+  }
+</div>

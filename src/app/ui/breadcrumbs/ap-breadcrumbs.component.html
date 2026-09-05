@@ -1,0 +1,60 @@
+<!--
+  `<nav>` حقيقي و`<ol>` حقيقية: الترتيب جزء من المعنى هنا — الدرجة الأولى
+  جذر والأخيرة موضعنا — و`<ol>` هي ما يقوله لقارئ الشاشة («عنصر 2 من 4»)
+  بلا سمة تُكتب وتُنسى.
+-->
+<nav class="ap-breadcrumbs__nav" [attr.aria-label]="labelValue()">
+  <ol class="ap-breadcrumbs__list">
+    @for (node of nodes(); track node.key) {
+      <li class="ap-breadcrumbs__item">
+        <!--
+          الفاصل عنصر مستقلّ مخفيّ عن قارئ الشاشة، لا حرف داخل نصّ الرابط.
+          هذا بالضبط ما يكسره النمط القائم: هناك يُقرأ «التقارير أكبر من»،
+          ويصير الفاصل نفسه جزءًا من مساحة النقر.
+
+          وهو مرسوم LTR ويُعكس في RTL من الورقة — فيشير دائمًا إلى الدرجة
+          التالية في اتجاه القراءة.
+        -->
+        @if (!node.first) {
+          <svg class="ap-breadcrumbs__separator" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        }
+
+        @switch (node.kind) {
+          @case ('link') {
+            <a
+              class="ap-breadcrumbs__link"
+              [routerLink]="node.link"
+              [queryParams]="node.queryParams"
+              >{{ node.label }}</a
+            >
+          }
+
+          @case ('ellipsis') {
+            <!--
+              زرّ حقيقي لا نصّ: هو يفعل شيئًا. واسمه يحمل العدد، فلا يسمعه
+              أحد «نقطة نقطة نقطة».
+            -->
+            <button
+              type="button"
+              class="ap-breadcrumbs__ellipsis"
+              [attr.aria-label]="'إظهار ' + hiddenCount() + ' درجات مخفيّة من المسار'"
+              (click)="expand()"
+            >
+              {{ node.label }}
+            </button>
+          }
+
+          @case ('current') {
+            <span class="ap-breadcrumbs__current" aria-current="page">{{ node.label }}</span>
+          }
+
+          @default {
+            <span class="ap-breadcrumbs__text">{{ node.label }}</span>
+          }
+        }
+      </li>
+    }
+  </ol>
+</nav>

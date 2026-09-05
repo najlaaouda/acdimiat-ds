@@ -1,0 +1,15 @@
+/* ============================================================================
+   Acadimiat Design System — Token entry point
+   ----------------------------------------------------------------------------
+   نقطة الدخول الوحيدة المسجَّلة في angular.json.
+   الترتيب إلزامي: Primitives → Semantic → Component.
+
+   يُحمَّل بعد bootstrap.css / panel-style.css / rtl.css وقبل styles.scss،
+   فتُحسم التعارضات بترتيب التحميل لا بـ !important.
+
+   التوثيق: docs/design-system/DESIGN-TOKENS-ARCHITECTURE.md
+   ============================================================================ */
+
+@import './_primitives.css';
+@import './_semantic.css';
+@import './_components.css';

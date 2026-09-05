@@ -1,0 +1,397 @@
+@use '../state' as state;
+
+/* ============================================================================
+   Acadimiat UI — أنماط حقل رفع الصور
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-upload`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-upload-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+   ============================================================================ */
+
+/* المكوّن يعلن box-sizing بنفسه — القاعدة العالمية لا تعبر الجذر الظلّي
+   الذي يعزل مسرح المعاينة في موقع التوثيق. القيد نفسه في `ap-field`. */
+ap-upload,
+ap-upload * {
+  box-sizing: border-box;
+}
+
+ap-upload {
+  display: block;
+  /* يملأ ما تبقّى من صفّ `.ap-field__control`، ولا ينكمش دون محتواه. */
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+   منطقة الإسقاط — قبل الرفع
+   --------------------------------------------------------------------------- */
+/*
+  صفٌّ لا عمود، وبالبنية نفسها التي تأخذها بطاقة الملف أدناه: مربّع في
+  البداية ثمّ نصّ. فالصورة حين تصل تحلّ **محلّ المربّع في موضعه ومقاسه**،
+  ولا يتحرّك شيء آخر.
+
+  والفارق الوحيد بين «قبل» و«بعد» هو **تقطيع الحدّ** — وهو ما يجب أن يبقى:
+  لا شيء غيره يقول إن الإسقاط ممكن هنا قبل قراءة أي كلمة.
+*/
+ap-upload .ap-upload__zone {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--ap-upload-zone-gap);
+  padding: var(--ap-upload-zone-padding);
+  border: var(--ap-upload-zone-border-width) dashed var(--ap-upload-zone-border);
+  border-radius: var(--ap-upload-zone-radius);
+  background: var(--ap-upload-zone-bg);
+  /* المحاذاة إلى بداية السطر لا إلى الوسط: النصّ يجاور المربّع ويُقرأ
+     امتدادًا له، والتوسيط كان يفصلهما بفراغ متغيّر بعرض الحاوي. */
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color var(--ap-button-transition),
+    background-color var(--ap-button-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ap-upload .ap-upload__zone {
+    transition: none;
+  }
+}
+
+ap-upload .ap-upload__zone {
+  @include state.hover {
+    border-color: var(--ap-upload-zone-border-hover);
+    background: var(--ap-upload-zone-bg-hover);
+  }
+}
+
+/*
+  حلقة التركيز تُرسم على المنطقة لا على عنصر التحكّم.
+
+  عنصر التحكّم مخفيّ بصريًّا بحجم بكسل واحد؛ حلقة عليه لا يراها أحد. وهذا
+  هو الثمن الوحيد لإبقاء الـ input في ترتيب التنقّل بدل توكيل لوحة المفاتيح
+  يدويًّا.
+
+  ⚠️ و`:has(~ …)` لا `:focus-within`: الـ input **شقيق** للمنطقة لا ابنٌ لها
+     — وضعُه بالداخل كان يجعله يختفي مع المنطقة في الوضع المتعدّد، فيفقد
+     الحقل عنصر تحكّمه بمجرّد رفع أوّل ملف.
+
+  ⚠️ و`!important` هنا مقصودة وموضعها معروف: `foundations/_focus.css` يكتب
+     `:focus-visible { outline: … !important }` على كل شيء، فيرسم حلقة حول
+     مستطيل البكسل الواحد المخفيّ. المكوّن يلغيها على عنصره هو — كما تفعل
+     `<ap-search-field>` و`<ap-phone-field>` بالضبط. ولا تُنسخ هذه الإعفاءة
+     إلى زرّ الحذف: ذاك يُركَّز بذاته ويرى حلقته.
+*/
+ap-upload .ap-upload__zone:has(~ .ap-upload__input:focus-visible) {
+  outline: var(--ap-focus-ring-width) solid var(--ap-color-focus-ring);
+  outline-offset: var(--ap-focus-ring-offset);
+  border-color: var(--ap-upload-zone-border-active);
+}
+
+/*
+  حالة السحب: أقوى من المرور عمدًا. المؤشّر يحمل ملفًا ولا يلمس السطح، فما
+  يقول «أفلت هنا» هو الحدّ والتعبئة وحدهما.
+*/
+ap-upload .ap-upload__zone[data-dragging='true'] {
+  border-color: var(--ap-upload-zone-border-active);
+  background: var(--ap-upload-zone-bg-active);
+}
+
+ap-upload[data-invalid='true'] .ap-upload__zone {
+  border-color: var(--ap-upload-zone-border-error);
+}
+
+ap-upload[data-disabled='true'] .ap-upload__zone {
+  cursor: not-allowed;
+  opacity: var(--ap-opacity-disabled);
+}
+
+/*
+  المربّع الفارغ — `<ap-avatar>` بلا `src`.
+
+  ألوانه تُكتب بإعادة تعيين رمزَي الأفاتار محلّيًّا لا بمحدّد يخترق داخله:
+  الأفاتار يقرأ `--ap-avatar-bg/-fg` من محيطه، فتعيينهما هنا يغيّر مظهره في
+  هذا الموضع وحده بلا أن يعرف أحدهما بالآخر شيئًا.
+
+  ⚠️ ورمادي **باهت لكن مقروء**: `text-tertiary` على `bg-muted`. الأفتح منه
+     يجعل الأيقونة تختفي على السطح الباهت فيُقرأ المربّع فراغًا لا موضعًا
+     للصورة، وهو ما يُفقد الحالة الفارغة معناها كلّه.
+*/
+ap-upload .ap-upload__placeholder {
+  --ap-avatar-bg: var(--ap-upload-placeholder-bg);
+  --ap-avatar-fg: var(--ap-upload-placeholder-fg);
+
+  flex: none;
+}
+
+ap-upload .ap-upload__placeholder svg {
+  width: var(--ap-upload-placeholder-icon);
+  height: var(--ap-upload-placeholder-icon);
+  /* اصطلاح أيقونات النظام: خطّية لا ممتلئة، فترث لون النصّ في كل حالة. */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+ap-upload .ap-upload__prompt {
+  margin: 0;
+  /* يملأ ما تبقّى من الصفّ وينكمش دونه — الموضع نفسه الذي يشغله عمود
+     الاسم والحجم بعد الرفع. */
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--ap-upload-prompt-fg);
+  font-size: var(--ap-upload-prompt-size);
+  font-weight: var(--ap-upload-prompt-weight);
+  line-height: var(--ap-leading-snug);
+}
+
+ap-upload .ap-upload__prompt-action {
+  color: var(--ap-upload-action-fg);
+  text-decoration: underline;
+  /* السطر يبتعد عن الحروف النازلة العربية بدل أن يقطعها. */
+  text-underline-offset: var(--ap-space-0-5);
+}
+
+/* ---------------------------------------------------------------------------
+   عنصر التحكّم — مخفيّ بصريًّا لا محذوف
+
+   `display: none` و`visibility: hidden` يُخرجانه من ترتيب التنقّل، فلا
+   يصله Tab ولا يفتح Space المنتقي، ويصير النقر بالفأرة الطريق الوحيد.
+   --------------------------------------------------------------------------- */
+ap-upload .ap-upload__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* انظر تعليق حلقة التركيز أعلاه — الحلقة تنتقل إلى المنطقة. */
+ap-upload .ap-upload__input:focus-visible {
+  outline: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   بطاقة الملف — بعد الرفع
+   --------------------------------------------------------------------------- */
+ap-upload .ap-upload__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-upload-list-gap);
+  /* ⚠️ `bootstrap.css` يكتب `ul { padding-inline-start: 2rem }`؛ المحدّد
+     هنا (0,0,2) يهزمه بلا `!important`. القاعدة نفسها في `ap-breadcrumbs`. */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* المنطقة والبطاقات معًا في الوضع المتعدّد — فجوة بينهما. */
+ap-upload .ap-upload__zone + .ap-upload__input + .ap-upload__list {
+  margin-block-start: var(--ap-upload-list-gap);
+}
+
+ap-upload .ap-upload__file {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-upload-file-gap);
+  padding: var(--ap-upload-file-padding);
+  border: var(--ap-upload-file-border-width) solid var(--ap-upload-file-border);
+  border-radius: var(--ap-upload-file-radius);
+  background: var(--ap-upload-file-bg);
+  transition:
+    border-color var(--ap-button-transition),
+    background-color var(--ap-button-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ap-upload .ap-upload__file {
+    transition: none;
+  }
+}
+
+ap-upload .ap-upload__file {
+  @include state.hover {
+    border-color: var(--ap-upload-file-border-hover);
+  }
+}
+
+ap-upload .ap-upload__thumb {
+  flex: none;
+}
+
+ap-upload .ap-upload__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-upload-file-meta-gap);
+  /* بلا هذا لا ينكمش العمود دون محتواه، فلا يعمل بتر الاسم إطلاقًا. */
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/*
+  بتر الاسم من **بدايته** لا من نهايته.
+
+  اسم الملف سلسلة لاتينية داخل فقرة عربية، وأهمّ ما فيها امتدادها: هو ما
+  يقول أي ملف هذا. والبتر الافتراضي يقع في نهاية السطر، فيأكل `.png`
+  ويترك «opnform-cov…» — اسمًا بلا نوع.
+
+  الفقرة RTL (موروثة، بلا `dir="ltr"` على العنصر) فيقع الفيض والقطع على
+  الجانب الأيسر = **بداية** السلسلة اللاتينية، وتبقى «…form-cover.png».
+  والمحتوى نفسه يُعرَض من اليسار كما هو، لأن خوارزمية bidi تُبقيه مقطعًا
+  لاتينيًّا واحدًا.
+
+  ⚠️ ولذلك لا يُكتب `dir="ltr"` هنا — بخلاف الحجم في السطر التالي: ذاك رقم
+     ووحدة، ويحتاجه فعلًا وإلّا قُرئ «KB 200».
+*/
+ap-upload .ap-upload__name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ap-upload-file-name-fg);
+  font-size: var(--ap-upload-file-name-size);
+  font-weight: var(--ap-upload-file-name-weight);
+  line-height: var(--ap-leading-snug);
+}
+
+ap-upload .ap-upload__size,
+ap-upload .ap-upload__progress-text {
+  color: var(--ap-upload-file-meta-fg);
+  font-size: var(--ap-upload-file-meta-size);
+  line-height: var(--ap-leading-snug);
+}
+
+/* ---------------------------------------------------------------------------
+   شريط التقدّم — يحلّ محلّ الحجم، فلا يتغيّر ارتفاع البطاقة أثناء الرفع
+   --------------------------------------------------------------------------- */
+ap-upload .ap-upload__progress-line {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-2);
+  min-width: 0;
+}
+
+ap-upload .ap-upload__progress-text {
+  flex: none;
+}
+
+ap-upload .ap-upload__progress {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--ap-upload-progress-height);
+  border-radius: var(--ap-upload-progress-radius);
+  background: var(--ap-upload-progress-track);
+  overflow: hidden;
+}
+
+/*
+  التعبئة تنمو من **بداية** المسار لا من يساره: `margin-inline-end: auto`
+  يثبّتها على حافّة البداية في الاتّجاهين معًا. والعرض بنسبة مئوية من TS.
+*/
+ap-upload .ap-upload__progress-fill {
+  display: block;
+  height: 100%;
+  margin-inline-end: auto;
+  border-radius: inherit;
+  background: var(--ap-upload-progress-fill);
+  transition: width var(--ap-button-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ap-upload .ap-upload__progress-fill {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   زرّ الحذف
+   --------------------------------------------------------------------------- */
+ap-upload .ap-upload__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  /* 32×32 هدفُ لمسٍ صغير، لكنه داخل بطاقة بحشوة 12px فالمساحة الفعلية أكبر. */
+  width: var(--ap-upload-remove-size);
+  height: var(--ap-upload-remove-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ap-upload-remove-radius);
+  background: transparent;
+  color: var(--ap-upload-remove-fg);
+  cursor: pointer;
+  transition:
+    color var(--ap-button-transition),
+    background-color var(--ap-button-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ap-upload .ap-upload__remove {
+    transition: none;
+  }
+}
+
+ap-upload .ap-upload__remove svg {
+  width: var(--ap-upload-remove-icon);
+  height: var(--ap-upload-remove-icon);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+ap-upload .ap-upload__remove {
+  @include state.hover {
+    color: var(--ap-upload-remove-fg-hover);
+    background: var(--ap-upload-remove-bg-hover);
+  }
+
+  @include state.disabled {
+    cursor: not-allowed;
+    opacity: var(--ap-opacity-disabled);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   منطقة الحالة — مخفيّة بصريًّا
+
+   ⚠️ تُبَثّ من ورقة هذا المكوّن لا من ورقة عالمية: مسارح المعاينة في موقع
+      التوثيق `ShadowDom`، والأوراق العالمية لا تعبرها — فقاعدة عالمية كانت
+      تعمل في اللوحة وتختفي في التوثيق بلا إشارة. القاعدة نفسها التي جعلت
+      `ap-table` يبثّ `.ap-sr-only` بنفسه.
+   --------------------------------------------------------------------------- */
+ap-upload .ap-upload__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   الألوان المفروضة (forced-colors)
+
+   الحدّ المتقطّع يبقى — هو ما يميّز المنطقة عن بطاقة. واللون الدلالي يسقط،
+   فتحلّ ألوان النظام محلّه.
+   --------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  ap-upload .ap-upload__zone,
+  ap-upload .ap-upload__file {
+    border-color: CanvasText;
+  }
+
+  ap-upload .ap-upload__progress-fill {
+    background: Highlight;
+  }
+}

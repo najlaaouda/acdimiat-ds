@@ -1,0 +1,134 @@
+<!--
+  قالب خارجي لا `template:` سطري — أي backtick داخل قالب سطري (ولو في تعليق)
+  يُغلق النصّ الحرفي وينتج جدارًا من أخطاء TS تشير إلى أسطر خاطئة.
+-->
+
+<!--
+  `role="group"` مع `aria-labelledby` إلى الـ label هو ما يربط عنصرَي التحكّم.
+
+  بدونه يصل مستخدم قارئ الشاشة إلى زرّ الدولة بـ Shift+Tab فيسمع «السعودية،
+  مربّع سرد» بلا معرفة أنه داخل «رقم الجوال» — تعليمة معلّقة في الفراغ.
+-->
+<div class="ap-phone__row" role="group" [attr.aria-labelledby]="labelId()">
+  <button
+    #trigger
+    type="button"
+    class="ap-phone__country"
+    role="combobox"
+    aria-haspopup="listbox"
+    [attr.aria-expanded]="isOpen()"
+    [attr.aria-controls]="isOpen() ? listboxId() : null"
+    [disabled]="disabledValue()"
+    (pointerdown)="onTriggerPointerDown()"
+    (click)="onTriggerClick()"
+    (keydown)="onTriggerKeydown($event)"
+  >
+    <!--
+      منفذ العلم — صفر مسافة بيضاء داخله.
+
+      يُخفى بـ `:empty` حين لا يُرجع المصدر شيئًا، ومسافة واحدة تُبطل ذلك
+      فيبقى غلاف فارغ يأكل `gap` ويزيح الرمز عن مكانه.
+    -->
+    <span class="ap-phone__flag" aria-hidden="true">@if (flag(); as f) {
+      @if (f.kind === 'svg') {
+        <img class="ap-phone__flag-img" [src]="f.url" alt="" (error)="onFlagError()" />
+      } @else {
+        <span class="ap-phone__flag-emoji">{{ f.glyph }}</span>
+      }
+    } @else {
+      <span class="ap-phone__flag-code">{{ selected().iso2 }}</span>
+    }</span
+    ><span class="ap-phone__dial" dir="ltr">+{{ selected().dialCode }}</span>
+
+    <!--
+      اسم الدولة مخفيّ بصريًا لا محذوف: هو ما يكمل اسم الزرّ في قارئ الشاشة
+      («السعودية ‎+966‎»). و`aria-label` بديلًا عنه كان سيخفي القيمة الحالية
+      ويعطي وظيفة مجرّدة.
+    -->
+    <span class="ap-phone__sr">{{ selected().name }}</span>
+
+    <span class="ap-phone__chevron" aria-hidden="true"
+      ><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg
+    ></span>
+  </button>
+
+  <input
+    #number
+    class="ap-phone__input"
+    type="tel"
+    inputmode="tel"
+    autocomplete="tel-national"
+    dir="ltr"
+    [id]="controlId()"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-required]="requiredValue() ? 'true' : null"
+    [attr.aria-invalid]="invalidValue() ? 'true' : null"
+    [attr.placeholder]="placeholderValue()"
+    [disabled]="disabledValue()"
+    [value]="displayValue()"
+    (input)="onNumberInput($event)"
+    (blur)="onNumberBlur()"
+  />
+</div>
+
+@if (isOpen()) {
+  <!--
+    اللوحة تبقى في شجرتها — أي إلحاق بـ body يخرج من الجذر الظلّي في مسرح
+    التوثيق ويفقد أنماطه. و`popover` يرفعها إلى الطبقة العليا فينتهي تنازع
+    التكديس مع القالب المشترى.
+  -->
+  <div
+    #panel
+    class="ap-phone__panel"
+    popover="auto"
+    [attr.data-placement]="placement()"
+    [style.top.px]="panelTop()"
+    [style.left.px]="panelLeft()"
+    [style.width.px]="panelWidth()"
+    [style.maxHeight.px]="panelMaxHeight()"
+    (toggle)="onPanelToggle($event)"
+  >
+    <!--
+      نمط combobox قابل للتحرير: التركيز ينتقل إلى البحث، والأسهم تحرّك
+      التمييز في اللائحة بـ `aria-activedescendant` والتركيز باقٍ هنا.
+    -->
+    <input
+      #search
+      class="ap-phone__search"
+      type="text"
+      role="combobox"
+      aria-expanded="true"
+      aria-autocomplete="list"
+      [attr.aria-controls]="listboxId()"
+      [attr.aria-activedescendant]="activeOptionId()"
+      [attr.aria-label]="searchLabel"
+      [placeholder]="searchLabel"
+      [value]="query()"
+      (input)="onSearchInput($event)"
+      (keydown)="onSearchKeydown($event)"
+    />
+
+    <div class="ap-phone__list" role="listbox" [id]="listboxId()">
+      @for (country of filtered(); track country.iso2; let i = $index) {
+        <div
+          class="ap-phone__option"
+          role="option"
+          [id]="optionId(i)"
+          [attr.aria-selected]="country.iso2 === selected().iso2"
+          [attr.data-active]="i === activeIndex() ? 'true' : null"
+          (pointerenter)="activeIndex.set(i)"
+          (click)="choose(country)"
+        >
+          <span class="ap-phone__option-name">{{ country.name }}</span>
+          <!--
+            الرمز اللاتيني داخل صفّ عربي يحتاج `dir="ltr"` صراحةً — بدونه
+            يُعرض «966+» معكوسًا.
+          -->
+          <span class="ap-phone__option-dial" dir="ltr">+{{ country.dialCode }}</span>
+        </div>
+      } @empty {
+        <p class="ap-phone__empty" role="status">لا توجد دولة بهذا الاسم</p>
+      }
+    </div>
+  </div>
+}

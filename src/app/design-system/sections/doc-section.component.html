@@ -1,0 +1,166 @@
+@if (asProse(); as prose) {
+  <section class="docs-block" [id]="anchor()">
+    @if (prose.title) {
+      <h2 class="docs-block__title">{{ prose.title }}</h2>
+    }
+    @for (paragraph of prose.body; track $index) {
+      <p class="docs-prose">{{ paragraph }}</p>
+    }
+  </section>
+}
+
+@if (asList(); as list) {
+  <section class="docs-block" [id]="anchor()">
+    @if (list.title) {
+      <h2 class="docs-block__title">{{ list.title }}</h2>
+    }
+    @if (list.ordered) {
+      <ol class="docs-list docs-list--ordered">
+        @for (item of list.items; track $index) {
+          <li class="docs-list__item">{{ item }}</li>
+        }
+      </ol>
+    } @else {
+      <ul class="docs-list">
+        @for (item of list.items; track $index) {
+          <li class="docs-list__item">{{ item }}</li>
+        }
+      </ul>
+    }
+  </section>
+}
+
+@if (asTable(); as table) {
+  <section class="docs-block" [id]="anchor()">
+    @if (table.title) {
+      <h2 class="docs-block__title">{{ table.title }}</h2>
+    }
+    <!-- الالتفاف يمرّر الجدول العريض بتمرير أفقي خاص به، فلا يمرّر الصفحة كلها. -->
+    <div class="docs-tablewrap">
+      <table class="docs-table">
+        <!--
+          `dir="auto"` على كل خلية — لا على عمود بعينه.
+
+          الجداول هنا تخلط اسم token لاتينيًا (`--ap-purple-700`) وقيمة hex
+          (`#dc2626`) ونصًّا عربيًا في الصفّ الواحد. داخل فقرة RTL تُدفع
+          المحارف المحايدة في بداية النصّ (`--` و `#`) إلى نهايته بصريًا،
+          فيُقرأ الاسم `ap-purple-700--` — قيمة خاطئة حرفيًا لمن ينسخها.
+
+          `dir="auto"` يحسم اتجاه كل خلية من أول محرف قويّ فيها: الأسماء
+          اللاتينية LTR والنصّ العربي RTL. لا افتراض عن موضع العمود — وهو
+          افتراض فاسد أصلًا في RTL حيث `:first-child` هو العمود الأيمن.
+        -->
+        <thead>
+          <tr>
+            @for (header of table.headers; track $index) {
+              <th scope="col" dir="auto">{{ header }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of table.rows; track $index) {
+            <tr>
+              @for (cell of row; track $index) {
+                <td dir="auto">{{ cell }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (table.caption) {
+      <p class="docs-caption">{{ table.caption }}</p>
+    }
+  </section>
+}
+
+@if (asCallout(); as callout) {
+  <section class="docs-block" [id]="anchor()">
+    <!--
+      `role="note"` لا `alert`: المحتوى ثابت ولا يظهر استجابةً لحدث، و`alert`
+      يقاطع قارئ الشاشة فورًا — إساءة استخدام شائعة في صفحات التوثيق.
+    -->
+    <div class="docs-callout" [attr.data-tone]="callout.tone" role="note">
+      @if (callout.title) {
+        <p class="docs-callout__title">{{ callout.title }}</p>
+      }
+      @for (paragraph of callout.body; track $index) {
+        <p class="docs-callout__body">{{ paragraph }}</p>
+      }
+    </div>
+  </section>
+}
+
+@if (asDoDont(); as guidance) {
+  <section class="docs-block" [id]="anchor()">
+    @if (guidance.title) {
+      <h2 class="docs-block__title">{{ guidance.title }}</h2>
+    }
+    <div class="docs-guidance">
+      <div class="docs-guidance__col" data-kind="do">
+        <p class="docs-guidance__head">
+          <span class="docs-guidance__mark" aria-hidden="true">✓</span>
+          افعل
+        </p>
+        <ul class="docs-list">
+          @for (item of guidance.do; track $index) {
+            <li class="docs-list__item">{{ item }}</li>
+          }
+        </ul>
+      </div>
+      <div class="docs-guidance__col" data-kind="dont">
+        <p class="docs-guidance__head">
+          <span class="docs-guidance__mark" aria-hidden="true">✕</span>
+          لا تفعل
+        </p>
+        <ul class="docs-list">
+          @for (item of guidance.dont; track $index) {
+            <li class="docs-list__item">{{ item }}</li>
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+}
+
+@if (asAnatomy(); as anatomy) {
+  <section class="docs-block" [id]="anchor()">
+    @if (anatomy.title) {
+      <h2 class="docs-block__title">{{ anatomy.title }}</h2>
+    }
+    <app-doc-anatomy [parts]="anatomy.parts" />
+  </section>
+}
+
+@if (asTokens(); as tokens) {
+  <section class="docs-block" [id]="anchor()">
+    @if (tokens.title) {
+      <h2 class="docs-block__title">{{ tokens.title }}</h2>
+    }
+    <app-doc-tokens [tokens]="tokens.tokens" />
+  </section>
+}
+
+@if (asDemo(); as demo) {
+  <section class="docs-block" [id]="anchor()">
+    @if (demo.title) {
+      <h2 class="docs-block__title">{{ demo.title }}</h2>
+    }
+    @if (demo.description) {
+      <p class="docs-prose">{{ demo.description }}</p>
+    }
+    <app-doc-demo [demo]="demo.demo" />
+  </section>
+}
+
+@if (asMatrix(); as matrix) {
+  <section class="docs-block" [id]="anchor()">
+    @if (matrix.title) {
+      <h2 class="docs-block__title">{{ matrix.title }}</h2>
+    }
+    @if (matrix.description) {
+      <p class="docs-prose">{{ matrix.description }}</p>
+    }
+    <app-doc-matrix [matrix]="matrix" />
+  </section>
+}

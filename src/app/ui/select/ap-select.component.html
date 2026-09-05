@@ -1,0 +1,123 @@
+<!--
+  قالب خارجي لا `template:` سطري — القاعدة الموثَّقة في CLAUDE.md: أي backtick
+  داخل قالب سطري (ولو في تعليق) يُغلق النصّ الحرفي وينتج جدارًا من أخطاء TS
+  تشير إلى أسطر خاطئة. لُدغ المشروع بذلك مرّتين.
+-->
+
+<!--
+  الزنّاد `<button>` حقيقي لا `<div role="button">`.
+
+  السبب ليس الدلالة وحدها: `<label for>` لا يعمل إلا مع عنصر قابل للـ label،
+  و`<div role="combobox">` ليس منها. فبالزرّ ينطق قارئ الشاشة «الفئة، مربّع
+  سرد، مطويّ، التسويق» — الاسم من الـ label، والقيمة من محتوى الزرّ.
+
+  وكل سمات الربط مربوطة إعلانيًا لا مكتوبة أمريًا من `wire()`: الحقل الحاوي
+  يستدعي `wire()` في `ngAfterContentInit`، أي قبل تهيئة عرض هذا المكوّن —
+  فالكتابة على عنصر عبر `ViewChild` هناك تفشل صامتةً وتترك label بلا ارتباط.
+-->
+<button
+  #trigger
+  type="button"
+  class="ap-select__trigger"
+  role="combobox"
+  aria-haspopup="listbox"
+  [id]="controlId()"
+  [attr.data-size]="sizeValue()"
+  [attr.data-placeholder]="!selectedOption() ? 'true' : null"
+  [attr.aria-expanded]="isOpen()"
+  [attr.aria-controls]="isOpen() ? listboxId() : null"
+  [attr.aria-activedescendant]="isOpen() ? activeOptionId() : null"
+  [attr.aria-describedby]="describedBy()"
+  [attr.aria-required]="requiredValue() ? 'true' : null"
+  [attr.aria-invalid]="invalidValue() ? 'true' : null"
+  [attr.data-invalid]="invalidValue() ? 'true' : null"
+  [disabled]="disabledValue()"
+  (pointerdown)="onTriggerPointerDown()"
+  (click)="onTriggerClick()"
+  (keydown)="onTriggerKeydown($event)"
+  (blur)="onTriggerBlur()"
+>
+  <!--
+    صدرٌ ثابت قبل القيمة (`triggerPrefix`) — للفلاتر: `حالة الحساب: الكل`.
+
+    ⚠️ وفي الزنّاد وحده لا في الخيارات: إعادته في كل صفّ تقول «حالة الحساب»
+       ثلاث مرّات في قائمة مفتوحة فوق زنّاد يقولها.
+
+    ⚠️ ولا يُعرض مع النصّ البديل: ذاك يعني «لم يُختر بعد»، وصدرٌ قبله
+       يجعله يُقرأ قيمة.
+  -->
+  @if (triggerPrefixValue() && selectedOption()) {
+    <span class="ap-select__prefix">{{ triggerPrefixValue() }}:</span>
+  }
+  <!--
+    القيمة، وتحتها حجزُ العرض حين تُقاس القائمة بمحتواها (`fitContent`).
+
+    ⚠️ الحاجز نسخة مطويّة من **كل** تسمية، كلّها في خليّة الشبكة نفسها:
+       فيتّسع العمود لأوسعها ولا يتبع المختار، فلا يزحف ما بجوار القائمة مع
+       كل اختيار. وارتفاعها صفر فلا تزيد سطرًا، و`visibility: hidden` تُخرجها
+       من شجرة الوصول ومن بحث الصفحة معًا — و`aria-hidden` تأكيدٌ لا غير.
+
+    ⚠️ ولا تُحسب أعرض تسمية في TS: عرض النصّ من الخطّ ومن اتّصال الحروف
+       العربية، لا من عددها. والمتصفّح وحده يعرفه.
+  -->
+  <span class="ap-select__value">
+    <span class="ap-select__value-text">{{ selectedOption()?.label ?? placeholderValue() }}</span>
+    @for (label of sizerLabels(); track $index) {
+      <span class="ap-select__sizer" aria-hidden="true">{{ label }}</span>
+    }
+  </span>
+</button>
+
+@if (isOpen()) {
+  <!--
+    `popover` لا z-index مرتفع: العنصر ينتقل إلى الطبقة العليا فينتهي أي
+    تنازع تكديس مع القالب المشترى، ويصل الإغلاق بالنقر الخارجي وبـ Esc مجانًا.
+
+    والأهمّ أنه **يبقى في موضعه من DOM**. أي إلحاق بـ body — كطبقات CDK
+    وtippy — يخرج من الجذر الظلّي في مسرح التوثيق فيفقد أنماطه كلّها، وهو
+    القيد الذي صُمّم هذا التموضع لتفاديه.
+
+    `[style]` هنا إحداثيات محسوبة لحظيًا (موضع الزنّاد على الشاشة)، لا قيم
+    تصميم — تلك كلّها في `--ap-select-*`.
+  -->
+  <div
+    #panel
+    class="ap-select__panel"
+    popover="auto"
+    role="listbox"
+    [id]="listboxId()"
+    [attr.data-size]="sizeValue()"
+    [attr.data-placement]="placement()"
+    [attr.aria-labelledby]="controlId()"
+    [style.top.px]="panelTop()"
+    [style.left.px]="panelLeft()"
+    [style.width.px]="panelWidth()"
+    [style.maxHeight.px]="panelMaxHeight()"
+    (toggle)="onPanelToggle($event)"
+  >
+    @for (option of optionsValue(); track option.value; let i = $index) {
+      <!--
+        الخيار `<div role="option">` لا `<button>`: داخل listbox يُدار التمييز
+        بـ `aria-activedescendant` والتركيز الفيزيائي لا يغادر الزنّاد، فزرّ
+        قابل للتركيز هنا يُدخل عناصر في ترتيب التنقّل لا يجب أن تكون فيه.
+
+        `data-active` سمة داخلية يقودها `activeIndex` — ليست `data-state`،
+        فتلك للتوثيق وحده.
+      -->
+      <div
+        class="ap-select__option"
+        role="option"
+        [id]="optionId(i)"
+        [attr.aria-selected]="isSelected(option)"
+        [attr.aria-disabled]="option.disabled ? 'true' : null"
+        [attr.data-active]="i === activeIndex() ? 'true' : null"
+        (pointerenter)="onOptionPointerEnter(i)"
+        (click)="onOptionClick(option)"
+      >
+        {{ option.label }}
+      </div>
+    } @empty {
+      <p class="ap-select__empty" role="status">{{ emptyTextValue() }}</p>
+    }
+  </div>
+}

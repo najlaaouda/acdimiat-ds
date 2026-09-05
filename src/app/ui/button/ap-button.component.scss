@@ -1,0 +1,307 @@
+@use '../state' as state;
+
+/* ============================================================================
+   Acadimiat UI — أنماط الزرّ
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد هنا يبدأ بـ `[apButton]`. الورقة بلا تغليف، فمحدّد عارٍ واحد
+      يلوّث التطبيق كلّه.
+
+   ⛔ صفر قيمة خام. كل قيمة من طبقة `--ap-button-*`، وهي بدورها تشير إلى
+      الطبقة الدلالية. لا يقرأ هذا الملف أي primitive مباشرةً.
+
+   ⛔ ممنوع `&:hover` مباشرةً — كل الحالات عبر mixins من `ui/_state.scss`
+      كي تُولَّد مع مقابلها `[data-state~='…']` الذي تفرضه مصفوفة التوثيق.
+   ============================================================================ */
+
+/* يعلن box-sizing بنفسه — انظر التعليق في ap-field.component.scss. */
+[apButton],
+[apButton] * {
+  box-sizing: border-box;
+}
+
+[apButton] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ap-button-gap);
+
+  /* الارتفاع ثابت والحشوة أفقية فقط: لو كان الارتفاع من الحشوة لاختلف بين
+     زرّ فيه أيقونة وزرّ بلا أيقونة، وتكسّر اصطفاف الأشرطة. */
+  height: var(--ap-button-height-md);
+  padding-inline: var(--ap-button-padding-x-md);
+  border: var(--ap-border-width-thin) solid transparent;
+  border-radius: var(--ap-button-radius-md);
+
+  font-family: var(--ap-font-sans);
+  font-size: var(--ap-button-font-size);
+  font-weight: var(--ap-button-font-weight);
+  line-height: var(--ap-leading-none);
+  text-decoration: none;
+  white-space: nowrap;
+
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--ap-button-transition),
+    border-color var(--ap-button-transition),
+    color var(--ap-button-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [apButton] {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   الأحجام
+   نصف القطر يتدرّج مع الارتفاع: النسبة إلى الارتفاع هي ما يُقرأ، لا القيمة
+   المطلقة — زرّ 48px بنصف قطر 8px يبدو أقسى من زرّ 32px بالقيمة نفسها.
+   --------------------------------------------------------------------------- */
+[apButton][data-size='sm'] {
+  height: var(--ap-button-height-sm);
+  padding-inline: var(--ap-button-padding-x-sm);
+  border-radius: var(--ap-button-radius-sm);
+}
+
+[apButton][data-size='lg'] {
+  height: var(--ap-button-height-lg);
+  padding-inline: var(--ap-button-padding-x-lg);
+  border-radius: var(--ap-button-radius-lg);
+}
+
+/* زرّ الأيقونة الوحيدة مربّع: الحشوة الأفقية تساوي الرأسية. */
+[apButton][data-icon-only='true'] {
+  padding-inline: 0;
+  width: var(--ap-button-height-md);
+}
+
+[apButton][data-icon-only='true'][data-size='sm'] {
+  width: var(--ap-button-height-sm);
+}
+
+[apButton][data-icon-only='true'][data-size='lg'] {
+  width: var(--ap-button-height-lg);
+}
+
+[apButton][data-full-width='true'] {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+   الأنواع
+   --------------------------------------------------------------------------- */
+[apButton][data-variant='primary'] {
+  background: var(--ap-button-primary-bg);
+  border-color: var(--ap-button-primary-border);
+  color: var(--ap-button-primary-fg);
+
+  @include state.hover {
+    background: var(--ap-button-primary-bg-hover);
+  }
+
+  @include state.active {
+    background: var(--ap-button-primary-bg-active);
+  }
+}
+
+[apButton][data-variant='secondary'] {
+  background: var(--ap-button-secondary-bg);
+  border-color: var(--ap-button-secondary-border);
+  color: var(--ap-button-secondary-fg);
+
+  @include state.hover {
+    background: var(--ap-button-secondary-bg-hover);
+  }
+
+  @include state.active {
+    background: var(--ap-button-secondary-bg-active);
+  }
+}
+
+[apButton][data-variant='tertiary'] {
+  background: var(--ap-button-tertiary-bg);
+  border-color: var(--ap-button-tertiary-border);
+  color: var(--ap-button-tertiary-fg);
+
+  @include state.hover {
+    background: var(--ap-button-tertiary-bg-hover);
+  }
+
+  @include state.active {
+    background: var(--ap-button-tertiary-bg-hover);
+  }
+}
+
+[apButton][data-variant='danger'] {
+  background: var(--ap-button-danger-bg);
+  border-color: var(--ap-button-danger-border);
+  color: var(--ap-button-danger-fg);
+
+  @include state.hover {
+    background: var(--ap-button-danger-bg-hover);
+  }
+
+  @include state.active {
+    background: var(--ap-button-danger-bg-active);
+  }
+}
+
+/* الرابط: بلا خلفية ولا حدّ ولا حشوة أفقية — يجاور النصّ فلا يزيحه. */
+[apButton][data-variant='link'] {
+  height: auto;
+  padding-inline: 0;
+  background: none;
+  border-color: transparent;
+  color: var(--ap-button-link-fg);
+
+  @include state.hover {
+    color: var(--ap-button-link-fg-hover);
+    text-decoration: underline;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   التركيز
+   حلقة واحدة لكل الأنواع، وحمراء للفعل المدمِّر: لون الحلقة يتبع **خطورة
+   الفعل** لا لون الزرّ — فيتّسق التحذير بصريًا مع ما سيحدث عند الضغط.
+   --------------------------------------------------------------------------- */
+[apButton] {
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-button-focus-ring-color);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+}
+
+[apButton][data-variant='danger'] {
+  @include state.focus {
+    outline-color: var(--ap-button-focus-ring-danger);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   التعطيل والتحميل
+   --------------------------------------------------------------------------- */
+[apButton] {
+  @include state.disabled {
+    opacity: var(--ap-button-disabled-opacity);
+    cursor: not-allowed;
+  }
+
+  @include state.loading {
+    cursor: progress;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   المؤشّر
+   --------------------------------------------------------------------------- */
+[apButton] .ap-button__spinner {
+  flex: 0 0 auto;
+  width: var(--ap-icon-md);
+  height: var(--ap-icon-md);
+  border: var(--ap-border-width-medium) solid currentcolor;
+  /* الربع الشفاف هو ما يجعل الدوران مرئيًا. */
+  border-block-start-color: transparent;
+  border-radius: var(--ap-radius-full);
+  animation: ap-button-spin var(--ap-duration-slow) linear infinite;
+}
+
+[apButton] .ap-button__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ap-button-gap);
+}
+
+/* زرّ الأيقونة الوحيدة: النصّ يُزال بصريًا لا من الشجرة — قارئ الشاشة يحتاجه. */
+[apButton][data-icon-only='true'] .ap-button__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   منافذ الأيقونات
+   `:empty` يُخفي الغلاف حين لا يُسقَط فيه شيء، فلا يأكل `gap` ولا يزيح النصّ
+   عن المنتصف. ولذلك لا مسافة بيضاء داخل هذين الغلافين في القالب.
+
+   الاتجاه منطقي بلا قاعدة ثانية: `start` أولًا في الشجرة، فيقع يمينًا في RTL
+   ويسارًا في LTR تلقائيًا.
+   --------------------------------------------------------------------------- */
+[apButton] .ap-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+[apButton] .ap-button__icon:empty {
+  display: none;
+}
+
+/*
+   الأيقونة محدَّدة (outline) لا مصمتة:
+     • `fill: none` + `stroke: currentColor` يجعلها ترث لون النصّ في كل نوع
+       وكل حالة — فلا تحتاج قاعدة لون لكل تركيبة.
+     • السماكة ثابتة بصريًا مهما تغيّر الحجم، فتتّسق مع وزن الخط 500.
+     • الأيقونة المصمتة تُثقل الزرّ بصريًا وتنافس النصّ على الانتباه.
+*/
+[apButton] .ap-button__icon svg {
+  width: var(--ap-icon-md);
+  height: var(--ap-icon-md);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+[apButton][data-size='sm'] .ap-button__icon svg {
+  width: var(--ap-icon-sm);
+  height: var(--ap-icon-sm);
+}
+
+[apButton][data-size='lg'] .ap-button__icon svg {
+  width: var(--ap-icon-lg);
+  height: var(--ap-icon-lg);
+}
+
+/*
+   الأيقونات الاتّجاهية تنعكس، والدلالية لا.
+
+   سهم «التالي» يشير يمينًا في LTR ويسارًا في RTL — عكسه ليس تفصيلًا تجميليًا
+   بل تصحيح للمعنى. أمّا أيقونة «حفظ» أو «حذف» أو «بحث» فلا تنعكس؛ عكسها
+   يُنتج شكلًا غريبًا بلا فائدة.
+
+   العقد: تُؤلَّف كل الأيقونات بالاتجاه اللاتيني (كما في كل مكتبات الأيقونات)،
+   وتُعلَّم الاتّجاهية منها بـ `apIconFlip` فتنعكس تلقائيًا في RTL.
+
+   `:dir()` يقرأ الاتجاه المحسوب لا سمة على سلف بعينه، فيعمل داخل مسرح
+   المعاينة الظلّي كما يعمل في الصفحة. تدهور آمن: متصفّح لا يدعمه يعرض
+   الأيقونة بلا عكس — خطأ بصري لا انهيار.
+*/
+[apButton] .ap-button__icon svg[apIconFlip]:dir(rtl) {
+  transform: scaleX(-1);
+}
+
+@keyframes ap-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+  الحركة المستمرّة تُوقف لمن طلب تقليلها. الإخفاء ليس بديلًا — المؤشّر يحمل
+  معنى «جارٍ العمل»، فيبقى ظاهرًا ساكنًا.
+*/
+@media (prefers-reduced-motion: reduce) {
+  [apButton] .ap-button__spinner {
+    animation: none;
+  }
+}

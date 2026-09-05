@@ -1,0 +1,286 @@
+@use '../state' as state;
+@use 'menu';
+
+/* ============================================================================
+   Acadimiat UI — أنماط القائمة المرسومة
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-select`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-select-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+
+   شكل اللوحة والخيار يأتي من `_menu.scss` المشترك مع `app-native-select`،
+   فلا تتباعد القائمتان عند أول تعديل.
+   ============================================================================ */
+
+ap-select,
+ap-select * {
+  box-sizing: border-box;
+}
+
+ap-select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+  مقاسٌ بالمحتوى: فوق جدول لا داخل نموذج — انظر `fitContent` في المكوّن.
+
+  ⚠️ و`max-width: 100%` معه: خياراتٌ طويلة في حاوٍ ضيّق تدفع القائمة خارجه
+     بلا هذا، وحينها يفيض الشريط أفقيًا بدل أن تُقصّ القيمة بالنقاط الثلاث.
+*/
+ap-select[data-fit-content] {
+  width: fit-content;
+  max-width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+   الزنّاد
+   أبعاده من `--ap-select-*` نفسها التي تحكم `[apSelect]` الأصلي — فيتطابق
+   المساران بصريًا مهما اختلف تنفيذهما.
+
+   ⚠️ حشوة النهاية تتّسع للسهم الذي يرسمه `<ap-field>` في طرف الصفّ، كما في
+      القائمة الأصلية تمامًا.
+   --------------------------------------------------------------------------- */
+ap-select .ap-select__trigger {
+  display: flex;
+  align-items: center;
+  /*
+    فراغ الكلمة بين الصدر والقيمة: «حالة الحساب: الكل».
+
+    ⚠️ ولا يمكن أن يكون في القالب: الصدر والقيمة عنصران، وAngular يحذف العُقد
+       النصّية الفارغة بين العناصر (`preserveWhitespaces: false` وهو الأصل) —
+       فالسطر يُبنى «حالة الحساب:الكل» ملتصقًا، وهو ما لا يظهر في مراجعة القالب
+       لأن الفراغ **مكتوب فيه**.
+
+    ⚠️ و`gap` لا هامش على الصدر: بلا صدر يبقى ابنٌ واحد فلا فراغ يُضاف — أمّا
+       الهامش فيُزيح القيمة في كل قائمة بلا صدر (وهي أغلبها).
+  */
+  gap: var(--ap-space-1);
+  width: 100%;
+  min-width: 0;
+  height: var(--ap-select-height-md);
+  padding-inline: var(--ap-select-padding-x)
+    calc(var(--ap-select-padding-x) * 2 + var(--ap-select-arrow-size));
+  border: var(--ap-select-border-width) solid var(--ap-select-border);
+  border-radius: var(--ap-select-radius);
+  background: var(--ap-select-bg);
+  color: var(--ap-select-fg);
+  font-family: var(--ap-font-sans);
+  font-size: var(--ap-select-font-size);
+  line-height: var(--ap-leading-snug);
+  /* النصّ إلى بداية السطر — الزنّاد يعرض قيمة لا يوسّطها. */
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color var(--ap-button-transition),
+    background-color var(--ap-button-transition),
+    box-shadow var(--ap-button-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ap-select .ap-select__trigger {
+    transition: none;
+  }
+}
+
+ap-select .ap-select__trigger[data-size='sm'] {
+  height: var(--ap-select-height-sm);
+  font-size: var(--ap-font-size-xs);
+}
+
+ap-select .ap-select__trigger[data-size='lg'] {
+  height: var(--ap-select-height-lg);
+  font-size: var(--ap-font-size-lg);
+}
+
+/*
+  القيمة الطويلة تُقصّ بثلاث نقاط بدل أن تدفع الزنّاد خارج حاويه.
+
+  والشبكة هنا لتكديس الحواجز تحت النصّ في خليّة واحدة: عرض الخليّة أوسعُ
+  محتوياتها، فيحجز الزنّاد أوسع تسمية ولا يتبع المختارة. وبلا حواجز — وهو
+  الحال الافتراضي — الشبكة بعنصر واحد تساوي السطر تمامًا.
+*/
+ap-select .ap-select__value {
+  display: grid;
+  min-width: 0;
+}
+
+ap-select .ap-select__value > * {
+  grid-area: 1 / 1;
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+  حاجز العرض: يشغل عرضه ولا يشغل ارتفاعًا ولا يُرى ولا يُقرأ.
+
+  ⚠️ `visibility: hidden` لا `display: none`: الثاني يُخرجه من الحساب فلا
+     يحجز شيئًا أصلًا — وهو ما يُبطل الميزة كلَّها بلا أثر ظاهر.
+*/
+ap-select .ap-select__sizer {
+  height: 0;
+  visibility: hidden;
+}
+
+/*
+  صدر الزنّاد: يسمّي ما تُصفّي به القائمة، والقيمة بعده هي الجواب.
+
+  ⚠️ ولونه ثانويّ والقيمة أساسيّة: المتغيّر هو الجواب، وتساوي اللونين يجعل
+     السطر كلّه يُقرأ كتلةً واحدة فلا تُلمح القيمة بنظرة.
+
+  ⚠️ و`flex: none`: القصّ بالنقاط الثلاث يقع على القيمة وحدها — وصدرٌ مقصوص
+     يترك «حالة الحسـ…» بلا جواب أصلًا.
+*/
+ap-select .ap-select__prefix {
+  flex: none;
+  color: var(--ap-color-text-secondary);
+}
+
+/* النائب بلون النصّ البديل فيُقرأ «لم يُختر بعد» لا «هذه هي القيمة». */
+ap-select .ap-select__trigger[data-placeholder] .ap-select__value {
+  color: var(--ap-select-fg-placeholder);
+}
+
+ap-select .ap-select__trigger {
+  @include state.hover {
+    border-color: var(--ap-select-border-hover);
+    background: var(--ap-select-bg-hover);
+  }
+
+  @include state.focus {
+    border-color: var(--ap-select-border-focus);
+    background: var(--ap-select-bg-focus);
+    /* الحلقة `box-shadow` لا `outline`: تتبع نصف قطر الزنّاد تمامًا.
+       ورفع الأولوية قسرًا شرطُ إلغاء الحلقة العامّة في
+       `foundations/_focus.css` — إعلانٌ مرفوع الأولوية لا يُهزم بالخصوصية.
+       الشرح الكامل على `[apInput]` في `ui/field/ap-field.component.scss`. */
+    box-shadow: var(--ap-select-focus-ring);
+    outline: none !important;
+  }
+
+  @include state.disabled {
+    border-color: var(--ap-select-border-disabled);
+    background: var(--ap-select-bg-disabled);
+    color: var(--ap-select-fg-disabled);
+    cursor: not-allowed;
+  }
+}
+
+ap-select .ap-select__trigger[data-invalid='true'],
+ap-select .ap-select__trigger[data-state~='error'] {
+  border-color: var(--ap-select-border-error);
+
+  @include state.focus {
+    border-color: var(--ap-select-border-error);
+    box-shadow: var(--ap-select-focus-ring-error);
+  }
+}
+
+/*
+  اللوحة مفتوحة ⇐ الزنّاد يبدو مركَّزًا.
+
+  بدون هذا يفقد الزنّاد حدّه الملوّن لحظة انتقال المؤشّر إلى اللوحة، فيبدو
+  كأن القائمة انفصلت عمّا فتحها.
+*/
+ap-select .ap-select__trigger[aria-expanded='true'] {
+  border-color: var(--ap-select-border-focus);
+  background: var(--ap-select-bg-focus);
+}
+
+/* ---------------------------------------------------------------------------
+   اللوحة والخيارات — من الجزء المشترك
+   --------------------------------------------------------------------------- */
+ap-select .ap-select__panel {
+  /* الإحداثيات تأتي من TypeScript؛ نوع التموضع يبقى قرار الورقة. */
+  position: fixed;
+  @include menu.panel;
+  @include menu.panel-placement;
+}
+
+ap-select .ap-select__option {
+  @include menu.option;
+}
+
+/*
+  الخيار يتبع مقاس الزنّاد في **حجم الخطّ وحده**.
+
+  القيمة المكتوبة في الزنّاد هي القيمة المختارة من اللائحة، فاختلاف قياسها
+  بينهما يجعل النصّ الواحد يتغيّر حجمًا وأنت تنظر إليه.
+
+  ⚠️ وهو شرط عمل كذلك لا تجميل: اللوحة بعرض زنّادها، وخطٌّ أكبر داخلها يعني
+     أن ما وسِعه الزنّاد لا تسعه اللوحة — فيلتفّ «10 لكل صفحة» سطرين داخل
+     قائمة حجم الصفحة. ومع تساوي الخطّين تصير المسألة محسومة بالحساب: حشوة
+     الزنّاد الأفقية (padding + سهم) أوسع من حشوة الخيار دائمًا، فما وسِعه
+     الزنّاد تسعه اللوحة بالضرورة.
+
+  ⛔ والحشوة الرأسية لا تتبع: ارتفاع الخيار 44px هو حدّ هدف اللمس في
+     WCAG 2.2 §2.5.8 — لا ينزل عنه مهما صغر الخطّ.
+*/
+ap-select .ap-select__panel[data-size='sm'] .ap-select__option {
+  font-size: var(--ap-font-size-xs);
+}
+
+ap-select .ap-select__panel[data-size='lg'] .ap-select__option {
+  font-size: var(--ap-font-size-lg);
+}
+
+/*
+  المرور والتمييز بلوحة المفاتيح مظهرهما واحد: كلاهما يعني «هذا ما سيُختار
+  الآن». `data-active` سمة داخلية يقودها `activeIndex` — ليست `data-state`،
+  فتلك للتوثيق وحده.
+*/
+ap-select .ap-select__option[data-active='true'] {
+  @include menu.option-active;
+}
+
+ap-select .ap-select__option[aria-selected='true'] {
+  @include menu.option-selected;
+}
+
+/* المحدَّد والنشط معًا: تعبئة الحالة النشطة تفوز لأنها تصف اللحظة، ويبقى
+   الوزن والّلون من المحدَّد فيُقرأ الاثنان. */
+ap-select .ap-select__option[aria-selected='true'][data-active='true'] {
+  background-color: var(--ap-select-option-bg-active);
+}
+
+ap-select .ap-select__option[aria-disabled='true'] {
+  @include menu.option-disabled;
+}
+
+ap-select .ap-select__empty {
+  margin: 0;
+  @include menu.empty;
+}
+
+/* ---------------------------------------------------------------------------
+   السهم في حالة الفتح
+   يرسمه `<ap-field>` لا هذا المكوّن، فيُدار من هنا بمحدّد على الصفّ.
+   `rotate` لا `transform`: محور واحد لا يلغي أي تحويل آخر على العنصر.
+   --------------------------------------------------------------------------- */
+ap-field .ap-field__control:has([aria-expanded='true']) .ap-field__chevron {
+  rotate: 180deg;
+}
+
+ap-field .ap-field__chevron {
+  transition: rotate var(--ap-control-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ap-field .ap-field__chevron {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   داخل `<ap-field>`
+   الحقل صفّ مرن، والقائمة عنصر فيه: تملأ ما تبقّى ولا تنكمش دون محتواها.
+   القيد نفسه المشروح على `[apInput]` — بدون `min-width: 0` يفيض العنصر خارج
+   حاويه في أي عمود ضيّق.
+   --------------------------------------------------------------------------- */
+ap-field .ap-field__control ap-select {
+  flex: 1 1 auto;
+  min-width: 0;
+}

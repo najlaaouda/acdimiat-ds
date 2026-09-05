@@ -1,0 +1,546 @@
+@use '../state' as state;
+
+/* ============================================================================
+   Acadimiat UI — أنماط الخيار (مربّع الاختيار · الراديو · المفتاح)
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-choice`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقات `--ap-control-*` و`--ap-checkbox-*`
+      و`--ap-radio-*` و`--ap-switch-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+
+   ─── البنية ────────────────────────────────────────────────────────────────
+       .ap-choice__control          هدف اللمس 40×40، ومرجع التموضع
+         input.ap-choice__native    العنصر الأصلي — شفّاف، مبسوط على الهدف
+         .ap-choice__visual         الشكل المرسوم — شقيق مباشر للعنصر
+
+   كل حالة تُقرأ من العنصر الأصلي وتُطبَّق على شقيقه:
+       .ap-choice__native:checked + .ap-choice__visual { … }
+
+   ⚠️ الرابط بينهما محدّد الشقيق المباشر. أي عنصر يُدرج بينهما يقطعه صامتًا.
+   ============================================================================ */
+
+ap-choice,
+ap-choice * {
+  box-sizing: border-box;
+}
+
+ap-choice {
+  display: block;
+  /* مرجع تموضع الـ label المخفيّ بصريًا (position: absolute أدناه) — بدونه
+     يُسنَد إلى أقرب جدّ متموضع أيًّا كان، خارج المكوّن. */
+  position: relative;
+}
+
+/* الخياران المتتاليان بلا فجوة: هدف اللمس 40px يحمل الفصل بنفسه. */
+ap-choice + ap-choice {
+  margin-block-start: var(--ap-control-group-gap);
+}
+
+/*
+  ارتفاع الصفّ لا يقلّ عن هدف اللمس — وهذا ما يجعل الفجوة بين الخيارات صفرًا
+  قرارًا صحيحًا لا إهمالًا: أهداف اللمس تتراصّ بلا تداخل ولا فراغ.
+
+  ولو كان الصفّ أقصر من هدفه لتمدّد الهدف خارجه وركب على هدف الخيار المجاور،
+  فتصيب النقرة قرب الحدّ الخيارَ الخطأ — وهو عطل لا يظهر إلا على الجوّال ولا
+  يُرى في أي لقطة شاشة.
+*/
+ap-choice .ap-choice__row {
+  display: flex;
+  flex-direction: row;
+  /* التوسيط لا المحاذاة إلى البداية: الصفّ أطول من الشكل دائمًا (40px مقابل
+     18px)، فالتوسيط هو ما يبقي الهدف داخل صفّه. وفي الحالة الشائعة — سطر
+     واحد — التوسيط والمحاذاة إلى السطر الأول شيء واحد. */
+  align-items: center;
+  gap: var(--ap-control-gap);
+  min-height: var(--ap-control-touch-size);
+  min-width: 0;
+}
+
+/*
+  صفّ الإعداد: النصّ في البداية والعنصر في النهاية.
+
+  `row-reverse` لا `order`: الأخير يغيّر الترتيب البصري ويترك ترتيب DOM كما
+  هو، فينفصل التنقّل بلوحة المفاتيح عمّا تراه العين. والعكس المنطقي يحافظ
+  على تطابق الاثنين في الاتجاهين معًا.
+*/
+ap-choice[data-layout='between'] .ap-choice__row {
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ap-space-4);
+}
+
+/* ---------------------------------------------------------------------------
+   هدف اللمس والعنصر الأصلي
+   --------------------------------------------------------------------------- */
+
+/*
+  صندوق التخطيط هو الشكل، وهدف اللمس يفيض عنه.
+
+  هدف 40×40 حول شكل 18×18: WCAG 2.5.8 (AA) يفرض 24×24 حدًّا أدنى، و40 يطابق
+  ارتفاع الحقل والزرّ فيستقيم الصفّ المختلط. تنفيذ Bootstrap القائم دون 24
+  (C-04)، أي أن جزءًا من نقرات الجوّال تخطئ الهدف.
+
+  ولو أخذ الهدف مقاسه من التخطيط لدفع النصّ 11px بعيدًا عن الشكل، فتنكسر فجوة
+  الـ 8px المقرَّرة. الحلّ أن يبقى الصندوق بحجم شكله ويتمدّد العنصر الأصلي
+  وحده فوقه — والفيض أفقيًا يقع على النصّ لا على عنصر تحكّم آخر، ورأسيًا
+  يحتويه ارتفاع الصفّ الأدنى.
+*/
+ap-choice .ap-choice__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--ap-control-size);
+  height: var(--ap-control-size);
+}
+
+/* المفتاح مساره لا مربّع، فصندوقه بمقاس المسار. */
+ap-choice .ap-choice__control:has(> .ap-choice__visual[data-shape='switch']) {
+  width: var(--ap-switch-track-width);
+  height: var(--ap-switch-track-height);
+}
+
+/*
+  العنصر الأصلي شفّاف لا مخفيّ.
+
+  `display: none` أو `visibility: hidden` كانا سيخرجانه من ترتيب التنقّل ومن
+  شجرة إمكانية الوصول معًا — فيصبح الشكل المرسوم صورة لا تُنقر ولا تُعلَن.
+  الشفافية تُبقي كل ذلك: يستقبل التركيز، ويستجيب للمسافة، ويرسله النموذج،
+  ويعلنه قارئ الشاشة.
+
+  والتوسيط بـ `left` و`translate` لا بخاصية منطقية: العملية متماثلة حول
+  المركز، فنتيجتها واحدة في الاتجاهين — والخاصية المنطقية هنا كانت ستضيف
+  تعقيدًا بلا فرق.
+*/
+ap-choice .ap-choice__native {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* لا يصغر عن شكله مهما صغر الهدف المُعلَن. */
+  width: max(var(--ap-control-touch-size), 100%);
+  height: max(var(--ap-control-touch-size), 100%);
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  translate: -50% -50%;
+  cursor: pointer;
+}
+
+ap-choice .ap-choice__native:disabled {
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------------
+   الشكل المرسوم — الأساس المشترك
+   --------------------------------------------------------------------------- */
+ap-choice .ap-choice__visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--ap-control-size);
+  height: var(--ap-control-size);
+  border: var(--ap-control-border-width) solid var(--ap-control-border);
+  background: var(--ap-control-bg);
+  color: var(--ap-control-fg-checked);
+  /* لا يستقبل الأحداث: العنصر الأصلي فوقه هو من يستقبلها. */
+  pointer-events: none;
+  transition:
+    border-color var(--ap-control-transition),
+    background-color var(--ap-control-transition),
+    box-shadow var(--ap-control-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ap-choice .ap-choice__visual,
+  ap-choice .ap-choice__thumb,
+  ap-choice .ap-choice__dot,
+  ap-choice .ap-choice__mark path,
+  ap-choice .ap-choice__thumb-icon path {
+    transition: none;
+  }
+}
+
+ap-choice .ap-choice__visual[data-shape='checkbox'] {
+  border-radius: var(--ap-checkbox-radius);
+}
+
+/* الدائرة هي ما يميّز الراديو عن المربّع قبل أي لون — تمييز شكلي لا لوني. */
+ap-choice .ap-choice__visual[data-shape='radio'] {
+  border-radius: var(--ap-radius-full);
+}
+
+/* ---------------------------------------------------------------------------
+   حالات العنصر الأصلي مطبَّقة على شقيقه المرسوم
+   --------------------------------------------------------------------------- */
+ap-choice .ap-choice__native {
+  @include state.hover {
+    + .ap-choice__visual {
+      border-color: var(--ap-control-border-hover);
+      background: var(--ap-control-bg-hover);
+    }
+  }
+
+  @include state.focus {
+    + .ap-choice__visual {
+      /* الحلقة على الشكل لا على العنصر الشفّاف: الأخير بلا حدود مرئية،
+         فحلقته كانت سترتسم حول مربّع 40×40 فارغ. */
+      box-shadow: var(--ap-control-focus-ring);
+    }
+  }
+
+  @include state.disabled {
+    + .ap-choice__visual {
+      border-color: var(--ap-control-border-disabled);
+      background: var(--ap-control-bg-disabled);
+    }
+  }
+}
+
+/*
+  المحدَّد. `:checked` يُكتب مباشرةً بخلاف الحالات أعلاه — وليس في ذلك مخالفة
+  للقاعدة: القاعدة تخصّ الحالات الزائفة التي لا تُفعَّل برمجيًا (hover، focus،
+  active). أمّا التحديد فحالة حقيقية تُضبط بخاصية DOM، فتُعرض في مصفوفة
+  التوثيق كما هي بلا تزييف — كالمعطَّل و«للقراءة فقط» في الحقل النصّي.
+
+  ⚠️ و`:indeterminate` مقصورة على شكل المربّع بـ `[data-shape='checkbox']`،
+     وليس ذلك تزيّدًا: **زرّ الراديو يطابق `:indeterminate` متى كانت مجموعته
+     كلّها بلا اختيار** — هذا نصّ المواصفة لا خطأ متصفّح، وهي الحالة الابتدائية
+     لكل مجموعة راديو تُفتح فارغة. فبلا القيد تُرسم الخيارات الثلاثة كلّها
+     ممتلئة بلون العلامة قبل أن يُنقر شيء، فتبدو كلّها مختارة.
+
+     والعطل يختبئ في المعاينة: عروض التوثيق تبدأ بخيار مختار، فلا مجموعة فيها
+     فارغة قطّ. وظهر في «منح الصلاحية» وحدها لأنها تُفتح بـ `currentRole = null`.
+
+     ولا يُرى في بقيّة القواعد كذلك: النقطة والبطاقة والتفصيل كلّها معلَّقة
+     على `:checked` وحدها — فلا نقطة بيضاء داخل الدائرة الممتلئة ولا حدّ
+     بنفسجي على البطاقة، وهو ما يجعل الشاشة تبدو «مختارةً كلّها» بلا أثر
+     اختيار واحد.
+*/
+ap-choice .ap-choice__native:checked + .ap-choice__visual,
+ap-choice .ap-choice__native:indeterminate + .ap-choice__visual[data-shape='checkbox'] {
+  border-color: var(--ap-control-border-checked);
+  background: var(--ap-control-bg-checked);
+}
+
+ap-choice .ap-choice__native:checked {
+  @include state.hover {
+    + .ap-choice__visual {
+      border-color: var(--ap-control-bg-checked-hover);
+      background: var(--ap-control-bg-checked-hover);
+    }
+  }
+}
+
+/* المحدَّد المعطَّل يبقى محدَّدًا بوضوح: الرمادي الداكن يُبقي العلامة مقروءة،
+   بينما التعبئة الفاتحة كانت ستجعله يبدو غير محدَّد. */
+ap-choice .ap-choice__native:checked:disabled + .ap-choice__visual,
+ap-choice .ap-choice__native:indeterminate:disabled + .ap-choice__visual[data-shape='checkbox'] {
+  border-color: var(--ap-control-bg-checked-disabled);
+  background: var(--ap-control-bg-checked-disabled);
+}
+
+/* ---------------------------------------------------------------------------
+   علامة مربّع الاختيار
+   --------------------------------------------------------------------------- */
+ap-choice .ap-choice__mark {
+  display: block;
+  width: var(--ap-checkbox-mark-size);
+  height: var(--ap-checkbox-mark-size);
+  fill: none;
+  /* ترث لون الشكل — القاعدة نفسها المطبَّقة على أيقونات الزرّ: لا قاعدة لون
+     لكل حالة، بل لون واحد يتدفّق من الحاوي. */
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-thick);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+ap-choice .ap-choice__mark path {
+  opacity: 0;
+  transition: opacity var(--ap-control-transition);
+}
+
+ap-choice .ap-choice__native:checked + .ap-choice__visual .ap-choice__mark-check {
+  opacity: 1;
+}
+
+/*
+  الحالة الوسطى تفوز على المحدَّد: `indeterminate` تُغطّي `checked` بصريًا في
+  المتصفّح الأصلي كذلك، والعنصر قد يحمل الاثنين معًا.
+*/
+ap-choice .ap-choice__native:indeterminate + .ap-choice__visual[data-shape='checkbox'] .ap-choice__mark-check {
+  opacity: 0;
+}
+
+ap-choice .ap-choice__native:indeterminate + .ap-choice__visual[data-shape='checkbox'] .ap-choice__mark-dash {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   نقطة الراديو
+   8px داخل 18px: تترك حلقة تفصلها عن الحدّ فيُقرأ العنصر «نقطة داخل دائرة».
+   --------------------------------------------------------------------------- */
+ap-choice .ap-choice__dot {
+  width: var(--ap-radio-dot-size);
+  height: var(--ap-radio-dot-size);
+  border-radius: var(--ap-radius-full);
+  background: currentcolor;
+  /* الكِبَر لا الشفافية: النقطة تنمو من المركز فيُقرأ التحديد حركةً واضحة،
+     والشفافية وحدها كانت ستبدو وميضًا. */
+  scale: 0;
+  transition: scale var(--ap-control-transition);
+}
+
+ap-choice .ap-choice__native:checked + .ap-choice__visual .ap-choice__dot {
+  scale: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   المفتاح
+   --------------------------------------------------------------------------- */
+/*
+  المسار بلا حدّ — لا بحدّ شفّاف.
+
+  الحدّ الشفّاف كان يظلّ يشغل 1.5px من الطرفين، فيصير صندوق المسار الداخلي
+  19px لا 22px ويلتصق الإبهام 18px بحوافّه. وإلغاؤه يُبطل معه كل قاعدة تضبط
+  لون الحدّ على المسار، فلا تعود هناك حاجة إلى تحييدها في كل حالة.
+*/
+ap-choice .ap-choice__visual[data-shape='switch'] {
+  position: relative;
+  width: var(--ap-switch-track-width);
+  height: var(--ap-switch-track-height);
+  border: 0;
+  border-radius: var(--ap-switch-track-radius);
+  background: var(--ap-switch-track-bg-off);
+}
+
+/*
+  الإبهام حاوٍ لرمزه: التوسيط هنا لا في قاعدة منفصلة، فيبقى الرمز في مركزه
+  مهما تغيّر مقاس الإبهام من الـ token.
+*/
+ap-choice .ap-choice__thumb {
+  position: absolute;
+  top: 50%;
+  /*
+    الإزاحة بـ `inset-inline-start` لا بـ `translateX`: الأخيرة فيزيائية،
+    فكان المفتاح ينزلق إلى اليمين في الواجهة العربية — أي إلى خارج مساره.
+    الخاصية المنطقية تنقلب مع الصفحة بلا قاعدة ثانية ولا استعلام اتجاه.
+  */
+  inset-inline-start: var(--ap-switch-track-inset);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-switch-thumb-size);
+  height: var(--ap-switch-thumb-size);
+  border-radius: var(--ap-radius-full);
+  background: var(--ap-switch-thumb-bg);
+  box-shadow: var(--ap-switch-thumb-shadow);
+  /* لون الرمز يرثه من هنا عبر currentColor — قاعدة واحدة لكل حالة بدل
+     قاعدة لون لكل مسار. */
+  color: var(--ap-switch-thumb-fg-off);
+  translate: 0 -50%;
+  transition:
+    inset-inline-start var(--ap-control-transition),
+    color var(--ap-control-transition);
+}
+
+ap-choice .ap-choice__thumb-icon {
+  display: block;
+  width: var(--ap-switch-thumb-icon-size);
+  height: var(--ap-switch-thumb-icon-size);
+  fill: none;
+  stroke: currentcolor;
+  /*
+    2px في وحدات الـ viewBox لا في البكسل: الرمز يُعرض بـ 10px من viewBox
+    عرضه 16، أي بمقياس 0.625 — فيرتسم الخطّ 1.25px فعليًا. والقيمة الأرفع
+    كانت ستختفي عند هذا التصغير.
+  */
+  stroke-width: var(--ap-border-width-thick);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+ap-choice .ap-choice__thumb-icon path {
+  opacity: 0;
+  transition: opacity var(--ap-control-transition);
+}
+
+ap-choice .ap-choice__native:not(:checked) + .ap-choice__visual .ap-choice__thumb-icon-off {
+  opacity: 1;
+}
+
+ap-choice .ap-choice__native:checked + .ap-choice__visual .ap-choice__thumb {
+  color: var(--ap-switch-thumb-fg-on);
+}
+
+ap-choice .ap-choice__native:checked + .ap-choice__visual .ap-choice__thumb-icon-on {
+  opacity: 1;
+}
+
+ap-choice .ap-choice__native:checked + .ap-choice__visual[data-shape='switch'] {
+  background: var(--ap-switch-track-bg-on);
+}
+
+ap-choice .ap-choice__native:checked + .ap-choice__visual[data-shape='switch'] .ap-choice__thumb {
+  inset-inline-start: calc(100% - var(--ap-switch-thumb-size) - var(--ap-switch-track-inset));
+}
+
+ap-choice .ap-choice__native {
+  @include state.hover {
+    + .ap-choice__visual[data-shape='switch'] {
+      background: var(--ap-switch-track-bg-off-hover);
+    }
+  }
+}
+
+ap-choice .ap-choice__native:checked {
+  @include state.hover {
+    + .ap-choice__visual[data-shape='switch'] {
+      background: var(--ap-switch-track-bg-on-hover);
+    }
+  }
+}
+
+/* المعطَّل يبهت كاملًا — المسار والإبهام معًا — فيُقرأ صفًّا خاملًا واحدًا لا
+   مسارًا شاحبًا بإبهام ناصع. */
+ap-choice .ap-choice__native:disabled + .ap-choice__visual[data-shape='switch'] {
+  background: var(--ap-switch-track-bg-off);
+  opacity: var(--ap-opacity-disabled);
+}
+
+ap-choice .ap-choice__native:checked:disabled + .ap-choice__visual[data-shape='switch'] {
+  background: var(--ap-switch-track-bg-on);
+  opacity: var(--ap-opacity-disabled);
+}
+
+/*
+  الشكل يعلو إلى رأس البطاقة حين يظهر تفصيل: مع قائمة من ستّة بنود يبقى
+  التوسيط الرأسي واضعًا الراديو في منتصف الكتلة كلّها، بعيدًا عن التسمية
+  التي يخصّها.
+*/
+ap-choice:has(.ap-choice__native:checked) .ap-choice__row:has(.ap-choice__detail:not(:empty)) {
+  align-items: flex-start;
+}
+
+/* ---------------------------------------------------------------------------
+   النصّ
+   --------------------------------------------------------------------------- */
+/*
+  ⚠️ العمود بلا `gap`: كلٌّ من الوصف والتفصيل يملك فجوته بهامشه. الفجوة
+     المشتركة كانت تعني أن أي تعديل لفجوة أحدهما يزحزح الآخر — والوصف سطر
+     تابع (2px) بينما التفصيل كتلة تُقرأ (8px).
+*/
+ap-choice .ap-choice__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* التفصيل: مخفيّ حتى يُختار الخيار. */
+ap-choice .ap-choice__detail {
+  display: none;
+}
+
+/*
+  ⚠️ اللون `secondary` لا `tertiary`: هذا نصّ **يُقرأ** سطرًا سطرًا (قائمة
+     استثناءات الصلاحيات)، لا سطر وصف يُمسح بالعين. والفرق مقيس —
+     7.50:1 مقابل 4.76:1.
+
+  وفجوته 8px بهامشه هو (`--ap-choice-detail-gap`) لا بفجوة العمود: تلك
+  تخصّ الوصف وتسري على كل خيار في اللوحة، فتوسيعها لأجل البطاقة كان
+  سيوسّع كل مربّع اختيار في التطبيق.
+*/
+ap-choice:has(.ap-choice__native:checked) .ap-choice__detail:not(:empty) {
+  display: block;
+  margin-block-start: var(--ap-choice-detail-gap);
+  color: var(--ap-choice-detail-color);
+  font-size: var(--ap-control-desc-size);
+  line-height: var(--ap-leading-relaxed);
+}
+
+ap-choice .ap-choice__label {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-1);
+  color: var(--ap-control-label-color);
+  font-size: var(--ap-control-label-size);
+  /* عادي لا متوسّط: هذا نصّ خيار يُقرأ، لا عنوان حقل يُمسح بالعين. الوزن
+     المتوسّط على عشرين خيارًا يجعل القائمة كلّها تصرخ. */
+  font-weight: var(--ap-font-weight-regular);
+  line-height: var(--ap-leading-snug);
+  cursor: pointer;
+}
+
+/* مخفيّ بصريًا لا محذوف — قارئ الشاشة يقرؤه وبحث الصفحة يجده. */
+ap-choice .ap-choice__label--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+ap-choice .ap-choice__required {
+  color: var(--ap-field-required-color);
+  font-size: var(--ap-font-size-xs);
+  font-weight: var(--ap-font-weight-regular);
+  white-space: nowrap;
+}
+
+ap-choice .ap-choice__desc {
+  margin-block-start: var(--ap-space-0-5);
+  color: var(--ap-control-desc-color);
+  font-size: var(--ap-control-desc-size);
+  line-height: var(--ap-leading-snug);
+}
+
+/* النصّ يبهت مع خياره المعطَّل — الشكل وحده لا يكفي لإعلان أن الصفّ خامل. */
+ap-choice .ap-choice__row:has(.ap-choice__native:disabled) .ap-choice__label,
+ap-choice .ap-choice__row:has(.ap-choice__native:disabled) .ap-choice__desc {
+  color: var(--ap-color-text-disabled);
+  cursor: not-allowed;
+}
+
+ap-choice .ap-choice__message {
+  display: flex;
+  margin: var(--ap-field-message-gap) 0 0;
+  color: var(--ap-field-error-color);
+  font-size: var(--ap-field-error-size);
+  line-height: var(--ap-leading-snug);
+}
+
+/* ---------------------------------------------------------------------------
+   وضع التباين القسري (forced-colors)
+
+   في هذا الوضع يستبدل النظام الألوان كلها، فيختفي كل ما رُسم بالخلفيات
+   والحدود — ويبقى العنصر الشفّاف شفّافًا: خيار غير مرئي إطلاقًا.
+
+   والحلّ ليس محاكاة النظام بألوانه، بل التنحّي: يُظهر العنصر الأصلي ويُخفى
+   الشكل المرسوم، فيرسمه المتصفّح بألوان النظام كما يتوقّعها المستخدم. يُفقد
+   شكل المفتاح ويبقى معناه (`role="switch"` + `aria-checked`) — وهي المقايضة
+   الصحيحة: وضوح مضمون مقابل شكل مخصّص.
+   --------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  ap-choice .ap-choice__native {
+    position: static;
+    width: auto;
+    height: auto;
+    opacity: 1;
+    /* التوسيط كان يعتمد على التموضع المطلق — بلا تصفيره ينزاح العنصر نصف
+       حجمه إلى الأعلى وإلى البداية بعد عودته إلى التدفّق. */
+    translate: none;
+  }
+
+  ap-choice .ap-choice__visual {
+    display: none;
+  }
+}
+
+

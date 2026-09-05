@@ -1,0 +1,252 @@
+/* ============================================================================
+   Acadimiat UI — أنماط الحالة الفارغة
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-empty-state`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-empty-*`.
+
+   لا حالات تفاعلية هنا: الكتلة نصّ ورسم، وما فيها من أزرار يحمل حالاته من
+   `[apButton]`. ولذلك لا استيراد لـ `_state.scss`.
+
+   ─── الحجمان بخصائص محلّية لا بقواعد مكرّرة ────────────────────────────────
+   كل حجم يكتب `--_*` في كتلة واحدة، وكل قاعدة بنيوية تقرأ منها ولا تسمّي
+   حجمًا. فإضافة حجم ثالث كتلةٌ واحدة لا تمسّ قاعدةً قائمة — وهي الطريقة
+   نفسها التي تُكتب بها أنواع `<ap-badge>`.
+   ============================================================================ */
+
+ap-empty-state,
+ap-empty-state * {
+  /* يعلن box-sizing بنفسه — القاعدة العالمية لا تعبر الجذر الظلّي في مسرح
+     المعاينة، وهي الملاحظة نفسها الموثّقة في `ap-field.component.scss`. */
+  box-sizing: border-box;
+}
+
+ap-empty-state {
+  /* الافتراضي `md`. */
+  --_padding-y: var(--ap-empty-padding-y);
+  --_icon-size: var(--ap-empty-icon-size);
+  --_icon-box: var(--ap-empty-icon-box);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /*
+    التوسيط الأفقي وحده — لا `justify-content: center` رأسيًّا: الكتلة تأخذ
+    ارتفاع محتواها، ومن أراد توسيطها في مساحة أطول يفعل ذلك في حاويها.
+    وارتفاعٌ مفروض هنا كان سيترك فراغًا تحتها داخل الجداول القصيرة.
+  */
+  padding: var(--_padding-y) var(--ap-empty-padding-x);
+  text-align: center;
+}
+
+ap-empty-state[data-size='sm'] {
+  --_padding-y: var(--ap-empty-padding-y-sm);
+  --_icon-size: var(--ap-empty-icon-size-sm);
+  --_icon-box: var(--ap-empty-icon-box-sm);
+}
+
+/*
+  `card` تحمل السطح والحدّ — للحالة التي تحلّ فيها الكتلة محلّ محتوى تبويب
+  كامل. و`plain` (الافتراضية) بلا شيء منها، لأن حاويها يملكها أصلًا: حدّان
+  متداخلان حول الكتلة نفسها هو بالضبط ما ينتجه `.card` حول `<ap-table>`.
+*/
+ap-empty-state[data-appearance='card'] {
+  border: var(--ap-border-width-thin) solid var(--ap-empty-border);
+  border-radius: var(--ap-empty-radius);
+  background: var(--ap-empty-bg);
+}
+
+/* ---------------------------------------------------------------------------
+   الرسمة
+   ---------------------------------------------------------------------------
+   منفذ ثانٍ إلى جانب الأيقونة لا بديلٌ عنها، والفصل بينهما **تقنيّ**: قاعدة
+   الأيقونة أدناه تكتب `fill: none; stroke: currentcolor` — وهي الصحيحة لرسمٍ
+   خطّيّ، وهي التي تمحو `<ap-illustration>` محوًا تامًّا لأنها مسطّحة معبّأة:
+   كل شكل بلا تعبئة وبحدٍّ رفيع، فتظهر الرسمة هيكلًا مشوّهًا لا فراغًا — ولا
+   خطأ في الطرفية ولا شيء يدلّ على السبب.
+
+   ولا دائرة تحتها ولا سطح: الدائرة موجودة لأن خطًّا رفيعًا بعرض 48px يُقرأ
+   رسمًا ناقصًا، والرسمة تملك كتلتها بنفسها. وحجمُها من `<ap-illustration>`
+   لا من هنا — الكتلة تملك **الفجوة** فقط.
+   --------------------------------------------------------------------------- */
+ap-empty-state .ap-empty-state__illustration {
+  display: flex;
+  justify-content: center;
+  /* الرسمة كتلة قائمة بذاتها، فلا تنكمش تحت ضغط عنوان طويل. */
+  flex: none;
+  margin-block-end: var(--ap-empty-illustration-gap);
+}
+
+ap-empty-state[data-size='sm'] .ap-empty-state__illustration {
+  margin-block-end: var(--ap-empty-illustration-gap-sm);
+}
+
+ap-empty-state .ap-empty-state__illustration:empty {
+  display: none;
+}
+
+/*
+  ⛔ لا قاعدة `fill`/`stroke` هنا إطلاقًا. الرسمة تلوّن نفسها من نغماتها في
+     `ap-illustration.component.scss`، وأي قاعدة هنا تغلبها بالمحدّد الأطول
+     وتعيد بالضبط العطب الذي وُجد هذا المنفذ ليتجنّبه.
+*/
+
+/* ---------------------------------------------------------------------------
+   الأيقونة
+   ---------------------------------------------------------------------------
+   دائرة باهتة تحت الرسم: خطٌّ رفيع بعرض 48px على سطح أبيض يُقرأ رسمًا ناقصًا،
+   والدائرة هي ما يجعله كتلةً مقصودة. والقياسان — الدائرة والرسم — من الـ
+   tokens، فيتغيّران معًا مع الحجم.
+   --------------------------------------------------------------------------- */
+ap-empty-state .ap-empty-state__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* `flex: none` شرط لا تحسين: بدونه ينكمش المربّع تحت ضغط نصّ طويل فتصير
+     الدائرة بيضة. وهي اللدغة نفسها الموثّقة على نقطة `<ap-badge>`. */
+  flex: none;
+  width: var(--_icon-box);
+  height: var(--_icon-box);
+  margin-block-end: var(--ap-empty-icon-gap);
+  border-radius: var(--ap-radius-full);
+  background: var(--ap-empty-icon-bg);
+  color: var(--ap-empty-icon-color);
+}
+
+/* يُخفى حين لا يُسقَط فيه شيء — انظر تعليق القالب. */
+ap-empty-state .ap-empty-state__icon:empty {
+  display: none;
+}
+
+/*
+  رسم خطّي كسائر أيقونات النظام: `fill: none` و`stroke: currentColor`، فتتبع
+  الأيقونة لونَ الغلاف بلا قاعدة لون لكل استعمال. والأيقونة الممتلئة تثقل
+  بصريًا على النصّ تحتها.
+*/
+ap-empty-state .ap-empty-state__icon svg {
+  width: var(--_icon-size);
+  height: var(--_icon-size);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/*
+  والصورة مسموحة كذلك — تسعة مواضع في اللوحة تعرض `upgrade.png` اليوم،
+  وإغلاق الباب عليها كان سيبقيها خارج المكوّن. لكنها تُقاس بالدائرة لا
+  بعرضٍ مكتوب في القالب.
+*/
+ap-empty-state .ap-empty-state__icon img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ---------------------------------------------------------------------------
+   النصّ
+   --------------------------------------------------------------------------- */
+ap-empty-state .ap-empty-state__title {
+  margin: 0;
+  max-width: var(--ap-empty-measure);
+  color: var(--ap-empty-title-fg);
+  font-size: var(--ap-empty-title-size);
+  font-weight: var(--ap-empty-title-weight);
+  line-height: var(--ap-empty-title-leading);
+}
+
+ap-empty-state .ap-empty-state__body {
+  max-width: var(--ap-empty-measure);
+  color: var(--ap-empty-text-color);
+  font-size: var(--ap-empty-text-size);
+  line-height: var(--ap-empty-text-leading);
+}
+
+ap-empty-state .ap-empty-state__body:empty {
+  display: none;
+}
+
+/* الفجوة بين العنوان والوصف تُكتب على الوصف لا على العنوان: العنوان قد يغيب،
+   وهامشٌ سفليّ عليه كان سيترك فجوته حين يغيب معه. */
+ap-empty-state .ap-empty-state__title + .ap-empty-state__body {
+  margin-block-start: var(--ap-empty-title-gap);
+}
+
+ap-empty-state .ap-empty-state__body > :first-child {
+  margin-block-start: 0;
+}
+
+ap-empty-state .ap-empty-state__body > :last-child {
+  margin-block-end: 0;
+}
+
+/*
+  فقرات الوصف: `bootstrap.css` يضع `margin-bottom: 1rem` على `<p>` — قيمة
+  خارج سلّم المسافات، وتتراكم بين فقرتين. تُكتب هنا من السلّم.
+*/
+ap-empty-state .ap-empty-state__body p {
+  margin: var(--ap-empty-title-gap) 0 0;
+}
+
+/* ---------------------------------------------------------------------------
+   القائمة داخل الوصف
+   ---------------------------------------------------------------------------
+   نصّ اللوحة الحقيقي يحتاجها: استثناءات صلاحيات المشرف ستّة بنود.
+
+   ⚠️ والقائمة تقلب محاذاة الوصف إلى **بداية السطر**، ويقرّر ذلك وجودُها هي
+      لا مدخلٌ يُمرَّر: تعدادٌ موسَّط تتناثر نقاطه في مواضع مختلفة من كل سطر
+      فيفقد كونَه عمودًا — وهو ما يجعله يُقرأ تعدادًا أصلًا. والكتلة كلّها
+      تبقى موسَّطة في حاويها لأن عرضها محدود و`align-items: center` يوسّطها.
+
+   و`padding-inline-start` مكتوب: `bootstrap.css` يضع `padding-inline-start: 2rem`
+   على القوائم — قيمة خارج السلّم، و`ap-empty-state ul` (0,0,2) تغلب `ul`
+   (0,0,1) بلا `!important`. وهي القاعدة نفسها الموثّقة على `<ap-breadcrumbs>`.
+   --------------------------------------------------------------------------- */
+ap-empty-state .ap-empty-state__body:has(ul, ol) {
+  text-align: start;
+}
+
+ap-empty-state .ap-empty-state__body ul,
+ap-empty-state .ap-empty-state__body ol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-empty-list-gap);
+  margin: var(--ap-empty-title-gap) 0 0;
+  padding-inline-start: var(--ap-empty-list-indent);
+}
+
+/* ---------------------------------------------------------------------------
+   الأفعال
+   ---------------------------------------------------------------------------
+   زرّان بحدٍّ أقصى — والقاعدة نصّية لا تقنية، انظر صفحة التوثيق: ثالثٌ يحوّل
+   الكتلة من «هذا هو الطريق» إلى قائمة اختيارات أمام مساحة خالية.
+   --------------------------------------------------------------------------- */
+ap-empty-state .ap-empty-state__actions {
+  display: flex;
+  /* يلتفّ على الشاشة الضيّقة بدل أن ينسحق الزرّان. */
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ap-empty-actions-inner-gap);
+  margin-block-start: var(--ap-empty-actions-gap);
+}
+
+ap-empty-state .ap-empty-state__actions:empty {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+   الألوان المفروضة (Windows High Contrast)
+   ---------------------------------------------------------------------------
+   خلفية الدائرة تُستبدل فتختفي، فتبقى الأيقونة معلّقة بلا إطار. الحدّ هو ما
+   ينجو.
+   --------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  ap-empty-state .ap-empty-state__icon {
+    border: var(--ap-border-width-thin) solid CanvasText;
+  }
+
+  ap-empty-state[data-appearance='card'] {
+    border-color: CanvasText;
+  }
+}

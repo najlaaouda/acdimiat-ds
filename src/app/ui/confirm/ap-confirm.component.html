@@ -1,0 +1,53 @@
+<!--
+  ⚠️ لا عنصر يلفّ `<ng-content />`: جسم `<ap-modal>` يُخفى بـ `:empty`، وأي
+     غلاف — ولو فارغًا — يُبطل ذلك فيبقى صندوق يأكل الفجوة التي قبله. وأكثر
+     نوافذ التأكيد بلا محتوى مُسقَط أصلًا: الوصف سطر في الرأس. (وتعليقات
+     `@if` المتروكة ليست أبناءً، فـ `:empty` تصمد معها.)
+
+  ⚠️ وذيل النافذة كلّه داخل `<ng-container ngProjectAs>`: منفذ `[apModalFooter]`
+     لا يُطابق إلّا ابنًا **مباشرًا**، ومحتوى داخل `@if` لا يُطابَق بمنفذ
+     إطلاقًا — فزرٌّ مكتوب داخل الشرط كان سيهبط في الجسم بلا خطأ في أي مكان.
+
+  والإلغاء قبل التأكيد في الشجرة: الإغلاق بـ `showModal()` يضع التركيز على
+  أوّل عنصر قابل له، فيقع على المخرج لا على الفعل الهادم.
+-->
+<ap-modal
+  [open]="openValue()"
+  [heading]="activeHeading()"
+  [description]="activeDescription()"
+  [size]="sizeValue()"
+  (openChange)="onOpenChange($event)"
+>
+  @if (refusalValue(); as refusal) {
+    <!--
+      `role="alert"` لا `status`: النصّ يُدرَج في نافذة مفتوحة أصلًا، فلا شيء
+      يعلنه إن لم يكن حازمًا — والتركيز في اللحظة نفسها ينتقل إلى «إغلاق»،
+      فبدونه لا يُسمع إلّا اسم الزرّ.
+    -->
+    <p class="ap-confirm__refusal" role="alert">{{ refusal.description }}</p>
+  } @else {
+    <ng-content />
+  }
+
+  <ng-container ngProjectAs="[apModalFooter]">
+    @if (refusalValue()) {
+      <!-- لا فعل يبقى: الخادم رفضه، فلا زرّ إلّا الخروج من الخبر. -->
+      <button #refusalClose apButton type="button" variant="secondary" (click)="onCancel()">
+        {{ closeLabel }}
+      </button>
+    } @else {
+      <button apButton type="button" variant="secondary" (click)="onCancel()">
+        {{ cancelLabelValue() }}
+      </button>
+      <button
+        apButton
+        type="button"
+        [variant]="confirmVariant()"
+        [loading]="loadingValue()"
+        (click)="onConfirm()"
+      >
+        {{ confirmLabelValue() }}
+      </button>
+    }
+  </ng-container>
+</ap-modal>

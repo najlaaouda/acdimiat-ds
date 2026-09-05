@@ -1,0 +1,84 @@
+<!--
+  ‎<header>‎ حقيقي لا ‎<div role="banner">‎: المعلَم مجّاني مع الوسم الأصلي،
+  ولا يحتاج دورًا يُكتب ويُنسى — القاعدة نفسها الموثّقة في ‎<ap-tab-nav>‎.
+
+  واللصق على هذا العنصر لا على المضيف، والمضيف ‎display: contents‎: اللصق
+  يُحسب مقابل أقرب حاوٍ يمرَّر، وطبقةٌ إضافية بينهما تكسره بصمت.
+-->
+<header
+  class="ap-app-header__bar"
+  [attr.aria-label]="labelValue()"
+  [attr.data-sticky]="stickyValue() ? 'true' : null"
+>
+  <div class="ap-app-header__brand">
+    <!--
+      الشعار مُسقَط: أصل ثابت للعلامة يملكه المستهلك، والمكوّن يحدّ ارتفاعه
+      فقط كي لا يغيّر شعارٌ بنسبة مختلفة ارتفاع الشريط كلّه.
+    -->
+    <ng-content select="[apAppHeaderBrand]" />
+
+    <!--
+      الاسم والأيقونة رابط **واحد**، لا نصٌّ بجانب رابط.
+
+      الاسم هو الشيء المعنيّ، والأيقونة لاحقةٌ تقول «يفتح خارج اللوحة» — فهدفٌ
+      واحد يضمّهما أوسع للنقر، ويسقط سؤال «أيّهما ينقر؟» الذي يخلقه هدفان
+      متلاصقان يذهبان إلى الوجهة نفسها.
+
+      ⚠️ و‎<p>‎ باقٍ داخل الرابط ولم يصر ‎<span>‎: الاسم سياق لا عنوان، ونموذج
+         محتوى ‎<a>‎ شفّاف فيقبل الفقرة. وبقاؤه يحفظ قاعدة القصّ عند الضيق كما
+         هي في ورقة المكوّن.
+
+      ⚠️ والاسم المتاح لقارئ الشاشة يجمع الفعل بالوجهة («زيارة موقع
+         «الاسم»»): نصّ الرابط وحده هو الاسم فلا يقول أنه يغادر اللوحة،
+         و‎aria-label‎ ثابتٌ بلا اسم يجعل كل أكاديمية تُنطق بالجملة نفسها.
+
+      ⚠️ ولا ‎apIconFlip‎ على أيقونة الرابط الخارجي: هي **رمز** متعارف عليه لا
+         سهم اتّجاه، وقلبها في RTL يجعلها رسمًا غير مألوف بلا مقابل.
+    -->
+    @if (academyNameValue() || academyUrlValue()) {
+      @if (academyUrlValue()) {
+        <a
+          class="ap-app-header__site"
+          [href]="academyUrlValue()"
+          target="_blank"
+          rel="noopener noreferrer"
+          [attr.aria-label]="siteLinkAriaLabel()"
+        >
+          @if (academyNameValue()) {
+            <p class="ap-app-header__academy">{{ academyNameValue() }}</p>
+          }
+
+          <svg class="ap-app-header__site-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <path d="M15 3h6v6" />
+            <path d="M10 14L21 3" />
+          </svg>
+
+          <span class="ap-app-header__site-tip" aria-hidden="true">{{ siteLinkLabel }}</span>
+        </a>
+      } @else {
+        <!--
+          بلا رابط يبقى الاسم نصًّا: ‎<a>‎ بلا وجهة يُعيد تحميل اللوحة نفسها،
+          وهو أسوأ من غياب الرابط.
+
+          و‎title‎ يحمل الاسم كاملًا هنا لأن النصّ يُقصّ عند الضيق — وفي حالة
+          الرابط يحمله ‎aria-label‎ أصلًا.
+        -->
+        <p class="ap-app-header__academy" [title]="academyNameValue()">
+          {{ academyNameValue() }}
+        </p>
+      }
+    }
+  </div>
+
+  <!--
+    ⚠️ صفر مسافة بيضاء داخل غلافَي المنافذ — كلاهما يُخفى بـ ‎:empty‎ حين لا
+       يُسقَط فيه شيء، ومسافة واحدة تُبطل ‎:empty‎ فيبقى غلاف فارغ يأكل فجوة
+       المجموعة ويترك ثقبًا في الطرف. القاعدة نفسها الموثّقة في منافذ
+       الأيقونات وفي ‎<ap-page-header>‎.
+  -->
+  <div class="ap-app-header__end">
+    <div class="ap-app-header__actions"><ng-content select="[apAppHeaderActions]" /></div>
+    <div class="ap-app-header__tools"><ng-content select="[apAppHeaderTools]" /></div>
+  </div>
+</header>

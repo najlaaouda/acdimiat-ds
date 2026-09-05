@@ -1,0 +1,233 @@
+@use '../state' as state;
+
+/* ============================================================================
+   Acadimiat UI — أنماط شريط التنقّل
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-tab-nav`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-tab-nav-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+
+   ─── المحدّد الذي تُرسم به الحالة النشطة هو `[aria-current='page']` ────────
+   وهذا القرار المركزي في المكوّن كلّه، لا تفصيلة تنسيق.
+
+   النمط القائم يرسم النشط بكلاس `.active` يكتبه `routerLinkActive`، والسمة
+   الدلالية شيء منفصل يُكتب يدويًا — فيُنسى. الجرد: `aria-current` موجودة في
+   المشروع كلّه **ثلاث مرّات** مقابل 77 ملفًا فيه شريط تبويب.
+
+   وبجعل السمة نفسها هي الخطّاف البصري ينقلب العطل الصامت إلى عطل **مرئي**:
+   رابط بلا `aria-current` لا يبدو نشطًا أصلًا، فلا يمرّ إلى الإنتاج.
+
+   ─── النشط: وزن عريض، ونصّ أسود في مظهر الحافّة ────────────────────────────
+   ثلاث إشارات مجتمعة على الرابط النشط — الشريط، والوزن (700 مقابل 500)،
+   والسواد. والوزن أوّل ما يُلتقط في مسح سريع للشريط، قبل اللون وقبل الشريط
+   نفسه.
+
+   ⚠️ وثمنه معروف ومقبول: النصّ العريض أعرض، فتزحف الروابط التالية للنشط
+      بضعة بكسلات عند كل تنقّل. لا يمكن حجز عرض الوزن العريض مسبقًا هنا —
+      حيلة `::after` بنسخة عريضة مخفيّة تحتاج التسمية في عنصر خاصّ بها،
+      والمحتوى هنا مُسقَط (`<ng-content>`) يكتبه المستهلك نصًّا عاريًا.
+      والزحف يقع عند التنقّل لا تحت المؤشّر، فلا يطارد المستخدمُ هدفًا
+      متحرّكًا.
+
+   ─── المرور بلا خلفية ──────────────────────────────────────────────────────
+   خلفية تحت المؤشّر تجعل كل تبويب يبدو نشطًا للحظة — وفي المظهر الممتلئ
+   «خلفية ملوّنة» هي بعينها علامة النشاط. فالمرور لون وحده.
+   ============================================================================ */
+
+ap-tab-nav,
+ap-tab-nav * {
+  /* يعلن box-sizing بنفسه — القاعدة العالمية لا تعبر الجذر الظلّي في مسرح
+     المعاينة، وهي الملاحظة نفسها الموثّقة في `ap-field.component.scss`. */
+  box-sizing: border-box;
+}
+
+ap-tab-nav {
+  display: block;
+}
+
+ap-tab-nav .ap-tab-nav__nav {
+  display: flex;
+  gap: var(--ap-tab-nav-gap);
+}
+
+/* ---------------------------------------------------------------------------
+   الاتجاه
+   ---------------------------------------------------------------------------
+   ⚠️ الأفقي **لا يلتفّ**. الالتفاف يوزّع الروابط على سطرين فيفقد شريط
+      الحافّة معناه (شريط في سطر وروابط في آخر)، ويصير موضع النشط عشوائيًا.
+      يتمرّر بدلًا من ذلك، والرابط النشط يُحضَر إلى العرض من المكوّن.
+   --------------------------------------------------------------------------- */
+ap-tab-nav[data-orientation='horizontal'] .ap-tab-nav__nav {
+  flex-flow: row nowrap;
+  align-items: stretch;
+  overflow-x: auto;
+
+  /*
+    شريط التمرير مخفيّ عمدًا: في مظهر الحافّة يقع **بين** الروابط وشريطها
+    فيقطع الصلة بينهما بصريًا. والقصّ نفسه هو الإشارة إلى وجود المزيد
+    (رابط مقطوع عند الحافّة)، والتنقّل بلوحة المفاتيح يمرّر الشريط بنفسه.
+  */
+  scrollbar-width: none;
+}
+
+ap-tab-nav[data-orientation='horizontal'] .ap-tab-nav__nav::-webkit-scrollbar {
+  display: none;
+}
+
+ap-tab-nav[data-orientation='vertical'] .ap-tab-nav__nav {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* ---------------------------------------------------------------------------
+   الرابط
+   --------------------------------------------------------------------------- */
+ap-tab-nav .ap-tab-nav__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ap-tab-nav-link-gap);
+  min-height: var(--ap-tab-nav-link-min-height);
+  padding: var(--ap-tab-nav-link-padding-y) var(--ap-tab-nav-link-padding-x);
+  color: var(--ap-tab-nav-link-fg);
+  font-size: var(--ap-tab-nav-link-font-size);
+  font-weight: var(--ap-tab-nav-link-font-weight);
+  text-decoration: none;
+  /* لا يُقسَم اسم القسم على سطرين داخل شريط يتمرّر. */
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--ap-tab-nav-duration) var(--ap-tab-nav-ease),
+    background-color var(--ap-tab-nav-duration) var(--ap-tab-nav-ease),
+    border-color var(--ap-tab-nav-duration) var(--ap-tab-nav-ease);
+
+  @include state.hover {
+    color: var(--ap-tab-nav-link-fg-hover);
+  }
+
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-tab-nav-focus-ring-color);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+
+  @include state.disabled {
+    color: var(--ap-tab-nav-link-fg-disabled);
+    background-color: transparent;
+    cursor: not-allowed;
+  }
+}
+
+/*
+  وزن النشط — على المظهرين معًا: العرض صفة الحالة لا صفة الشكل، فلو كُتب
+  داخل كتلة مظهر بعينه لاختلف الشريطان في اللوحة الواحدة.
+*/
+ap-tab-nav .ap-tab-nav__link[aria-current='page'] {
+  font-weight: var(--ap-tab-nav-link-font-weight-active);
+}
+
+/* الأيقونة خطّية وترث لون الحالة — اصطلاح المكتبة كلها. */
+ap-tab-nav .ap-tab-nav__link > svg {
+  flex: none;
+  width: var(--ap-tab-nav-link-icon-size);
+  height: var(--ap-tab-nav-link-icon-size);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------------------
+   المظهر: حبّة ممتلئة
+   ---------------------------------------------------------------------------
+   المظهر القائم في اللوحة اليوم، فترحيل الشاشات الاثنتي عشرة لا يغيّر
+   شكلها. والفارق أن أبيضه على purple-700 = 8.03:1، بينما افتراضي bootstrap
+   (‏.nav-pills .nav-link.active‏: أبيض على ‏#eb8153‏) = 2.69:1 — وهو ما يظهر
+   اليوم في كل شريط لا يحمل الكلاس المحلّي student-tab-links.
+   --------------------------------------------------------------------------- */
+ap-tab-nav[data-appearance='pill'] .ap-tab-nav__link {
+  border-radius: var(--ap-tab-nav-link-radius);
+}
+
+ap-tab-nav[data-appearance='pill'] .ap-tab-nav__link[aria-current='page'] {
+  color: var(--ap-tab-nav-pill-fg-active);
+  background-color: var(--ap-tab-nav-pill-bg-active);
+
+  /* المرور على النشط لا يقلب أبيضه إلى بنفسجي المرور — وهو بنفسجي على
+     بنفسجي، أي نصّ يختفي. والخلفية لا تُستردّ هنا: لم يعد للمرور خلفية
+     أصلًا تُزيحها. */
+  @include state.hover {
+    color: var(--ap-tab-nav-pill-fg-active);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   المظهر: شريط على الحافّة
+   ---------------------------------------------------------------------------
+   ⚠️ الشريط حدّ **شفّاف دائمًا** يُلوَّن عند النشاط، لا حدّ يُضاف. الإضافة
+      تزيد ارتفاع الرابط لحظة التنقّل فيقفز ما تحته.
+
+   ⚠️ ومسار الشريط (--ap-tab-nav-track-*) ظلّ داخلي على الحاوي لا حدّ:
+      الحاوي يتمرّر أفقيًا، وحدّه كان سينزلق مع المحتوى؛ أما الظلّ الداخلي
+      فيُرسم على خلفية العنصر نفسه فيثبت عبر العرض المرئي. وحدّ الرابط
+      النشط يُرسم فوقه (خلفية الابن فوق خلفية الأب) فيقطعه في مداه بلا
+      قاعدة إلغاء.
+   --------------------------------------------------------------------------- */
+ap-tab-nav[data-appearance='underline'] .ap-tab-nav__link {
+  /* استدارة علوية فقط، ومنطقية: الزاويتان تتبعان الاتجاه لا اليمين واليسار. */
+  border-start-start-radius: var(--ap-tab-nav-link-radius);
+  border-start-end-radius: var(--ap-tab-nav-link-radius);
+  border-end-start-radius: var(--ap-radius-none);
+  border-end-end-radius: var(--ap-radius-none);
+}
+
+ap-tab-nav[data-appearance='underline'][data-orientation='horizontal'] .ap-tab-nav__nav {
+  box-shadow: inset 0 calc(-1 * var(--ap-tab-nav-track-size)) 0 var(--ap-tab-nav-track-color);
+}
+
+ap-tab-nav[data-appearance='underline'][data-orientation='horizontal'] .ap-tab-nav__link {
+  border-block-end: var(--ap-tab-nav-underline-size) solid transparent;
+}
+
+ap-tab-nav[data-appearance='underline'][data-orientation='vertical'] .ap-tab-nav__link {
+  border-inline-start: var(--ap-tab-nav-underline-size) solid transparent;
+}
+
+/*
+  ⚠️ box-shadow لا يقبل الخصائص المنطقية، فالإزاحة الأفقية تُقلب يدويًا في
+     RTL — القاعدة نفسها المتّبعة في فاصل الأعمدة المثبَّتة في الجدول.
+*/
+ap-tab-nav[data-appearance='underline'][data-orientation='vertical'] .ap-tab-nav__nav {
+  box-shadow: inset var(--ap-tab-nav-track-size) 0 0 var(--ap-tab-nav-track-color);
+}
+
+ap-tab-nav[data-appearance='underline'][data-orientation='vertical'] .ap-tab-nav__nav:dir(rtl) {
+  box-shadow: inset calc(-1 * var(--ap-tab-nav-track-size)) 0 0 var(--ap-tab-nav-track-color);
+}
+
+/*
+  النشط هنا **أسود** لا بلون العلامة، واللون مقسوم على عنصرين: الشريط يحمل
+  الهوية والنصّ يأخذ أعلى تباين في النظام (17.85:1 مقابل 8.03:1). فيُقرأ
+  النشط من مسافة أبعد، ولا يزاحم اللونُ الشريطَ على الدلالة نفسها.
+*/
+ap-tab-nav[data-appearance='underline'] .ap-tab-nav__link[aria-current='page'] {
+  color: var(--ap-tab-nav-underline-fg-active);
+  border-color: var(--ap-tab-nav-underline-color);
+
+  /* المرور على النشط لا يعيده إلى بنفسجي المرور — النشط أُقرَّ أسود. */
+  @include state.hover {
+    color: var(--ap-tab-nav-underline-fg-active);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   الألوان المفروضة
+   ---------------------------------------------------------------------------
+   في forced-colors تُلغى الخلفيات، فيفقد المظهر الممتلئ مميّزه كلّه.
+   يُستبدل بحدّ — وهو مما يُبقيه النظام مرئيًا.
+   --------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  ap-tab-nav .ap-tab-nav__link[aria-current='page'] {
+    border-block-end: var(--ap-tab-nav-underline-size) solid Highlight;
+  }
+}

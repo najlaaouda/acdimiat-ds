@@ -1,0 +1,1726 @@
+/* ============================================================================
+   Acadimiat Design System — Layer 3: COMPONENT
+   ----------------------------------------------------------------------------
+   مربوطة بمكوّن وحالة. تشير إلى الطبقة الدلالية فقط.
+
+   ⛔ قاعدة ملزِمة: لا يشير أي token هنا إلى primitive أو hex مباشرةً.
+      Component → Semantic → Primitive. أي اختصار يكسر قابلية إعادة الثيم.
+
+   ⚠️ هذا الملف يُعرّف القيم فقط — لا يرسم شيئًا. المكوّنات تستهلكه لاحقًا
+      في مراحل خارطة الطريق 5-9.
+
+   📖 نطاق ثانٍ: .ap-docs                                            [D-15]
+      موقع توثيق نظام التصميم (/design-system) يستهلك نفس الطبقة حرفيًا،
+      فيبقى مصدر الحقيقة واحدًا: ما يُوثَّق هو ما يُرسم، بلا نسخ ولا انحراف.
+      لم يُنسخ شيء ولم تتغيّر أي قيمة — أُضيف اسم إلى المحدّد فقط، فالأثر
+      البصري على لوحة الإدارة صفر.
+   ============================================================================ */
+
+.ap-admin,
+.ap-docs {
+  /* ══════════════════════════════════════════════════════════════════════
+     BUTTON                                                     [D-03][D-07]
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-button-height-sm: var(--ap-control-height-sm);
+  --ap-button-height-md: var(--ap-control-height-md);
+  --ap-button-height-lg: var(--ap-control-height-lg);
+  --ap-button-padding-x-sm: var(--ap-space-3);
+  --ap-button-padding-x-md: var(--ap-space-4);
+  --ap-button-padding-x-lg: var(--ap-space-5);
+  --ap-button-gap:         var(--ap-space-2);
+  /* نصف القطر يتدرّج مع الحجم: زرّ 48px بنصف قطر 8px يبدو أقسى مما يبدو
+     عليه زرّ 32px بالقيمة نفسها — النسبة إلى الارتفاع هي ما تُقرأ، لا القيمة
+     المطلقة. الحجم المتوسّط يبقى على 8px (لا توجد درجة 10px في السلّم، ولا
+     تُخترع واحدة). */
+  --ap-button-radius-sm:   var(--ap-radius-md);   /*  8px */
+  --ap-button-radius-md:   var(--ap-radius-md);   /*  8px */
+  --ap-button-radius-lg:   var(--ap-radius-lg);   /* 12px */
+  /* الافتراضي لمن لا يصرّح بحجم. */
+  --ap-button-radius:      var(--ap-button-radius-md);
+  --ap-button-font-size:   var(--ap-font-size-md);
+  --ap-button-font-weight: var(--ap-font-weight-medium);
+  --ap-button-transition:  var(--ap-duration-fast) var(--ap-ease-standard);
+  --ap-button-disabled-opacity: var(--ap-opacity-disabled);
+
+  --ap-button-primary-bg:        var(--ap-color-action-primary);
+  --ap-button-primary-bg-hover:  var(--ap-color-action-primary-hover);
+  --ap-button-primary-bg-active: var(--ap-color-action-primary-active);
+  --ap-button-primary-fg:        var(--ap-color-action-on-primary);
+  --ap-button-primary-border:    transparent;
+
+  --ap-button-secondary-bg:        var(--ap-color-action-secondary);
+  --ap-button-secondary-bg-hover:  var(--ap-color-action-secondary-hover);
+  --ap-button-secondary-bg-active: var(--ap-color-action-secondary-active);
+  --ap-button-secondary-fg:        var(--ap-color-action-on-secondary);
+  --ap-button-secondary-border:    var(--ap-color-action-secondary-border);
+
+  --ap-button-tertiary-bg:       transparent;
+  --ap-button-tertiary-bg-hover: var(--ap-color-action-tertiary-hover);
+  --ap-button-tertiary-fg:       var(--ap-color-action-on-tertiary);
+  --ap-button-tertiary-border:   transparent;
+
+  --ap-button-danger-bg:        var(--ap-color-action-danger);
+  --ap-button-danger-bg-hover:  var(--ap-color-action-danger-hover);
+  --ap-button-danger-bg-active: var(--ap-color-action-danger-active);
+  --ap-button-danger-fg:        var(--ap-color-action-on-danger);
+  --ap-button-danger-border:    transparent;
+
+  /*
+    البنفسجي لا الأزرق.
+
+    الأزرق (`--ap-color-text-link`) لون **الروابط** — ما ينقلك إلى مكان آخر.
+    وهذا زرّ: فعلٌ يقع في مكانه، شكله وحده يشبه الرابط. أن يحمل لون الروابط
+    يجعله يَعِد بانتقال لا يحدث.
+
+    وهو أيضًا اللون الوحيد في نظام الأزرار الذي كان خارج هوية العلامة، فيظهر
+    غريبًا في صفّ يجمعه بزرّ أساسي بنفسجي.
+
+    ⚠️ لا يُغيَّر `--ap-color-text-link` نفسه: الروابط الحقيقية تبقى زرقاء،
+       وهو ما يجعل الأزرق يعني «انتقال» بلا لبس.
+
+    التمرير يشير إلى `-primary-hover` لا إلى `--ap-purple-800` مباشرةً —
+    طبقة المكوّنات لا تقرأ من الطبقة الأولى.
+  */
+  --ap-button-link-fg:       var(--ap-color-text-brand);
+  --ap-button-link-fg-hover: var(--ap-color-action-primary-hover);
+
+  --ap-button-focus-ring:        var(--ap-focus-ring-shadow);
+  --ap-button-focus-ring-color:  var(--ap-color-focus-ring);
+  --ap-button-focus-ring-danger: var(--ap-color-focus-ring-danger);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     INPUT / FIELD                                              [D-07][D-08]
+     الارتفاع 40px بدل 55/41px. الحدّ slate-300 + تعبئة slate-50: التمييز
+     بالتعبئة لا بالحدّ وحده، فيستوفى WCAG 1.4.11 بلا حدّ ثقيل بصريًا.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-input-height-sm: var(--ap-control-height-sm);
+  --ap-input-height-md: var(--ap-control-height-md);
+  --ap-input-height-lg: var(--ap-control-height-lg);
+  --ap-input-padding-x: var(--ap-space-3);
+  /* نصف القطر يتدرّج مع الارتفاع — القاعدة نفسها المطبَّقة على الزرّ، فيستقيم
+     الصفّ الذي يجمع حقلًا وزرًّا بالحجم ذاته. الحجم المتوسّط يبقى على 8px
+     (لا توجد درجة 10px في السلّم، ولا تُخترع واحدة). */
+  --ap-input-radius-sm: var(--ap-radius-md);   /*  8px */
+  --ap-input-radius-md: var(--ap-radius-md);   /*  8px */
+  --ap-input-radius-lg: var(--ap-radius-lg);   /* 12px */
+  /* الافتراضي لمن لا يصرّح بحجم — ويستهلكه --ap-select-radius أدناه. */
+  --ap-input-radius:    var(--ap-input-radius-md);
+  --ap-input-font-size: var(--ap-font-size-md);
+  --ap-input-gap:       var(--ap-space-2);
+
+  --ap-input-bg:            var(--ap-color-bg-subtle);
+  --ap-input-bg-hover:      var(--ap-color-bg-surface);
+  --ap-input-bg-focus:      var(--ap-color-bg-surface);
+  --ap-input-bg-disabled:   var(--ap-color-bg-muted);
+  --ap-input-bg-readonly:   var(--ap-color-bg-muted);
+
+  --ap-input-border:          var(--ap-color-border-default);
+  --ap-input-border-hover:    var(--ap-color-border-strong);
+  --ap-input-border-focus:    var(--ap-color-border-brand);
+  --ap-input-border-error:    var(--ap-color-error);
+  --ap-input-border-success:  var(--ap-color-success);
+  --ap-input-border-disabled: var(--ap-color-border-subtle);
+  --ap-input-border-width:    var(--ap-border-width-thin);
+
+  --ap-input-fg:          var(--ap-color-text-primary);
+  --ap-input-fg-disabled: var(--ap-color-text-disabled);
+  --ap-input-placeholder: var(--ap-color-text-placeholder);
+
+  --ap-input-focus-ring:       var(--ap-focus-ring-shadow);
+  --ap-input-focus-ring-error: var(--ap-focus-ring-shadow-danger);
+
+  /* بنية الحقل — المسافات بين label/hint/input/error */
+  --ap-field-label-size:   var(--ap-font-size-md);
+  --ap-field-label-weight: var(--ap-font-weight-medium);
+  --ap-field-label-color:  var(--ap-color-text-secondary);
+  --ap-field-label-gap:    var(--ap-space-1-5);
+  --ap-field-hint-size:    var(--ap-font-size-xs);
+  --ap-field-hint-color:   var(--ap-color-text-tertiary);
+  --ap-field-message-gap:  var(--ap-space-1);
+  --ap-field-error-size:   var(--ap-font-size-xs);
+  --ap-field-error-color:  var(--ap-color-error-text);
+  --ap-field-required-color: var(--ap-color-error-text);
+  --ap-field-gap:          var(--ap-space-4);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     SELECT
+     مجموعة واحدة تخدم مستهلكَين: `<select apSelect>` الأصلي في مكتبة
+     نظام التصميم، و`<app-native-select>` القائم (بحث/تعدّد/رقاقات).
+     أبعاد مطابقة للحقل + استبدال لوحة ng-select الزرقاء (#007eff) بالعلامة
+     ══════════════════════════════════════════════════════════════════════ */
+  /* الأبعاد تشير إلى الحقل ولا تُكرّره: أي تعديل على ارتفاع الحقل يسري
+     على القائمة تلقائيًا، فيستحيل أن يتباعدا. الفارق اليوم 19px (36 مقابل
+     55) على السطر الواحد — S-01. */
+  --ap-select-height-sm:         var(--ap-input-height-sm);
+  --ap-select-height-md:         var(--ap-input-height-md);
+  --ap-select-height-lg:         var(--ap-input-height-lg);
+  --ap-select-height:            var(--ap-select-height-md);
+  --ap-select-radius:            var(--ap-input-radius);
+  --ap-select-font-size:         var(--ap-input-font-size);
+  --ap-select-padding-x:         var(--ap-input-padding-x);
+  --ap-select-bg:                var(--ap-input-bg);
+  --ap-select-bg-hover:          var(--ap-input-bg-hover);
+  --ap-select-bg-focus:          var(--ap-input-bg-focus);
+  --ap-select-bg-disabled:       var(--ap-input-bg-disabled);
+  --ap-select-fg:                var(--ap-input-fg);
+  --ap-select-fg-disabled:       var(--ap-input-fg-disabled);
+  /* لا قيمة فارغة في القائمة: الخيار النائب نصّ رمادي بلون النصّ البديل
+     في الحقل، فيُقرأ «لم يُختر بعد» لا «هذه هي القيمة». */
+  --ap-select-fg-placeholder:    var(--ap-input-placeholder);
+  --ap-select-border:            var(--ap-input-border);
+  --ap-select-border-hover:      var(--ap-input-border-hover);
+  --ap-select-border-focus:      var(--ap-input-border-focus);
+  --ap-select-border-error:      var(--ap-input-border-error);
+  --ap-select-border-disabled:   var(--ap-input-border-disabled);
+  --ap-select-border-width:      var(--ap-input-border-width);
+  --ap-select-focus-ring:        var(--ap-input-focus-ring);
+  --ap-select-focus-ring-error:  var(--ap-input-focus-ring-error);
+  --ap-select-arrow-fg:          var(--ap-color-text-tertiary);
+  --ap-select-arrow-size:        var(--ap-icon-sm);
+  /* ── اللائحة المرسومة (app-native-select) ───────────────────────────
+     اللائحة بطاقة عائمة لا امتداد للزناد: مفصولة عنه بفجوة، ولها استدارتها
+     الكاملة وظلّها. التنفيذ القائم يلصقها به بحدّ مشترك واستدارة سفلية فقط،
+     فتُقرأ الاثنتان صندوقًا واحدًا انفتح — لا طبقة فوق الصفحة. */
+  --ap-select-menu-bg:           var(--ap-color-bg-surface);
+  /* 12px. كانت 16px، ونزلت درجةً واحدة في السلّم مع ضيق الحشوات حولها:
+     استدارةٌ واسعة على بطاقة صارت أقصر تأكل من زواياها وتُقرأ حبّةً لا
+     لائحة. وهي فوق استدارة الحقل (8px) فتبقى البطاقة طبقةً فوق الصفحة لا
+     امتدادًا للزنّاد — وذلك هو ما كانت 16px تحرسه. */
+  --ap-select-menu-radius:       var(--ap-radius-lg);
+  /* الظلّ وحده بلا حدّ: البطاقة ترتفع عن الصفحة بدل أن تُحاط بخطّ. */
+  --ap-select-menu-shadow:       var(--ap-elevation-dropdown);
+  --ap-select-menu-max-height:   320px;
+  /* الفجوة بين الزناد واللائحة. */
+  --ap-select-menu-gap:          var(--ap-space-2);
+  /* عرض أدنى للوحة التي **لا** تطابق عرض زنّادها (`<ap-menu>` بـ
+     `[matchTriggerWidth]="false"`): قائمة الأوامر زنّادها أيقونة 32px، فبلا
+     حدٍّ أدنى تنكمش على أقصر خيار فيها («حذف») وتُقرأ قصاصةً لا قائمة.
+
+     ⚠️ ولا تُطبَّق على اللوحة المطابقة للعرض: `min-width` يغلب `width`،
+        فحقلٌ أضيق من هذه القيمة تُصبح لوحته أوسع منه — وهي بالضبط الحالة
+        التي يحرسها التطابق.
+
+     ⚠️ قيمة خام عمدًا: هذا **مقياس** (عرض لوحة) لا خطوة في سلّم المسافات،
+        والسلّم ينتهي عند 80px. نفس فئة `--ap-table-min-width: 560px`. */
+  --ap-menu-min-width:           176px;
+  /* صفر: الخيار شريط **يملأ اللائحة في المحورين**، فتصل تعبئة المرور
+     والاختيار إلى حوافّها الأربع ويقصّها `overflow: hidden` على الاستدارة.
+
+     ⚠️ وكانت 8px، فتقف تعبئة الصفّ الأوّل والأخير على بُعد 8px من حافّة
+        البطاقة ويبقى شريطان محايدان فوق القائمة وتحتها — يُقرآن فراغًا داخل
+        البطاقة لا هامشًا لها.
+
+     ⚠️ ولا حشوة أفقية هنا بحال: تلك تقصّ الشريط عن الحافّتين فتحوّله إلى
+        بطاقة داخلية، وتترك شريطين جانبيين لا يستجيبان للنقر بطول القائمة. */
+  --ap-select-menu-padding-y:    var(--ap-space-0);
+
+  /* الخيار 44px: 12 + 12 حشوة رأسية + 20 سطر. كان 52px (16+16+20)، وضاق
+     درجةً واحدة في السلّم — قائمةٌ من أربعة خيارات بارتفاع 52px تصير كتلة
+     أطول من الزنّاد الذي فتحها بأضعاف.
+
+     ⚠️ و44px ليست نزولًا تحت هدف اللمس: 44×44 هو الحدّ الذي توصي به
+        إرشادات WCAG 2.2 (2.5.8 Target Size)، والصفّ يمتدّ بعرض اللائحة
+        كاملًا فمساحته أوسع من ذلك بكثير. والنزول درجةً أخرى (8px ⇐ 36px)
+        يكسر الحدّ، فهذه أضيق ما يجوز.
+
+     ⚠️ ويبقى أوسع من الحقل (40px) عمدًا: الخيار يُمسح بالعين داخل قائمة ولا
+        يصطفّ مع حقل في سطر، فلا سبب يُلزمه بشبكة الأبعاد نفسها.
+
+     والحشوة الأفقية 16px تُبعد النصّ عن حافّة البطاقة بقدر يوازن استدارتها
+     12px — نزلت معها درجةً واحدة، إذ كانت 20px توازن استدارة 16px. */
+  --ap-select-option-padding-y:  var(--ap-space-3);
+  --ap-select-option-padding-x:  var(--ap-space-4);
+  --ap-select-option-font-size:  var(--ap-select-font-size);
+  --ap-select-option-fg:         var(--ap-color-text-primary);
+  --ap-select-option-fg-disabled: var(--ap-color-text-disabled);
+  --ap-select-option-bg-hover:   var(--ap-color-bg-hover);
+  --ap-select-option-bg-active:  var(--ap-color-bg-muted);
+  --ap-select-option-bg-selected: var(--ap-color-bg-selected);
+  --ap-select-option-fg-selected: var(--ap-color-text-brand);
+  /* ── عنوان المجموعة داخل اللوحة ─────────────────────────────────────
+     سطر يسمّي ما تحته حين تحمل اللوحة أكثر من مجموعة — لا خيارًا: فلا حالة
+     مرور ولا هدف لمس ولا `role` يجعله أمرًا يقع.
+
+     ⚠️ واللون `text-secondary` لا `text-tertiary` رغم أن الثاني هو الرمادي
+        الأخفت: القياس 12px، و`tertiary` يقيس 4.76:1 وهو محجوز لـ ≥14px في
+        هذا النظام — انظر تعليقه في `_semantic.css`. والسابقة نفسها في رأس
+        الجدول: 12px و`secondary` (7.50:1) و`semibold` — وهو الاقتران نفسه
+        وظيفيًّا: سطر صغير يسمّي مجموعةً تحته.
+
+     والحشوة الأفقية حشوة الخيار نفسها كي تصطفّ بداية العنوان مع بداية ما
+     يسمّيه؛ والرأسية أضيق درجةً، فالعنوان لافتة لا صفٌّ يُنقر. */
+  --ap-select-group-label-fg:        var(--ap-color-text-secondary);
+  --ap-select-group-label-size:      var(--ap-font-size-xs);
+  --ap-select-group-label-weight:    var(--ap-font-weight-semibold);
+  --ap-select-group-label-padding-y: var(--ap-space-2);
+  --ap-select-group-label-padding-x: var(--ap-select-option-padding-x);
+  --ap-select-chip-bg:           var(--ap-color-action-primary-subtle);
+  --ap-select-chip-fg:           var(--ap-purple-800);
+  --ap-select-chip-radius:       var(--ap-radius-full);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     PHONE FIELD
+     زرّ الدولة داخل حدّ الحقل. يشبه اللاصقة بصريًا لكنه تفاعلي، فله hover
+     ولونه أوضح منها: اللاصقة نصّ ثابت، وهذا قيمة تُقرأ وتُبدَّل.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-phone-country-bg:       var(--ap-color-bg-muted);
+  --ap-phone-country-bg-hover: var(--ap-color-bg-hover);
+  --ap-phone-country-fg:       var(--ap-color-text-secondary);
+  --ap-phone-country-gap:      var(--ap-space-1-5);
+  --ap-phone-country-padding-x: var(--ap-input-padding-x);
+  --ap-phone-flag-size:        var(--ap-icon-md);
+  --ap-phone-flag-radius:      var(--ap-radius-xs);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     CHECKBOX / RADIO / SWITCH
+     ══════════════════════════════════════════════════════════════════════ */
+  /* ── مشترك بين الثلاثة ───────────────────────────────────────────────
+     18px لا 16px: يطابق ارتفاع سطر النصّ المجاور (14px × 1.3) فيستقيم
+     الصفّ، وهو مقاس Material الحالي (62 checkbox + 56 radio) فلا يتبدّل
+     الإدراك البصري عند الترحيل — يتبدّل اللون وحده. */
+  --ap-control-size:        18px;
+  /* هدف اللمس 40px: العنصر المرئي 18px، والفارق حشوة شفّافة حوله.
+     WCAG 2.5.8 (AA) يفرض 24×24 حدًّا أدنى، و40 يطابق ارتفاع الحقل والزرّ
+     فيستقيم الصفّ المختلط. تنفيذ Bootstrap الحالي دون 24 (C-04). */
+  --ap-control-touch-size:  var(--ap-control-height-md);
+  --ap-control-gap:         var(--ap-space-2);
+
+  --ap-control-bg:                  var(--ap-color-bg-surface);
+  --ap-control-bg-hover:            var(--ap-color-bg-subtle);
+  --ap-control-bg-checked:          var(--ap-color-action-primary);
+  --ap-control-bg-checked-hover:    var(--ap-color-action-primary-hover);
+  --ap-control-bg-disabled:         var(--ap-color-bg-muted);
+  --ap-control-bg-checked-disabled: var(--ap-color-border-strong);
+
+  --ap-control-fg-checked: var(--ap-color-action-on-primary);
+
+  --ap-control-border:          var(--ap-color-border-strong);
+  --ap-control-border-hover:    var(--ap-color-text-tertiary);
+  --ap-control-border-checked:  var(--ap-color-action-primary);
+  --ap-control-border-disabled: var(--ap-color-border-default);
+  /* 1.5px لا 1px: العنصر 18px فقط، والحدّ الرفيع عليه يكاد يختفي — وهو
+     الوسيلة الوحيدة لرؤيته وهو غير محدَّد. */
+  --ap-control-border-width:    var(--ap-border-width-medium);
+
+  --ap-control-focus-ring: var(--ap-focus-ring-shadow);
+  --ap-control-transition: var(--ap-duration-fast) var(--ap-ease-standard);
+
+  --ap-control-label-size:  var(--ap-font-size-md);
+  --ap-control-label-color: var(--ap-color-text-primary);
+  /* وصف تحت الـ label داخل الخيار نفسه — نمط «صفّ المفتاح». */
+  --ap-control-desc-size:   var(--ap-font-size-xs);
+  --ap-control-desc-color:  var(--ap-color-text-tertiary);
+  /* المسافة بين خيارين في المجموعة الرأسية. صفر عمدًا: هدف اللمس 40px
+     يحمل الفصل بنفسه، وفجوة فوقه تُبعثر المجموعة. */
+  --ap-control-group-gap:        var(--ap-space-0);
+  --ap-control-group-gap-inline: var(--ap-space-5);
+
+  /* ── الخيار في بطاقة (ap-choice-group appearance="card") ─────────────
+     للخيارات المصيرية القليلة التي تحمل شرحًا: الدور، الباقة، طريقة الدفع.
+
+     ⚠️ الحدّ حاضر دائمًا ويتغيّر لونه وحده — إضافته عند الاختيار تزيد مقاس
+        البطاقة لحظة النقر فيقفز ما تحتها.
+
+     ⚠️ وخلفية المختار subtle لا primary: الثانية خلفية زرّ، وبطاقةٌ بلونها
+        تُقرأ زرًّا لا خيارًا مؤشَّرًا — والنصّ عليها يفقد تباينه. */
+  /* الرأسية أقلّ من الأفقية: البطاقة سطران أو ثلاثة، وحشوةٌ متساوية تجعلها
+     تبدو مربّعة الفراغ حول نصّ قصير. */
+  --ap-choice-card-padding:       var(--ap-space-2) var(--ap-space-4);
+  --ap-choice-card-radius:        var(--ap-radius-lg);
+  --ap-choice-card-border-width:  var(--ap-border-width-thin);
+  --ap-choice-card-border:        var(--ap-color-border-default);
+  --ap-choice-card-border-hover:  var(--ap-color-border-strong);
+  --ap-choice-card-border-selected: var(--ap-color-border-brand);
+  --ap-choice-card-bg:            var(--ap-color-bg-surface);
+  --ap-choice-card-bg-selected:   var(--ap-color-action-primary-subtle);
+  --ap-choice-card-bg-disabled:   var(--ap-color-bg-subtle);
+
+  /* الفجوة بين بطاقة وأخرى.
+
+     ⚠️ ولا تُترك على `--ap-control-group-gap` وهي صفر: ذلك الصفر صحيح للصفّ
+        العاري (هدف اللمس 40px يحمل الفصل بنفسه)، أمّا البطاقات فتلتصق حدودها
+        فتُقرأ جدولًا واحدًا لا ثلاثة خيارات. */
+  --ap-choice-card-gap:           var(--ap-space-3);
+  /* اسم الخيار في البطاقة عنوانٌ فوق شرح، فيأخذ 500 — بينما تسمية الصفّ
+     العاري تبقى 400 (عشرون خيارًا بوزن متوسّط تجعل القائمة تصرخ). */
+  --ap-choice-card-label-weight:  var(--ap-font-weight-medium);
+
+  /* فجوة التفصيل عن التسمية التي يشرحها. صفر: التفصيل سطرٌ تابع للتسمية،
+     وارتفاع سطره (leading) يفصله عنها بصريًّا بما يكفي — فجوةٌ فوقه تُضاف
+     إلى ذلك الفراغ فيُقرآن كتلتين لا واحدة. */
+  --ap-choice-detail-gap:   var(--ap-space-0);
+
+  /* لون تفصيل الخيار. `secondary` لا `tertiary`: نصّ يُقرأ سطرًا سطرًا لا
+     سطر وصف يُمسح بالعين — 7.50:1 مقابل 4.76:1. */
+  --ap-choice-detail-color: var(--ap-color-text-secondary);
+
+  /* ── مربّع الاختيار ─────────────────────────────────────────────────── */
+  --ap-checkbox-radius:    var(--ap-radius-xs);
+  --ap-checkbox-mark-size: 12px;
+
+  /* ── زرّ الراديو ─────────────────────────────────────────────────────
+     النقطة 8px داخل 18px تترك حلقة تفصلها عن الحدّ، فيُقرأ العنصر «نقطة
+     داخل دائرة» لا دائرة ممتلئة — وهو الفرق الشكلي عن مربّع الاختيار. */
+  --ap-radio-dot-size: 8px;
+
+  /* ── المفتاح ─────────────────────────────────────────────────────────
+     40×22 بإبهام 18: يترك 2px حافّة في الطرفين، فالمسافة المقطوعة
+     40 − 18 − (2 × 2) = 18px — إزاحة مرئية بوضوح بلا تضخيم المسار. */
+  --ap-switch-track-width:  40px;
+  --ap-switch-track-height: 22px;
+  --ap-switch-track-inset:  2px;
+  --ap-switch-track-radius: var(--ap-radius-full);
+  --ap-switch-track-bg-off: var(--ap-color-border-default);
+  --ap-switch-track-bg-on:  var(--ap-color-action-primary);
+  --ap-switch-track-bg-off-hover: var(--ap-color-border-strong);
+  --ap-switch-track-bg-on-hover:  var(--ap-color-action-primary-hover);
+  --ap-switch-thumb-size:   18px;
+  --ap-switch-thumb-bg:     var(--ap-color-bg-surface);
+  --ap-switch-thumb-shadow: var(--ap-shadow-xs);
+  /* أيقونة داخل الإبهام: صحّ للمشتعل و× للمطفأ.
+
+     ليست زخرفًا — بها تصبح الحالة مقروءة بالشكل مرّتين: بالموضع وبالرمز.
+     وهذا ما يجعل ادّعاء «الحالة لا تُنقل باللون وحده» صحيحًا في الاتجاهين:
+     الموضع وحده يحتاج مرجعًا للمقارنة (أين طرف المسار؟)، أمّا الرمز فيُقرأ
+     من نظرة واحدة على مفتاح واحد.
+
+     10px داخل إبهام 18px: تترك حافّة بيضاء تمنع الرمز من ملامسة الحدّ. */
+  --ap-switch-thumb-icon-size: 10px;
+  --ap-switch-thumb-fg-off:    var(--ap-color-text-tertiary);
+  --ap-switch-thumb-fg-on:     var(--ap-color-action-primary);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     CARD                                                            [D-05]
+     حجمان: md=16px للبطاقات داخل الشبكات، lg=24px للمستقلّة.
+     يستبدل .card (radius 5.6px / padding 30px / transition all .5s)
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-card-bg:            var(--ap-color-bg-surface);
+  --ap-card-border:        var(--ap-color-border-subtle);
+  --ap-card-border-hover:  var(--ap-color-border-default);
+  --ap-card-radius:        var(--ap-radius-lg);
+  --ap-card-padding-md:    var(--ap-space-4);
+  --ap-card-padding-lg:    var(--ap-space-6);
+  --ap-card-gap:           var(--ap-space-4);
+  --ap-card-shadow:        var(--ap-elevation-card);
+  --ap-card-shadow-hover:  var(--ap-elevation-raised);
+  --ap-card-title-size:    var(--ap-font-size-xl);
+  --ap-card-title-weight:  var(--ap-font-weight-semibold);
+  --ap-card-title-color:   var(--ap-color-text-primary);
+  --ap-card-transition:    var(--ap-duration-normal) var(--ap-ease-standard);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     AVATAR / MEDIA CELL
+     ----------------------------------------------------------------------
+     الجرد وجد صورًا داخل الخلايا في 17 ملفًا من 80، بمقاسات ونصف أقطار
+     مختلفة في كل واحد، وبلا أي معالجة لغياب الصورة.
+
+     ⚠️ الشكل يحمل معنى ولا يُخلط:
+        دائري  → شخص (متدرّب، مدرّب، مستخدم)
+        بزوايا → شيء  (منتج، دورة، ملف، أكاديمية)
+        هذا التمييز مستقرّ عبر الواجهات كلها، ويقرؤه المستخدم قبل النصّ.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-avatar-size-xs: var(--ap-space-6);   /* 24px — داخل سطر نصّي */
+  --ap-avatar-size-sm: var(--ap-space-8);   /* 32px — خليّة جدول مضغوطة */
+  --ap-avatar-size-md: var(--ap-space-10);  /* 40px — الافتراضي في الجداول */
+  --ap-avatar-size-lg: var(--ap-space-12);  /* 48px — رأس صفحة */
+  --ap-avatar-radius-circle:  var(--ap-radius-full);
+  --ap-avatar-radius-rounded: var(--ap-radius-md);
+  --ap-avatar-bg:     var(--ap-color-bg-muted);
+  --ap-avatar-fg:     var(--ap-color-text-secondary);
+  /* حدّ داخلي شفّاف لا خارجي: الصورة الفاتحة على سطح أبيض تفقد حافّتها،
+     والحدّ الخارجي كان سيزيد المقاس فتختلّ محاذاة صفّ من الأفاتارات. */
+  --ap-avatar-ring:   rgb(var(--ap-rgb-slate-900) / 0.08);
+  /*
+    مقاسان صريحان لا معامل نسبيّ.
+
+    المعامل يُنتج قيمًا كسرية خارج سلّم الطباعة (14.08px، 10.56px)، وهي
+    ما لا يُقاس ولا يُراجَع. والحرفان قصيران أصلًا فلا يحتاجان تدرّجًا
+    دقيقًا: 12px للمقاسين الصغيرين و14px للكبيرين يكفيان.
+  */
+  --ap-avatar-font-size-sm: var(--ap-font-size-xs);  /* 12px — xs و sm */
+  --ap-avatar-font-size-lg: var(--ap-font-size-md);  /* 14px — md و lg */
+  /* متوسّط لا شبه عريض: الحرفان بلا معنى دلالي، ووزنهما الثقيل يجعلهما
+     ينافسان الاسم المكتوب بجوارهما على الانتباه. */
+  --ap-avatar-font-weight: var(--ap-font-weight-medium);
+  --ap-avatar-icon-scale: 0.5;
+  /*
+    صورة المنتج مستطيلة عرضًا لا مربّعة.
+
+    المنتج يُصوَّر أفقيًا في الغالب (غلاف دورة، لقطة شاشة، بانر)، والقصّ
+    المربّع يبتر طرفيه ويترك وسطًا بلا معنى. والنسبة 4:3 تكفي للتمييز
+    بلا أن يبتلع العمودُ عرضَ الجدول.
+  */
+  --ap-avatar-wide-ratio: 4 / 3;
+  --ap-avatar-radius-wide: var(--ap-radius-md);
+
+  /* ── خليّة الوسائط ─────────────────────────────────────────────────── */
+  --ap-media-gap:           var(--ap-space-3);
+  --ap-media-title-fg:      var(--ap-color-text-primary);
+  --ap-media-title-size:    var(--ap-font-size-md);
+  --ap-media-title-weight:  var(--ap-font-weight-medium);
+  --ap-media-subtitle-fg:   var(--ap-color-text-tertiary);
+  --ap-media-subtitle-size: var(--ap-font-size-xs);
+  --ap-media-text-gap:      var(--ap-space-0-5);
+  /* ══════════════════════════════════════════════════════════════════════
+     TABLE
+     ----------------------------------------------------------------------
+     الجرد رصد ستّة أنظمة جداول متعايشة: mat-table (249 matColumnDef)،
+     وجدول Bootstrap الخام (36 ملفًا)، وثلاثة تنفيذات يدوية، وجدول من
+     شبكة CSS بلا أي دور دلالي. وسبع قيم حشوة مختلفة، وستّة ألوان نصّ.
+
+     ⚠️ قاعدتان عالميتان في panel-style.css تحكمان كل جدول في التطبيق:
+
+         thead:not(.no-bg) { background-color: #eee !important; }   :6616
+         table { border: 1px solid #eee; border-radius: 10px; … }   :6620
+
+        الثانية تُهزم بالخصوصية (‎[apTable]‎ = 0,1,0 يغلب ‎table‎ = 0,0,1).
+        أمّا الأولى فبـ‎!important‎ ولا تُهزم بخصوصية — ولذلك خلفية الرأس
+        تُرسم على ‎th‎ لا على ‎thead‎: خلفية الابن تغطّي خلفية الأب في مساحته،
+        والخلايا تملأ الصفّ كاملًا مع border-collapse. فلا نحتاج‎!important‎
+        مضادًّا ولا تعديلًا على الورقة القديمة.
+
+        وهي أيضًا الطريقة الصحيحة بذاتها: رأس لاصق (sticky) بخلفية على
+        ‎thead‎ يُظهر ما تحته من خلال الصفّ في بعض المحرّكات.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-table-bg:             var(--ap-color-bg-surface);
+  --ap-table-border:         var(--ap-color-border-subtle);
+  --ap-table-border-width:   var(--ap-border-width-thin);
+  --ap-table-radius:         var(--ap-radius-lg);
+  /* أضيق ما يُقرأ به الجدول قبل أن يبدأ التمرير الأفقي داخل حاويته.
+     السحق أسوأ من التمرير: جدول مسحوق يعرض أعمدة بعرض لا يستخدمه أحد. */
+  --ap-table-min-width:      560px;
+
+  /* ── الرأس ───────────────────────────────────────────────────────────
+     ⛔ لا text-transform ولا تباعد حرفيّ موجب هنا، ولن يوجدا:
+        القاعدة القائمة ‎.table thead th‎ تحمل ‎uppercase‎ و‎letter-spacing:.5px‎.
+        الأولى بلا أثر على العربية أصلًا، والثانية تكسر وصل الحروف — وهي
+        المخالفة نفسها الموثّقة في أساس الطباعة. الرأس يتميّز بالوزن والحجم
+        واللون والخطّ السفليّ، وهي أربع وسائل تكفي. */
+  /* الرأس بلا تعبئة: لونه لون سطح الجدول نفسه، ويفصله عن الصفوف خطٌّ سفليّ
+     وحده. الشريط الرمادي كان يُقرأ صفًّا آخر من الجدول، ويزاحم الصفّ المحدَّد
+     وشارات الحالة على الانتباه — وهي ما يجب أن يبرز في جدول إدارة.
+
+     ⚠️ وهي قيمة السطح لا ‎transparent‎: الرأس يلصق (sticky) والأعمدة تُثبَّت،
+        وكلاهما يحتاج خلفية معتِمة وإلّا مرّت الصفوف من خلفه فارتسم نصّان فوق
+        بعضهما. ‎transparent‎ تُنتج «بلا خلفية» في الصورة الساكنة وعطلًا عند
+        أوّل تمرير. */
+  --ap-table-header-bg:      var(--ap-table-bg);
+  /* الخطّ السفليّ هو كل ما يفصل الرأس بعد رفع التعبئة، فهو أقوى من حدّ
+     الصفوف: بنفس اللون والسمك يصير الرأس صفًّا من الجدول لا رأسًا له. */
+  --ap-table-header-border:       var(--ap-color-border-default);
+  --ap-table-header-border-width: var(--ap-border-width-thick);
+  --ap-table-header-fg:      var(--ap-color-text-secondary);
+  --ap-table-header-size:    var(--ap-font-size-xs);
+  --ap-table-header-weight:  var(--ap-font-weight-semibold);
+  --ap-table-header-padding-y: var(--ap-space-3);
+  /* صفر، ولا قيمة أخرى مقبولة: التباعد الحرفي الموجب يكسر وصل الحروف
+     العربية. وهو موجود tokenًا لأنه يُكتب فعلًا — ثيم Material يفرض تباعدًا
+     موجبًا على خلايا الرأس والجسم، ولا يُردّ إلّا بقاعدة مضادّة. */
+  --ap-table-tracking:       var(--ap-tracking-normal);
+  /* ظلّ يظهر تحت الرأس اللاصق وحده، فيُقرأ طبقةً فوق الصفوف لا صفًّا منها.
+     وهو زيادة على الخطّ السفليّ لا بديل عنه: الخطّ يفصل الرأس في كل حال،
+     والظلّ وحده هو ما يقول إن ما تحته يمرّ خلفه. */
+  --ap-table-header-shadow:  var(--ap-elevation-raised);
+
+  /* ── الخلايا ─────────────────────────────────────────────────────────
+     12/16 هي الحشوة الوسطى بين سبع قيم مرصودة (من 6×10 إلى 20×15).
+     والكثافة المضغوطة لجداول الإدارة الطويلة — الجرد رصد 8px في ثلاثة
+     تنفيذات، وهي حاجة حقيقية لا استثناء. */
+  --ap-table-cell-fg:          var(--ap-color-text-primary);
+  --ap-table-cell-fg-muted:    var(--ap-color-text-secondary);
+  --ap-table-cell-size:        var(--ap-font-size-md);
+  --ap-table-cell-leading:     var(--ap-leading-snug);
+  --ap-table-cell-padding-y:    var(--ap-space-3);
+  --ap-table-cell-padding-y-sm: var(--ap-space-2);
+  --ap-table-cell-padding-x:    var(--ap-space-4);
+
+  /* ── الصفوف ──────────────────────────────────────────────────────────
+     المحدَّد أقوى من الممرور عليه: التحديد حالة يختارها المستخدم وتبقى،
+     والمرور مؤقّت يتبع المؤشّر. تساويهما يجعل الصفّ المحدَّد يختفي تحت
+     المؤشّر. والشريط الجانبي على الصفّ المحدَّد لأن اللون وحده لا ينقل
+     الحالة (WCAG 1.4.1). */
+  --ap-table-row-hover:        var(--ap-color-bg-hover);
+  --ap-table-row-selected:     var(--ap-color-bg-selected-subtle);
+  /* الصفّ المحدَّد عند المرور: أغمق بدرجة من التحديد وحده، فيبقى التحديد
+     مقروءًا ويبقى للمرور استجابة.
+
+     ⚠️ صلب لا شفّاف — كل ألوان صفوف هذا الجدول صلبة، لأن الخلايا المثبَّتة
+        تعيد رسم خلفية صفّها فيُركَّب الشفّاف مرّتين. انظر التعليق في
+        `_semantic.css` عند `--ap-color-bg-selected-subtle`. */
+  --ap-table-row-selected-hover: var(--ap-color-bg-selected-strong);
+  --ap-table-row-selected-bar: var(--ap-color-action-primary);
+  --ap-table-row-selected-bar-width: var(--ap-border-width-thick);
+  --ap-table-row-striped:      var(--ap-color-bg-subtle);
+  --ap-table-row-transition:   var(--ap-duration-fast) var(--ap-ease-standard);
+
+  /* ── رأس قابل للفرز ──────────────────────────────────────────────────
+     الجرد: 115 ‎mat-sort-header‎ بلا ‎aria-sort‎ واحدة — الفرز غير معلَن
+     لقارئ الشاشة في كل جدول في التطبيق. المؤشّر هنا يُرسم دائمًا (باهتًا
+     حين لا فرز) كي يُعلن العمود أنه قابل للفرز قبل أن يُنقر عليه. */
+  --ap-table-sort-fg:        var(--ap-color-text-tertiary);
+  --ap-table-sort-fg-active: var(--ap-color-text-brand);
+  /* المرور **بلا خلفية**.
+
+     ⛔ لا `--ap-table-sort-bg-hover`: الرأس بلا حشو أصلًا (خطّ سفلي وحده
+        يفصله عن الصفوف — انظر `--ap-table-header-bg`)، فخلفية تظهر تحت
+        المؤشّر تنقض القرار نفسه وتعيد رسم ما حُذف عمدًا. وبديلها أرخص
+        وأدلّ: مؤشّر الفرز الباهت يمتلئ، والعنوان يعتم درجةً — فيقول
+        «هذا العمود يُفرز» على العنصر الذي سيفرزه، لا على مساحة الخليّة. */
+  --ap-table-sort-fg-hover:  var(--ap-color-text-primary);
+  --ap-table-sort-icon:      var(--ap-icon-sm);
+  --ap-table-sort-gap:       var(--ap-space-1-5);
+
+  /* ── التعليق (caption) ───────────────────────────────────────────────
+     الجرد: صفر ‎<caption>‎ في المشروع كلّه. */
+  --ap-table-caption-fg:   var(--ap-color-text-secondary);
+  --ap-table-caption-size: var(--ap-font-size-xs);
+  --ap-table-caption-gap:  var(--ap-space-2);
+
+  /* ── روابط الخلايا ───────────────────────────────────────────────────
+     `panel-style.css` يضع ‎a { color: #7e7e7e }‎ ويمسح التسطير عند المرور —
+     فاسم المستخدم وبريده يُرسمان بلون النصّ العادي تمامًا، ولا شيء يقول
+     إنهما يُنقران. والمحدّد هنا (0,1,2) يغلب (0,0,1) بلا ‎!important‎.
+
+     ⚠️ التسطير عند المرور **وعند التركيز** لا اللون وحده: اللون وحده يسقط
+        عمّن لا يميّزه (WCAG 1.4.1)، وفي عمود كلّه روابط لا يوجد نصّ جار
+        يُقارَن به أصلًا.
+
+     ⚠️ والإزاحة ليست تزيينًا: التسطير الملاصق يقطع ذيول الحروف العربية
+        النازلة (ج، ح، م، ي) فيصير الاسم أصعب قراءةً ممّا كان. */
+  --ap-table-link-fg:               var(--ap-color-text-brand);          /*  8.03:1 */
+  --ap-table-link-fg-hover:         var(--ap-color-action-primary-hover);
+  --ap-table-link-underline-offset: var(--ap-space-0-5);                 /* 2px */
+
+  /* فجوة الأفاتار عن الاسم. عبر ‎gap‎ فتقع في الجهة الصحيحة في RTL بلا
+     قاعدة ثانية. */
+  --ap-table-cell-media-gap: var(--ap-space-2);   /* 8px */
+
+  /* سقف عرض الخليّة المقصوصة. القصّ بالكلمات لا يمسّ نصًّا بلا مسافات
+     (‎home_doctor_project home_doctor_project‎ = كلمتان، 39 محرفًا)، فهذا
+     السقف هو ما يمنعه من مطّ العمود. مقيس على السلّم: 4 × 64px. */
+  --ap-table-truncate-max-width: calc(var(--ap-space-16) * 4);   /* 256px */
+
+  /* ── عرض الشارة داخل الجدول ──────────────────────────────────────────
+     الشارة خارج الجدول تأخذ عرض نصّها، وهو الصحيح: شارة واحدة في رأس
+     صفحة لا تُقاس بشيء. أمّا في عمود فهي **مصفوفة** — و«فعال» أضيق من
+     «غير فعال»، فتتعرّج حافّة العمود سطرًا بعد سطر ويصير الفرق في العرض
+     إشارةً بصرية ثانية لا يقصدها أحد: العين تقرأ الطول قبل أن تقرأ اللون.
+
+     ⚠️ وهو `min-width` لا `width`: أرضية لا سقف. تسمية أطول من الأرضية
+        تتمدّد وتُقرأ كاملةً — والبديل (`width` ثابت) كان يقصّها أو يُخرجها
+        من حدّها. والتساوي مضمون ما دامت التسميات كلّها دون الأرضية، وهو
+        حال «فعال» و«غير فعال» معًا.
+
+     ⚠️ ولا يُنقل هذا إلى `<ap-badge>` نفسه: الشارة خارج الجدول تبقى
+        بعرض نصّها. القاعدة سياقها الجدول، فمكانها توكن الجدول. */
+  /* 64px لا 80px: الشارة الجديدة أضغط، و80px كانت تتركها صندوقًا شبه
+     فارغ. والقيمة تسع أطول تسمية حالة في اللوحة («بانتظار الإجراء») بلا
+     فراغ داخليّ زائد — والحافّة تبقى مستوية في العمود، وهو الغرض. */
+  --ap-table-badge-min-width: var(--ap-space-16);   /* 64px */
+
+  /* ── حالة التحميل ────────────────────────────────────────────────────
+     الجرد: صفر هيكل تحميل. النمط القائم يُخفي الجدول كلّه بـ‎@if‎، فيقفز
+     التخطيط عند وصول البيانات. الهيكل يحجز المساحة نفسها. */
+  --ap-table-skeleton-bg:     var(--ap-color-bg-muted);
+  --ap-table-skeleton-radius: var(--ap-radius-xs);
+  --ap-table-skeleton-height: var(--ap-space-3);
+
+  /* ── الأعمدة المثبَّتة وزرّ الإجراءات ───────────────────────────────
+     الظلّ لا حدّ: الحدّ يزيد عرض الخليّة فتختلّ الإزاحة المحسوبة لما بعدها.
+
+     ⚠️ مقاس ولون، لا ظلّ جاهز — لأن الظلّ هنا **اتجاهي**: يقع على الجانب
+        المنزلق وحده (يسارًا في RTL، يمينًا في LTR). وأي ظلّ من السلّم
+        العامّ إزاحته رأسية، فيُرسم تحت الخليّة لا بجوارها — ويُقرأ حافّة
+        سفلية لا فاصلًا بين عمودين. رُصد هذا بالقياس بعد أوّل تنفيذ.
+
+        والانتشار السالب يساوي المقاس، فينحصر الظلّ في جانب واحد ولا
+        يتسرّب من أعلى الخليّة وأسفلها. */
+  --ap-table-pinned-shadow-size:  var(--ap-space-2);
+  --ap-table-pinned-shadow-color: rgb(var(--ap-rgb-slate-900) / 0.12);
+  --ap-table-action-size:   var(--ap-control-height-sm);
+  --ap-table-action-radius: var(--ap-radius-md);
+  --ap-table-action-fg:       var(--ap-color-text-tertiary);
+  --ap-table-action-fg-hover: var(--ap-color-text-primary);
+  --ap-table-action-bg-hover: var(--ap-color-bg-hover);
+  /* نغمة الخطر لزرّ صفٍّ يحذف. لا تُستعمل إلا حين يكون الفعل غير قابل
+     للتراجع — وإلّا فقد اللون معناه بكثرة الظهور. */
+  --ap-table-action-fg-danger:       var(--ap-color-action-danger);
+  --ap-table-action-fg-danger-hover: var(--ap-color-action-danger-hover);
+  --ap-table-action-bg-danger-hover: var(--ap-color-action-danger-subtle);
+
+  /* ── (سقطت مجموعة `--ap-row-menu-*`) ────────────────────────────────
+     كانت هنا أربع قيم للوحة `<mat-menu class="ap-row-menu">`: مقاس أيقونة
+     الخيار وفجوتها ولونها، وعرض أدنى للوحة.
+
+     وسقطت الثلاث الأُول بسقوط الأيقونة نفسها: قائمة الصفّ كلمات لا أيقونات
+     — كلمةٌ تسمّي الفعل تُغني عن رسمٍ يكرّرها. وسقطت الرابعة من موضعها هذا
+     لا من النظام: صارت `--ap-menu-min-width` أدناه، لأن العرض الأدنى يخصّ
+     **كل لوحة بعرض محتواها** لا قائمة الصفّ وحدها.
+
+     ⛔ ولا تُبعث المجموعة عند بناء قائمة صفٍّ جديدة: شكل اللوحة كلّه من
+        `--ap-select-*` عبر `ui/select/_menu.scss`، ومجموعةٌ مستقلّة لواحدة
+        من اللوحات الستّ هي بالضبط ما يجعلها تتباعد عند أوّل تعديل. */
+
+  /* ── مقبض السحب ─────────────────────────────────────────────────────
+     يظهر مع المرور في بداية الصفّ (يمينًا في RTL) — حيث تبدأ العين
+     قراءة الصفّ، فيكون أوّل ما تصله اليد حين تريد نقله. */
+  --ap-table-drag-size: var(--ap-space-6);
+  /* ⚠️ لا -text-disabled هنا: 2.56:1 يسقط WCAG 1.4.11 (المطلوب 3:1
+     لعنصر واجهة غير نصّي)، والمقبض هو الدعوة الوحيدة إلى إعادة الترتيب —
+     فلا يصحّ أن يبدو معطَّلًا وهو أهمّ ما في الصفّ عند نقله. */
+  --ap-table-drag-fg:   var(--ap-color-text-tertiary);
+  --ap-table-drag-fg-hover: var(--ap-color-text-primary);
+  --ap-table-drag-bg-hover: var(--ap-color-bg-hover);
+  --ap-table-drag-radius:   var(--ap-radius-sm);
+  /* الصفّ أثناء الحمل. */
+  --ap-table-row-dragging-opacity: var(--ap-opacity-muted);
+
+  /* ── شريط التحديد الجماعي ───────────────────────────────────────────
+     شريط داكن عائم يظهر متى حُدِّد صفّ. الداكن لا الفاتح: هو طبقة فوق
+     الجدول لا جزء منه، والتباين العكسي وحده يقول ذلك بلا حدّ ولا ظلّ ثقيل. */
+  --ap-table-bulk-bg:       var(--ap-color-bg-inverse);
+  --ap-table-bulk-fg:       var(--ap-color-text-inverse);
+  --ap-table-bulk-fg-muted: var(--ap-color-text-inverse-muted);
+  --ap-table-bulk-divider:  var(--ap-color-border-inverse);
+  --ap-table-bulk-radius:   var(--ap-radius-lg);
+  --ap-table-bulk-padding-y: var(--ap-space-2);
+  --ap-table-bulk-padding-x: var(--ap-space-4);
+  --ap-table-bulk-gap:      var(--ap-space-4);
+  --ap-table-bulk-shadow:   var(--ap-elevation-dropdown);
+  --ap-table-bulk-font-size: var(--ap-font-size-md);
+  --ap-table-bulk-bg-hover: var(--ap-color-bg-inverse-hover);
+  --ap-table-bulk-danger-fg: var(--ap-color-danger-on-inverse);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     APP HEADER (<ap-app-header>)                                    [D-16]
+     ----------------------------------------------------------------------
+     الشريط العلوي لهيكل اللوحة: هوية الأكاديمية في جهة البداية، وأفعالها
+     وأدواتها وحسابها في الطرف المقابل. لا يعرف شيئًا عن الصفحة المفتوحة
+     تحته — ما يتبدّل بتبدّل الشاشة مكانه <ap-page-header> داخل البطاقة.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  /* الارتفاع مشتقّ لا مُختار: عنصر تحكّم واحد (40px) وحوله متنفّسه (16px من
+     كلّ جهة) ⇒ 72px. أي أن أطول ما يوضع في الشريط يحدّ ارتفاعه، فلا يتغيّر
+     الرقم يدويًا كلّما تغيّر ما بداخله. */
+  --ap-app-header-height: calc(var(--ap-control-height-sm) + var(--ap-space-4) * 2);
+  /* معتم لا شفّاف — وهذا شرط صحّة لا تفضيل.
+
+     ⚠️ كان `transparent` بقرار «الكانفاس يمتدّ خلف الشريط فيصير جزءًا من
+        الصفحة»، وثمنُه كان مكتوبًا هنا ومقبولًا: الغلاف `.header` **ثابت**
+        (`position: fixed` من القالب المشترى)، فما يصعد عند التمرير يُرى من
+        خلف اسم الأكاديمية وأزرارها — سطران من نصّين مختلفين فوق بعضهما.
+        و`z-index` لا يعالج ذلك بحال: هو يرتّب الرسم، والشفّاف يُظهر ما تحته
+        مهما علا ترتيبه.
+
+     وقيمتُه لون **الكانفاس** لا لون البطاقة: المطلوب أن يبدو الشريط امتدادًا
+     للصفحة لا طبقةً فوقها — وهو ما كانت الشفافية تسعى إليه — لكن بلونٍ صلب
+     يحجب ما يمرّ تحته. فالمظهر مظهر الشفافية، بلا عيبها.
+
+     والقاعدة نفسها المكتوبة عند رأس الجدول: سطحٌ يمرّ المحتوى تحته يجب أن
+     يكون بلونٍ صلب لا بلا لون — «لا خلفية» تعني «بلون ما تحته»، لا «بلا
+     قيمة». */
+  --ap-app-header-bg:        var(--ap-color-bg-page);
+  /* بداية الشريط = بداية أيقونات الشريط الجانبي، فالشعار واسم الأكاديمية
+     وقائمة التنقّل تحته على خطّ واحد بدل ثلاثة خطوط متقاربة. */
+  --ap-app-header-padding-x: var(--ap-sidebar-content-inset);
+  --ap-app-header-z-index:         var(--ap-z-header);
+
+  /*
+    ⛔ لا خطّ سفليّ — قرارٌ مُثبَّت، لا يُعاد فتحه.
+
+    وقد أُعيد مرّةً بحجّة أن الشريط الأبيض والبطاقة البيضاء يذوب أحدهما في
+    الآخر عند التمرير. الحجّة مرفوضة: التعبئة المعتمة وحدها تكفي لمنع مرور
+    المحتوى من خلف الشريط، وهي المشكلة الحقيقية — والخطّ لا يحلّ منها شيئًا.
+
+    ⚠️ وتبقى القيمتان مكتوبتين بـ 0 لا محذوفتين: القاعدة في
+       `ap-app-header.component.scss` تقرؤهما، وحذفهما يترك `border-block-end`
+       بعرضٍ غير معرَّف.
+  */
+  --ap-app-header-border-color: transparent;
+  --ap-app-header-border-width:  0;
+
+  /* ── الهوية ──────────────────────────────────────────────────────────
+     الشعار صورة يملكها المستهلك، والمكوّن يحدّ ارتفاعها فقط: شعار بنسبة
+     مختلفة لا يجوز أن يغيّر ارتفاع الشريط. */
+  --ap-app-header-logo-height: var(--ap-space-12);   /* 48px — ارتفاع الشعار الأصلي في <app-nav-header> */
+  --ap-app-header-brand-gap:   var(--ap-space-4);
+  /* اسم الأكاديمية سياق لا عنوان: ثانوي (7.50:1) بوزن متوسّط. لو أخذ لون
+     النصّ الأساسي لزاحم عنوان الصفحة <h1> داخل البطاقة على الأولوية. */
+  --ap-app-header-academy-fg:     var(--ap-color-text-secondary);
+  --ap-app-header-academy-font-size:   var(--ap-font-size-md);
+  --ap-app-header-academy-font-weight: var(--ap-font-weight-medium);
+
+  /* ── رابط موقع الأكاديمية ─────────────────────────────────────────────
+     أيقونةٌ ملاصقة للاسم لا زرٌّ في الطرف المقابل: الموقع هو موقع **ذلك
+     الاسم**، والمسافة بينهما هي ما كانت تخفي العلاقة. ولأنها ملاصقة صار
+     الرسم وحده كافيًا فسقطت الكلمات الثلاث التي كانت تحجز عرضًا دائمًا
+     لفعلٍ يقع مرّة في الجلسة.
+
+     ⚠️ وهي **أصغر** من أيقونات الأدوات (20px لا 24px) عمدًا: تلك أزرار
+        قائمة بذاتها في صفّها، وهذه لاحقةٌ باسمٍ بحجم 16px — أيقونة أكبر من
+        سطر نصّها تقلب الترتيب فتصير هي المتبوعة والاسم تابعًا. */
+  --ap-app-header-site-icon-size: var(--ap-icon-lg);   /* 20px */
+  --ap-app-header-site-gap:       var(--ap-space-2);
+  --ap-app-header-site-padding:   var(--ap-space-1);
+  --ap-app-header-site-radius:    var(--ap-radius-sm);
+  /* ثانوي كالاسم في السكون، فالاثنان شيء واحد؛ ويقفز إلى لون الفعل عند
+     المرور — وهو التلميح الوحيد بأنه رابط قبل أن تظهر الفقاعة. */
+  --ap-app-header-site-fg:        var(--ap-app-header-academy-fg);
+  --ap-app-header-site-fg-hover:  var(--ap-color-action-primary);
+  --ap-app-header-site-bg-hover:  var(--ap-color-bg-hover);
+
+  /* ── فقاعة «زيارة موقع الأكاديمية» ────────────────────────────────────
+     ⚠️ ليست مكوّن Tooltip عامًّا — لا وجود له في `src/app/ui/` بعد. هذه
+        فقاعة يملكها الشريط لأيقونته وحدها، والنصّ فيها هو نفسه الاسم
+        المتاح لقارئ الشاشة على الرابط (`aria-label`)، فالفقاعة
+        `aria-hidden` ولا تُنطق مرّتين.
+
+     وهي تظهر على `:hover` و`:focus-visible` معًا: ظهورٌ بالمؤشّر وحده
+     يجعلها غير موجودة لمن يتنقّل بلوحة المفاتيح. */
+  --ap-app-header-tip-bg:          var(--ap-color-bg-inverse);
+  --ap-app-header-tip-fg:          var(--ap-color-text-inverse);
+  --ap-app-header-tip-font-size:   var(--ap-font-size-xs);
+  --ap-app-header-tip-padding:     var(--ap-space-2) var(--ap-space-3);
+  --ap-app-header-tip-radius:      var(--ap-radius-md);
+  --ap-app-header-tip-shadow:      var(--ap-shadow-md);
+  --ap-app-header-tip-offset:      var(--ap-space-2);
+  --ap-app-header-tip-z-index:     var(--ap-z-tooltip);
+
+  /* ── المجموعات في الطرف المقابل ───────────────────────────────────────
+     ثلاث فجوات لا واحدة، وكلٌّ منها يقول شيئًا:
+
+       actions-gap  12px بين زرَّين يحملان كلمات — الفراغ يفصل النصَّين.
+       tools-gap     4px بين أيقونات عارية — هي صفٌّ واحد من الأدوات، وفجوة
+                     أوسع تُفكّكه إلى ثلاثة أزرار متفرّقة.
+       group-gap    20px بين المجموعات — هو ما يجعلها تُقرأ مجموعات أصلًا. */
+  --ap-app-header-actions-gap: var(--ap-space-3);
+  --ap-app-header-tools-gap:   var(--ap-space-1);
+  --ap-app-header-group-gap:   var(--ap-space-5);
+
+  /* ── زنّاد الحساب ────────────────────────────────────────────────────
+     صورة + سهم داخل زرّ واحد. حدوده دائرية لأن ما بداخله دائري — والمستطيل
+     حول دائرة يُظهر أربع زوايا فارغة عند المرور. */
+  --ap-app-header-account-gap:      var(--ap-space-1);
+  --ap-app-header-account-padding:  var(--ap-space-1);
+  --ap-app-header-account-radius:   var(--ap-radius-full);
+  --ap-app-header-account-bg-hover: var(--ap-color-bg-hover);
+  --ap-app-header-account-chevron-fg:  var(--ap-color-text-tertiary);  /* 4.76:1 */
+
+  /* ── حجم الأيقونة في الشريط ────────────────────────────────────────
+     24px لا 16px، وهو تجاوز صريح لما يفرضه حجم الزرّ.
+
+     الأيقونة في الزرّ تتبع حجمه (14/16/20) لأنها هناك **بجوار كلمة**
+     تحمل المعنى، فدورها تمييز بصري لا أكثر. وفي هذا الشريط أربعة أزرار
+     أيقونية بلا نصّ ظاهر: الأيقونة هي الرسالة كاملةً، و16px داخل هدف
+     لمس 40px تترك حلقة فارغة حولها فتبدو الأداة أصغر من مساحتها
+     وأصعب في التمييز عن جارتها.
+
+     ويظلّ الهدف 40px كما هو — كبرت الأيقونة داخله، لا الزرّ. */
+  --ap-app-header-icon-size:        var(--ap-icon-lg);   /* 20px */
+  /* السهم يأخذ الحجم نفسه: هو في صفّ واحد مع الأيقونات، وسهمٌ أصغر
+     منها بعشر بكسلات يقرأ كأنه من نظام آخر. */
+  --ap-app-header-account-icon-size: var(--ap-app-header-icon-size);
+  --ap-app-header-transition: var(--ap-duration-fast) var(--ap-ease-standard);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     SIDEBAR (app-deznav-native)                                     [A-08]
+     لون الأيقونة كان #969ba0 = 2.80:1 — يسقط WCAG 1.4.11 (المطلوب 3:1)،
+     وهو المميّز الوحيد للعناصر في الوضع المطوي.
+     ══════════════════════════════════════════════════════════════════════ */
+  /*
+    ⚠️ **شفّاف لا لون**: الشريط لم يعد سطحًا قائمًا بذاته — الكانفاس يمرّ من
+       تحته، والصفّ وحده يحمل اللون. وكان تدرّجًا بنفسجيًّا بنصّ أبيض، فقُلب
+       كلّه: نصٌّ داكن على الكانفاس، وحبّة `purple-50` تحت المحدَّد.
+
+    ويتبعه سقوط الاستدارة: الاستدارة كانت لأن الشريط سطحٌ **يطفو**، وسطحٌ
+    شفّاف لا حوافّ له تُستدار.
+  */
+  /* ══════════════════════════════════════════════════════════════════════
+     هيكل اللوحة — بطاقة المحتوى
+     ----------------------------------------------------------------------
+     محتوى الصفحة كلّه يقف على بطاقة بيضاء مستديرة تطفو على الكانفاس، لا على
+     الكانفاس مباشرةً. وهي الفكرة التي بُني عليها `--ap-color-bg-page` أصلًا:
+     سطحٌ أبيض **فوق** خلفية تفارقه، لا صفحةٌ واحدة بلون واحد.
+
+     ⚠️ والفجوة تُقرأ في موضعين — حواف البطاقة، وإزاحة المحتوى عن الشريط
+        الجانبي — فهي قيمة واحدة هنا لا رقمان يتباعدان عند أوّل تعديل.
+
+     ⚠️ ولا `overflow: hidden` عليها مهما أغرت الاستدارة: سلفٌ يقصّ الفائض
+        هو عطل `<ap-modal>` و`<ap-menu>` الموثّق — وهو السبب الذي جعلهما
+        يقفان في الطبقة العليا أصلًا.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-shell-card-bg:     var(--ap-color-bg-surface);
+  --ap-shell-card-radius: var(--ap-radius-xl);
+  /* ⚠️ حدّ لا ظلّ: البطاقة بيضاء والكانفاس تحتها لا يفارقها إلا بـ1.03:1 —
+     فالخطّ هو ما يرسم الحافّة، لا شيء غيره. القرار نفسه عند `<ap-app-header>`. */
+  --ap-shell-card-border: var(--ap-color-border-subtle);
+  --ap-shell-card-gap:    var(--ap-space-2);
+  --ap-shell-card-padding: var(--ap-space-6);
+
+  --ap-sidebar-bg:              transparent;
+  --ap-sidebar-radius:          0;
+
+  /* 256px، مقيسة على أطول صفّ لا موروثة من القالب المشترى (17.5rem/280px):
+     أطول صفّ رئيسي «تقارير وإحصائيات» وأطول صفّ فرعي «الهوية والعلامة
+     التجارية»، والثاني هو الحدّ الفعلي — فميزانيّته أضيق: يفقد حشوة الشريط
+     (28px×2) وإزاحة التفريع وحشوة النهاية، بلا أيقونة تُقاسمه.
+
+     ⚠️ ولذلك نزلت إزاحة التفريع معها من 16px إلى 8px (`.dn-sublink` في ورقة
+        الشريط): الثمانية المستردّة كلّها تذهب إلى أطول سطر في القائمة،
+        والتفريع يبقى مقروءًا لأن الصفّ الفرعي بلا أيقونة أصلًا — فبدايته
+        متأخّرة عن بداية الصفّ الرئيسي بعرض الأيقونة وفجوتها (28px) قبل أي
+        إزاحة تُضاف.
+
+     ⚠️ ولا يتبع ذلك تعديلٌ في اثنتين وخمسين صفحة ولا في الشريط العلوي:
+        `.content-body` تُزاح من هذه القيمة نفسها في ورقة الشريط، وعرض قفل
+        العلامة في `header.component.scss` مشتقٌّ منها بالطرح. فهي المصدر
+        الوحيد، والثلاثة تتبعها معًا. */
+  --ap-sidebar-width:           17rem;
+  /* 96px، والرقم مقيس على **أطول كلمة** لا على مربّع الأيقونة:
+     المربّع 40px، لكن الوضع المطوي أيقونة **فوق كلمة**، والكلمة هي ما يحدّ
+     العرض. وعند 5rem كان يبقى للنصّ 64px بعد حشوتَي الـ<li> والصفّ، و«المستخدمون»
+     تتجاوزها — فينكسر الحرف الأخير إلى سطر وحده («المستخدمو» ثمّ «ن»)، وهو
+     قطعٌ **داخل الكلمة** يكسر وصل الحرف العربي لا التفافٌ بين كلمتين.
+
+     و96px تفتح 80px للنصّ، فتقع الكلمة في سطر واحد.
+
+     ⚠️ ولا يتبع ذلك تعديلٌ في اثنتين وخمسين صفحة: `.content-body` تُزاح من
+        قاعدة `#main-wrapper` في ورقة الشريط الجانبي — وهي (1,0,1) تهزم
+        `.menu-toggle .content-body { margin-right: 5rem }` في الورقة المشتراة
+        (0,2,0) بلا `!important`. فالقيمة هنا هي المصدر الوحيد، وتقرأها معها
+        القائمة المتفرّعة التي تقف على حافّة الرصيف. */
+  --ap-sidebar-width-collapsed: 6rem;
+
+  /* ── الوضعان ────────────────────────────────────────────────────────
+     الشريط يُطوى ويُبسط من جديد، وعرضاه هما **قيمتا الورقة المشتراة نفسها**
+     (17.5rem و 5rem) لا قيمتان موازيتان — وتلك هي ما يزيح محتوى اثنتين
+     وخمسين صفحة عبر `.content-body`. فالإزاحة تُشتقّ من العرض مباشرةً، ولا
+     فجوة تُضاف: الشريط ملاصق للحافّة، لا يطفو.
+
+     وأبناء المجموعة في الوضع المطوي في **قائمة عائمة** بجانب الرصيف: هناك لا
+     مكان لهم في 80px. وفي الوضع المبسوط تنفتح المجموعة أكورديون داخل الشريط
+     نفسه.
+
+     ⚠️ ولا كتلة `--ap-sidebar-panel-*` بعد: كانت لعمودٍ مرسّى بعرض 240px يزيح
+        بطاقة المحتوى، وقد صار الشيء نفسه بطاقةً عائمة تقرأ
+        `--ap-sidebar-flyout-*` أدناه — والقيمتان لشيء واحد لا تبقيان. */
+
+  /*
+    ⚠️ خطّ فاصل لا ظلّ — للسبب نفسه المكتوب عند `--ap-app-header-border-color`
+       بالضبط: الشريط الجانبي أبيض، والكانفاس بجانبه `#f8fafc` لا يفصل إلا
+       بـ1.03:1. والظلّ الذي كان مكتوبًا (`0 15px 30px rgba(0,0,0,.02)`) رأسيّ
+       الاتجاه أصلًا فلا يرسم شيئًا على الحافّة الجانبية — كان يبدو حدًّا
+       وليس حدًّا.
+  */
+  --ap-sidebar-border-color:    transparent;
+  --ap-sidebar-border-width:    0;
+
+  /* الشريط الجانبي يبدأ تحت الشريط العلوي مباشرةً على الشاشة الواسعة، فالإزاحة
+     **هي** ارتفاع الشريط لا رقمًا يوازيه. وكانت `4.5rem` = 72px مكتوبة
+     يدويًا في القالب — تصادف أنها القيمة نفسها اليوم، وتنفكّ عنها في أوّل
+     تغيير لارتفاع الشريط. */
+  /* من أعلى الشاشة لا من تحت الشريط العلوي: رأس الشريط يحمل الشعار وزرّ
+     الطيّ الآن، فهو عمود كامل من القمّة — والشريط العلوي هو الذي يبدأ
+     محتواه بعد عرضه. */
+  --ap-sidebar-top:             0;
+  --ap-sidebar-z-index:         var(--ap-z-sidebar);
+  --ap-sidebar-transition:      var(--ap-duration-fast) var(--ap-ease-standard);
+
+  /* ── الصفّ ────────────────────────────────────────────────────────── */
+  /*
+    الصفّ كلّه أبيض على سطح ملوّن — قلبٌ كامل لما كان (رمادي على أبيض).
+
+    ⚠️ والأيقونة تأخذ اللون نفسه لا درجةً أخفت: على سطح فاتح كان الرمادي
+       الأخفّ يفرّق الأيقونة عن النصّ بلا أن يسقطها، وعلى هذا التدرّج كل
+       تخفيف يقترب من 3:1 المطلوبة لعنصر غير نصّي (WCAG 1.4.11) في طرفه
+       السفلي. فالتمييز ينتقل إلى الحجم والموضع لا إلى الشدّة.
+  */
+  --ap-sidebar-item-fg:         var(--ap-color-text-primary);
+  /* الأيقونة بلون النصّ نفسه — أسود، لا بنفسجي.
+
+     ⚠️ والبنفسجي هنا كان يزاحم معناه في النظام: هو لون **الفعل**، وصفٌّ في
+        الشريط ليس فعلًا بل وجهة. وثلاثون أيقونة بنفسجية في عمود واحد تجعل
+        الشريط كلّه يبدو محدَّدًا، فيسقط تمييز الصفّ المحدَّد فعلًا.
+
+     ⚠️ ويبقى المحدَّد مميَّزًا بثلاثة: الحبّة (`bg-selected`) واللون والوزن —
+        وأيقونته وحدها ترث لون الصفّ (`currentColor` في الورقة) كي لا يُقرأ
+        الصفّ المحدَّد لونين. */
+  --ap-sidebar-item-icon:       var(--ap-color-text-primary);
+  --ap-sidebar-item-fg-hover:   var(--ap-color-text-primary);
+  /* المرور هو ‎--ap-color-bg-hover‎ نفسه الذي يقرؤه صفّ الجدول وخيار القائمة
+     وخلايا الترقيم — أي تعبئة المرور في اللوحة كلّها قيمة واحدة.
+
+     ⚠️ وكان بنفسجيًّا بـ5% (‎bg-selected-subtle‎) ليصير سُلّمًا مع الحبّة
+        المحدَّدة، فكان يقيس ‎1.001:1‎ مقابلها — أي اللون نفسه: صفٌّ يُمرّ عليه
+        يبدو محدَّدًا، والمحدَّد لا تضيف حبّته شيئًا. */
+  --ap-sidebar-item-bg-hover:   var(--ap-color-bg-hover);
+  /* الدرجة الأعمق لا ‎bg-selected‎: صفّ الشريط هو **الصفحة المفتوحة** لا
+     اختيارًا مؤقّتًا يتبع المؤشّر، وهو يقف بجانب هافر رماديّ أغمق من
+     ‎purple-50‎ — انظر ‎--ap-color-bg-selected-bold‎ للأرقام. */
+  --ap-sidebar-item-bg-active:  var(--ap-color-bg-selected-bold);
+  --ap-sidebar-item-fg-active:  var(--ap-color-action-primary);
+  /* المسافة بين الأيقونة والكلمة في الوضع المبسوط.
+
+     ⚠️ كانت `tw-gap-4` (16px) **منسوخة في القالب خمس عشرة مرّة** — أي أن
+        تغييرها كان خمسة عشر تعديلًا، وأوّل واحد يُنسى يترك صفًّا بمسافة أخرى.
+        وهي الآن قيمة واحدة تُقرأ من `.dn-item`. */
+  --ap-sidebar-item-gap:        var(--ap-space-2);
+  --ap-sidebar-item-radius:     var(--ap-radius-md);
+  /* إزاحة الصفّ الفرعي = المسافة التي تفصل نصّ الصفّ الرئيسي عن حافّة
+     رابطه: حشوة الصفّ (12px) + مربّع الأيقونة (24px) + الفجوة (8px). فنصّ
+     الابن يقع تحت نصّ أبيه بالضبط، لا قبله ولا بعده.
+
+     ⚠️ وهي بديل حشوةٍ لم يكتبها أحد: الـ<ul> الفرعي كان بلا `tw-p-0`، فأخذ
+        حشوة المتصفّح الافتراضية (40px) — رقمٌ لا يملكه النظام يقتطع من كل
+        صفّ فرعي، وهو ما كان يقصّ «الشريط الترويجي» بجانب شارته. */
+  --ap-sidebar-sublink-indent:  44px;
+  /* المسافة بين الصفوف الرئيسية. الصفّ نفسه بارتفاع 44px بحشوته، فالفجوة
+     تفصل الأهداف ولا تصنعها — و‎tw-py-1‎ (4px) كانت تجعل الصفوف تُقرأ كتلةً
+     واحدة تُمسح بالعين بدل قائمةٍ تُقرأ سطرًا سطرًا.
+
+     ⚠️ وهي على الـ<li> لا على الرابط: زيادتها على الرابط تكبّر مساحة النقر
+        حتى تتلامس الأهداف، وهذه فراغٌ بينها. */
+  --ap-sidebar-item-spacing:    var(--ap-space-2);
+
+  /* المحدَّد يزيد وزنًا مع لونه: لونٌ وحده يسقط عمّن لا يفرّق بين تعبئتين —
+     القاعدة نفسها في `option-selected` وفي `<ap-tab-nav>`. */
+  --ap-sidebar-item-weight-active: var(--ap-font-weight-medium);
+  /* 20px: الأيقونة هنا وحدها هي العنصر في الوضع المطوي، فتأخذ الدرجة
+     الكبرى من سلّم الأيقونات لا درجة الأيقونة المجاورة لكلمة. */
+  --ap-sidebar-icon-size:       var(--ap-icon-lg);
+
+  /* ── صندوق الأيقونة (الوضع المطوي وحده) ──────────────────────────────
+     في الرصيف تصير الأيقونة داخل مربّع مستدير له حدّ، والكلمة تحته. وهو ما
+     يعطي الصفّ حدًّا مرئيًّا يقول أين يبدأ الهدف: على سطح شفّاف بلا حبّة
+     ممتلئة، لا شيء آخر يرسم ذلك الحدّ.
+
+     والمحدَّد يلوّن **الصندوق** لا الصفّ: الصفّ في هذا الوضع عمودٌ من سطرين،
+     وحبّةٌ تغلّفهما تصير كتلةً بارتفاع ضعف جارتها. */
+  --ap-sidebar-icon-box-size:      var(--ap-control-height-md);
+  --ap-sidebar-icon-box-radius:    var(--ap-radius-md);
+  /* ⚠️ شفّاف كالحدّ: كان `bg-surface` (أبيض)، وأبيضُ على كانفاس `#F6F8FA`
+     مربّعٌ مرئيّ وإن لم يكن له حدّ — فيبقى الصفّ يُقرأ صندوقًا بعد حذف الخطّ.
+     فلا صندوق أصلًا في الحالة الساكنة: التعبئة للمحدَّد وللمرور وحدهما،
+     وهما ما ينبغي أن يُرى. */
+  --ap-sidebar-icon-box-bg:        transparent;
+  /* ⚠️ شفّاف: لا حدّ على الأيقونات غير المحدَّدة. كان `border-subtle` يرسم
+     إطارًا حول كل أيقونة في الرصيف، فيُقرأ العمود صفًّا من الصناديق لا صفًّا
+     من الوجهات — والمحدَّد وحده هو ما يحتاج شكلًا يميّزه، وهو يأخذ تعبئته.
+
+     والقيمة تبقى مكتوبة لا محذوفة: `border-width` مكتوب في الورقة، فحذفها
+     يترك `border-color` غير معرَّف. */
+  --ap-sidebar-icon-box-border:    transparent;
+  --ap-sidebar-icon-box-bg-active: var(--ap-color-bg-selected-bold);
+
+  /* ── الوضع المطوي: أيقونة فوق كلمة ───────────────────────────────────
+     الليبل يبقى مكتوبًا في الطيّ ويتغيّر موضعه لا وجوده — فالرصيف ثابت عند
+     5rem (لأن panel-style.css يزيح محتوى 52 صفحة بالقيمة نفسها)
+     والكلمة هي ما يُقاس عليه: 10px بسطرين، وحشوة صفّ ضيّقة تفتح 72px
+     للنصّ داخل الثمانين. */
+  /* إزاحة بداية المحتوى في الشريط الجانبي: حشوة الـ li (16px) + حشوة الصفّ
+     (12px) = 28px، وهي أين تبدأ أيقونةُ كل عنصر. والشعار فوقها يقرأ منها كي
+     يقف على الخطّ نفسه — رقمٌ مكتوب بيده يفترق عنها أوّل تغيير في الحشوة. */
+  --ap-sidebar-content-inset: calc(var(--ap-space-4) + var(--ap-space-3));
+
+  --ap-sidebar-collapsed-label-size: var(--ap-font-size-2xs);
+  --ap-sidebar-collapsed-gap:        var(--ap-space-1);
+  --ap-sidebar-collapsed-padding-y:  var(--ap-space-2);
+  --ap-sidebar-collapsed-padding-x:  var(--ap-space-1);
+  /* علامة القائمة الفرعية في الطيّ: مثلّث في الزاوية، حجمه ونتوءه. */
+  --ap-sidebar-submenu-mark-size:  var(--ap-space-1);
+  --ap-sidebar-submenu-mark-inset: var(--ap-space-1);
+
+  /* ── طبقات الأبيض الشفّاف فوق التدرّج ────────────────────────────────
+     `color-mix` لا `rgba`: القيمة الحرفية قيمةٌ خام يرصدها
+     `audit:tokens:check`، وهذه مشتقّة من `--ap-color-text-inverse` نفسه —
+     أي أن اللون يُكتب مرّة واحدة في النظام وتُشتقّ منه كل شدّة.
+
+     وست درجات لا واحدة لأن لكلٍّ عملًا: المرور، والتحديد، وحدّ البطاقة،
+     وتعبئتها عند المرور، ومقبض شريط التمرير، ونصّ الوصف. */
+  --ap-sidebar-overlay-12: color-mix(in srgb, var(--ap-color-text-inverse) 12%, transparent);
+  --ap-sidebar-overlay-16: color-mix(in srgb, var(--ap-color-text-inverse) 16%, transparent);
+  --ap-sidebar-overlay-20: color-mix(in srgb, var(--ap-color-text-inverse) 20%, transparent);
+  --ap-sidebar-overlay-24: color-mix(in srgb, var(--ap-color-text-inverse) 24%, transparent);
+  --ap-sidebar-overlay-32: color-mix(in srgb, var(--ap-color-text-inverse) 32%, transparent);
+  --ap-sidebar-overlay-72: color-mix(in srgb, var(--ap-color-text-inverse) 72%, transparent);
+
+  /* ── التلميح في الوضع المطوي ──────────────────────────────────────
+     لوحة معكوسة صغيرة: هي كل ما يسمّي الأيقونة حين يسقط النصّ. */
+  --ap-sidebar-tooltip-bg:      var(--ap-color-bg-inverse);
+  --ap-sidebar-tooltip-fg:      var(--ap-color-text-inverse);
+  --ap-sidebar-tooltip-radius:  var(--ap-radius-sm);
+  --ap-sidebar-tooltip-size:    var(--ap-font-size-xs);
+  --ap-sidebar-tooltip-padding: var(--ap-space-1) var(--ap-space-2);
+  /* الفجوة عن حافّة الشريط — القيمة نفسها التي تفصل لوحة `<ap-menu>` عن
+     زنّادها، فالطبقتان العائمتان لا تفترقان في بُعدهما عمّا فتحهما. */
+  --ap-sidebar-flyout-gap:      var(--ap-select-menu-gap);
+
+  /* ── القائمة الطائرة في الوضع المطوي ──────────────────────────────
+     بطاقة عائمة، فتأخذ شكل اللوحة المنسدلة نفسه لا شكلًا ثالثًا. */
+  --ap-sidebar-flyout-bg:       var(--ap-select-menu-bg);
+  --ap-sidebar-flyout-radius:   var(--ap-select-menu-radius);
+  --ap-sidebar-flyout-shadow:   var(--ap-select-menu-shadow);
+  --ap-sidebar-flyout-min-width: 14rem;
+  --ap-sidebar-flyout-padding:  var(--ap-space-2);
+  /* رأس القائمة الطائرة يسمّي المجموعة التي فُتحت منها — وهو عنوان مجموعة
+     داخل لوحة عائمة، أي الحالة نفسها التي يخدمها `[apMenuGroupLabel]`. */
+  --ap-sidebar-flyout-header-fg:     var(--ap-select-group-label-fg);
+  --ap-sidebar-flyout-header-size:   var(--ap-select-group-label-size);
+  --ap-sidebar-flyout-header-weight: var(--ap-select-group-label-weight);
+
+
+  /* ══════════════════════════════════════════════════════════════════════
+     TAB NAV (<ap-tab-nav>)                                          [D-03]
+     ----------------------------------------------------------------------
+     شريط تنقّل بين مسارات، لا ودجة تبويب. المظهران:
+
+       pill       الشكل القائم في اللوحة اليوم — بنفسجي ممتلئ للنشط.
+       underline  شريط على حافّة النشط — الاصطلاح الأفقي الشائع.
+
+     ⚠️ وزن النشط **يتغيّر** — 700 مقابل 500 — بقرار صريح، وثمنه معروف:
+        النصّ العريض أعرض، فتزحف الروابط التالية للنشط بضعة بكسلات عند كل
+        تنقّل. قُبل الثمن لأن الوزن يُقرأ قبل اللون وقبل الشريط، ولأن
+        الزحف يقع مرّةً عند التنقّل لا تحت المؤشّر. ولا يُلغى الشريط ولا
+        اللون بسببه: الوزن وحده تمييز ضعيف (WCAG 1.4.1).
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-tab-nav-gap:                var(--ap-space-1);
+  --ap-tab-nav-track-color:        var(--ap-color-border-subtle);
+  --ap-tab-nav-track-size:         var(--ap-border-width-thin);
+  /* مدّة ومنحنى منفصلان لا اختصار واحد: مُصيّر التوثيق يستنتج نوع الـ token
+     من اسمه، و«transition» ليس نوعًا — فيسقط في «غير مصنَّف». والاسمان هنا
+     يُقرآن مدّةً ومنحنى.  */
+  --ap-tab-nav-duration:           var(--ap-duration-fast);
+  --ap-tab-nav-ease:               var(--ap-ease-standard);
+
+  --ap-tab-nav-link-padding-y:     var(--ap-space-2);
+  --ap-tab-nav-link-padding-x:     var(--ap-space-4);
+  --ap-tab-nav-link-gap:           var(--ap-space-2);
+  --ap-tab-nav-link-radius:        var(--ap-radius-md);
+  --ap-tab-nav-link-font-size:     var(--ap-font-size-md);
+  --ap-tab-nav-link-font-weight:   var(--ap-font-weight-medium);
+  /* وزن النشط. انظر التحذير أعلاه: الاختيار مقصود وثمنه محسوب. */
+  --ap-tab-nav-link-font-weight-active: var(--ap-font-weight-bold);
+  /* 44px — WCAG 2.5.5 (AAA) وهدف اللمس نفسه المعتمد في الحقل والزرّ. */
+  --ap-tab-nav-link-min-height:    var(--ap-size-touch-min);
+  --ap-tab-nav-link-fg:            var(--ap-color-text-secondary);  /* 7.50:1 */
+  /* المرور **بلا خلفية** — لونًا فقط.
+
+     ⛔ لا `--ap-tab-nav-link-bg-hover`: الخلفية الملوّنة تحت المؤشّر تجعل
+        كل تبويب يبدو نشطًا للحظة، والنشط الحقيقي يفقد تمييزه — والمشكلة
+        تكبر في المظهر الممتلئ حيث «خلفية ملوّنة» هي بعينها علامة النشاط.
+        فبقي المرور تلميحًا لونيًا وحده إلى ما سيصير نشطًا. */
+  --ap-tab-nav-link-fg-hover:      var(--ap-color-text-brand);        /* 8.03:1 */
+  --ap-tab-nav-link-fg-disabled:   var(--ap-color-text-disabled);
+  --ap-tab-nav-link-icon-size:     var(--ap-icon-md);
+  /* البنفسجي نفسه الذي تفرضه `foundations/_focus.css` بـ !important —
+     متطابقان عمدًا: مصفوفة التوثيق تفرض الحالة بالسمة لا بتركيز حقيقي،
+     فلو اختلف اللونان لعرضت المصفوفة حلقةً لا تُرى في التطبيق.
+     ولا حلقة معكوسة للرابط النشط: الإزاحة موجبة فتقع الحلقة **خارج**
+     الحبّة على سطح الصفحة، لا فوق بنفسجيها. */
+  --ap-tab-nav-focus-ring-color:   var(--ap-color-focus-ring);
+
+  /* المظهر الممتلئ. أبيض على purple-700 = 8.03:1 — والافتراضي في bootstrap
+     كان أبيض على ‎#eb8153‎ = 2.69:1، وهو ما يظهر اليوم في كل شريط لا يحمل
+     الكلاس المحلّي `student-tab-links`. */
+  --ap-tab-nav-pill-bg-active:     var(--ap-color-action-primary);
+  --ap-tab-nav-pill-fg-active:     var(--ap-color-action-on-primary);
+
+  /* مظهر الشريط السفلي: النصّ **أسود** لا بلون العلامة.
+
+     اللون هنا مقسوم بين عنصرين لا مجموع في واحد: الشريط يحمل لون العلامة،
+     والنصّ يأخذ أعلى تباين في النظام (17.85:1 مقابل 8.03:1). فيُقرأ النشط
+     من مسافة أبعد، ويبقى الشريط وحده حامل الهوية — وهو ما يميّزه عن
+     المظهر الممتلئ حيث اللون والخلفية شيء واحد. */
+  --ap-tab-nav-underline-fg-active: var(--ap-color-text-primary);    /* 17.85:1 */
+  --ap-tab-nav-underline-color:     var(--ap-color-border-brand);
+  --ap-tab-nav-underline-size:      var(--ap-border-width-thick);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     BREADCRUMBS (<ap-breadcrumbs>)
+     ----------------------------------------------------------------------
+     مسار التنقّل: أين المستخدم في شجرة الموقع، وكيف يصعد منها درجة.
+
+     المسافات مقيسة من المرجع البصري ومردودة إلى السلّم: فجوة 8px حول
+     الشيفرون = space-2، وارتفاع السطر 32px = space-8، والشيفرون 14px =
+     icon-sm. لا قيمة خارج السلّم.
+
+     ⚠️ الحالي يختلف بفارقين لا بواحد: أدكن **وأثقل**. اللون وحده يسقط لمن
+        لا يميّزه (WCAG 1.4.1)، والوزن يسنده. ولا قفزة تخطيط هنا لأن الحالي
+        لا يتبدّل داخل الصفحة — بخلاف شريط التبويب.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-breadcrumbs-gap:              var(--ap-space-2);        /* 8px */
+  --ap-breadcrumbs-min-height:       var(--ap-space-8);        /* 32px */
+  --ap-breadcrumbs-font-size:        var(--ap-font-size-md);   /* 14px */
+  --ap-breadcrumbs-duration:         var(--ap-duration-fast);
+  --ap-breadcrumbs-ease:             var(--ap-ease-standard);
+
+  --ap-breadcrumbs-link-fg:          var(--ap-color-text-secondary);  /* 7.50:1 */
+  --ap-breadcrumbs-link-fg-hover:    var(--ap-color-text-primary);
+  --ap-breadcrumbs-link-weight:      var(--ap-font-weight-regular);
+  --ap-breadcrumbs-link-radius:      var(--ap-radius-sm);
+  --ap-breadcrumbs-focus-ring-color: var(--ap-color-focus-ring);
+
+  --ap-breadcrumbs-current-fg:       var(--ap-color-text-primary);    /* 17.85:1 */
+  --ap-breadcrumbs-current-weight:   var(--ap-font-weight-semibold);
+
+  /* الفاصل مخفيّ عن قارئ الشاشة، فهو عنصر واجهة غير نصّي: المطلوب 3:1
+     (WCAG 1.4.11) وslate-500 يعطي 4.76:1. */
+  --ap-breadcrumbs-separator-fg:     var(--ap-color-text-tertiary);
+  --ap-breadcrumbs-separator-size:   var(--ap-icon-sm);        /* 14px */
+
+  /* ══════════════════════════════════════════════════════════════════════
+     PAGINATION (<ap-pagination>)
+     ----------------------------------------------------------------------
+     شريط الترقيم: ثلاثة أجوبة في سطر — أين أنا من المجموعة كلها (مدى لا
+     رقم صفحة)، وكيف أنتقل، وكم أرى في الصفحة.
+
+     ─── المسافات ───────────────────────────────────────────────────────
+     مقيسة من المرجع البصري ومردودة إلى السلّم:
+       خليّة 32px  = control-height-sm   ← وهي عين ارتفاع size="sm" في
+                                           القائمة، فيستويان على سطر واحد
+                                           بلا ارتفاع مفصَّل لهذا الشريط.
+       فجوة 4px   = space-1              بين الخلايا.
+       فجوة 12px  = space-3              بين مجموعة التنقّل وقائمة الحجم:
+                                           هي نوع آخر من التحكّم — تغيّر
+                                           **ما أرى** لا **أين أنا**.
+
+     ⚠️ الخليّة مربّعة: min-width = الارتفاع. ورقم من خانتين أعرض من رقم من
+        خانة، فبلا تربيع يتغيّر عرض الصفّ عند كل انتقال ويزحف زرّ «التالي»
+        من تحت المؤشّر.
+
+     ⚠️ والحالي ممتلئ بالبنفسجي كما في <ap-tab-nav> بمظهر الحبّة: هذه لغة
+        النظام لـ«أنت هنا» في التنقّل، ولا تُقرأ حالةً كما تُقرأ في الشارة —
+        لأن الخليّة زرّ فعلًا. و8.03:1 مع الأبيض.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-pagination-gap:              var(--ap-space-1);           /* 4px */
+  --ap-pagination-group-gap:        var(--ap-space-3);           /* 12px */
+  --ap-pagination-row-gap:          var(--ap-space-3);
+  --ap-pagination-duration:         var(--ap-duration-fast);
+  --ap-pagination-ease:             var(--ap-ease-standard);
+
+  --ap-pagination-cell-size:        var(--ap-control-height-sm); /* 32px */
+  --ap-pagination-cell-radius:      var(--ap-radius-sm);
+  --ap-pagination-cell-font-size:   var(--ap-font-size-md);      /* 14px */
+  --ap-pagination-cell-weight:      var(--ap-font-weight-medium);
+  --ap-pagination-cell-fg:          var(--ap-color-text-secondary);  /* 7.50:1 */
+  --ap-pagination-cell-bg:          transparent;
+
+  --ap-pagination-cell-fg-hover:    var(--ap-color-text-primary);
+  --ap-pagination-cell-bg-hover:    var(--ap-color-bg-hover);
+  --ap-pagination-cell-bg-active:   var(--ap-color-bg-muted);
+
+  /* المعطَّل هنا aria-disabled لا disabled — انظر تعليق الورقة. */
+  --ap-pagination-cell-fg-disabled: var(--ap-color-text-disabled);
+
+  --ap-pagination-current-bg:       var(--ap-color-action-primary);
+  --ap-pagination-current-fg:       var(--ap-color-action-on-primary);
+  --ap-pagination-current-weight:   var(--ap-font-weight-semibold);
+
+  --ap-pagination-icon-size:        var(--ap-icon-md);           /* 16px */
+
+  /* الحذف علامة لا زرّ: مخفيّ عن قارئ الشاشة، فيكفيه 3:1 (WCAG 1.4.11)
+     وslate-500 يعطي 4.76:1. */
+  --ap-pagination-ellipsis-fg:      var(--ap-color-text-tertiary);
+
+  --ap-pagination-summary-fg:       var(--ap-color-text-secondary);  /* 7.50:1 */
+  --ap-pagination-summary-size:     var(--ap-font-size-md);      /* 14px */
+
+  --ap-pagination-focus-ring-color: var(--ap-color-focus-ring);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     SEARCH FIELD (<ap-search-field>)
+     ----------------------------------------------------------------------
+     حقل بحث بإكمال تلقائي. صندوقه **هو صندوق الحقل النصّي نفسه**، وهذا
+     مقصود: القيم كلها هنا أسماء مستعارة لـ --ap-input-*، فأي تعديل على
+     الحقل النصّي يصل إلى البحث بلا تعديل ثانٍ. ولو نُسخت القيم لتباعد
+     الاثنان عند أوّل إصلاح — وهو ما أنتج في هذا المشروع خمسة أنظمة أزرار.
+
+     ولوحة النتائج تستهلك --ap-select-menu-* و--ap-select-option-* نفسها،
+     عبر الجزء المشترك ui/select/_menu.scss.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-search-height:        var(--ap-input-height-md);
+  --ap-search-bg:            var(--ap-input-bg);
+  --ap-search-bg-hover:      var(--ap-input-bg-hover);
+  --ap-search-bg-focus:      var(--ap-input-bg-focus);
+  --ap-search-border:        var(--ap-input-border);
+  --ap-search-border-hover:  var(--ap-input-border-hover);
+  --ap-search-border-focus:  var(--ap-input-border-focus);
+  --ap-search-border-width:  var(--ap-input-border-width);
+  --ap-search-radius:        var(--ap-input-radius);
+  --ap-search-fg:            var(--ap-input-fg);
+  --ap-search-placeholder:   var(--ap-input-placeholder);
+  --ap-search-font-size:     var(--ap-input-font-size);
+  --ap-search-padding-x:     var(--ap-input-padding-x);
+  --ap-search-gap:           var(--ap-space-2);
+  --ap-search-focus-ring:    var(--ap-input-focus-ring);
+
+  /* الأيقونة زينة فوق النصّ (placeholder يقول «ابحث»)، فلا يلزمها 4.5:1. */
+  --ap-search-icon-size:     var(--ap-icon-md);
+  --ap-search-icon-fg:       var(--ap-color-text-tertiary);   /* 4.76:1 */
+
+  /* زرّ المسح: هدف لمس كامل داخل الحدّ، لا أيقونة عارية. */
+  --ap-search-clear-size:      var(--ap-control-height-sm);
+  --ap-search-clear-radius:    var(--ap-radius-full);
+  --ap-search-clear-fg:        var(--ap-color-text-tertiary);
+  --ap-search-clear-fg-hover:  var(--ap-color-text-primary);
+  --ap-search-clear-bg-hover:  var(--ap-color-bg-hover);
+
+  /* تمييز المطابقة داخل الاقتراح — خلفية لا وزن: الوزن يغيّر عرض النصّ
+     فيرقص السطر مع كل حرف يُكتب. */
+  --ap-search-match-bg:      var(--ap-color-action-primary-subtle);
+  --ap-search-match-fg:      var(--ap-color-text-brand);
+  --ap-search-hint-fg:       var(--ap-color-text-tertiary);
+  --ap-search-hint-size:     var(--ap-font-size-xs);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     BADGE
+     ----------------------------------------------------------------------
+     مؤشّر حالة ساكن: كبسولة بيضاء بحدّ رمادي رفيع ونصّ داكن — والخمس
+     متطابقة في ذلك. واللون في النقطة وحدها: قلبٌ معتِم وهالةٌ أوسع منه
+     بتدرّج فاتح. خمس حالات × حجمان، ولا شيء غيرهما.
+
+     ⚠️ وهي **ليست** زرًّا ولا رقاقة: لا مرور ولا نقر ولا حالة مضغوطة.
+        ما يُفعَّل بالنقر عنصرٌ آخر يدخل ترتيب التنقّل ويُعلن دوره.
+
+     ⚠️ ونصّ الشارة واحد لا خمسة: `--ap-color-text-primary` على سطح أبيض،
+        وهو مقيس ويمرّ AA في الحالات كلّها بحكم أنه زوج واحد لا خمسة.
+     ══════════════════════════════════════════════════════════════════════ */
+  /* ── البنية ────────────────────────────────────────────────────────── */
+  /*
+     حجمان فقط، ولا ثالث:
+
+       sm  داخل الجداول والقوائم والمساحات الضيّقة — أضغط ما يبقى مقروءًا.
+       md  في التفاصيل والبطاقات، حيث الحالة معلومة تُقرأ لا عمود يُمسح.
+
+     ⚠️ ولا `lg`: الشارة مؤشّر حالة لا عنوان. وحجم ثالث يجعل السؤال «أيّها
+        هنا؟» بلا جواب، وينتهي بثلاثة أحجام في شاشة واحدة.
+  */
+  --ap-badge-padding-y-sm: var(--ap-space-1);
+  --ap-badge-padding-y-md: var(--ap-space-1-5);
+  --ap-badge-padding-x-sm: var(--ap-space-3);
+  --ap-badge-padding-x-md: var(--ap-space-4);
+  --ap-badge-font-size-sm: var(--ap-font-size-2xs);
+  --ap-badge-font-size-md: var(--ap-font-size-xs);
+  /* متوسّط لا عريض: الشارة صغيرة، والوزن الثقيل عليها يجعلها تصرخ فوق نصّ
+     الصفّ الذي تصفه. والوزن من السلّم المحمَّل (400/500/600/700) لا غيره. */
+  --ap-badge-font-weight:  var(--ap-font-weight-medium);
+  --ap-badge-gap-sm:       var(--ap-space-1-5);
+  --ap-badge-gap-md:       var(--ap-space-2);
+  /* حدّ رفيع جدًّا: الكبسولة بيضاء كسطح الجدول، فالحدّ وحده هو ما يرسمها.
+     ولولاه لصارت النقطة والنصّ عائمين في الخليّة بلا شكل يجمعهما. */
+  --ap-badge-border-width: var(--ap-border-width-thin);
+  /* زوايا مستديرة لا كبسولة كاملة: 8px من سلّم نصف القطر.
+     والاستدارة الكاملة كانت تجعل الطرفين نصف دائرة، فتُقرأ الشارة قرصًا
+     ممدودًا لا بطاقة صغيرة — والفرق يظهر في الحجم المتوسّط خاصّة.
+
+     ⚠️ قيمة واحدة للحجمين: نصف قطر يتبع الارتفاع يجعل الصغيرة والمتوسّطة
+        شكلين مختلفين لا مقاسين لشكل واحد. */
+  --ap-badge-radius:       var(--ap-radius-md);
+
+  /* ── النقطة ────────────────────────────────────────────────────────── */
+  /*
+     نقطتان متراكزتان: قلبٌ معتِم بلون الحالة، وهالةٌ أوسع منه بتدرّج فاتح
+     من اللون نفسه — الشكل الذي يُقرأ «نبضة» ولو لم ينبض.
+
+     ⚠️ الهالة `box-shadow` بانتشار لا عنصر ثانٍ: الظلّ لا يدخل التخطيط،
+        فلا يزيح النصّ ولا يغيّر ارتفاع الكبسولة مهما كبر — وعنصرٌ ثانٍ كان
+        سيحتاج تموضعًا مطلقًا داخل عنصر بحجم 4px.
+
+     ⚠️ ولونها `-border` (درجة 200) لا لون شفّاف محسوب: التدرّج الفاتح
+        موجود في طبقة الدلالة أصلًا، وهو على الأبيض يعطي أثر «الخلفية
+        الشفّافة» نفسه بلا `color-mix` ولا قناة ألفا خام.
+
+     ⚠️ والقلب `-text` (درجة 800/900) لا اللون الأساسي: الأساسي يعطي على
+        الأبيض تباينًا بين 4.5:1 و5.4:1 في أربع حالات و**2.15:1** في
+        التحذير وحده (amber-500)، فتبدو نقطته مغسولة بجانب أخواتها.
+  */
+  --ap-badge-dot-size-sm:  var(--ap-space-1);
+  --ap-badge-dot-size-md:  var(--ap-space-1-5);
+  --ap-badge-dot-halo:     var(--ap-space-0-5);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     الكبسولة محايدة، واللون في النقطة وحدها.
+
+     خمس خلفيات ملوّنة في عمود واحد تجعله جدارًا من اللون يغلب ما حوله من
+     بيانات — والحالة تُقرأ من نصّها لا من لون خلفيتها. فالكبسولة سطحٌ أبيض
+     بحدّ رمادي واحد ونصّ داكن في الحالات الخمس، والنقطة وحدها تحمل اللون.
+
+     ⚠️ ولذلك ثلاث قيم مشتركة لا خمس نسخ منها: قيمة واحدة تُكتب مرّة، فلا
+        تتباعد نسخة عن أخرى عند أوّل تعديل.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-badge-bg:     var(--ap-color-bg-surface);
+  --ap-badge-fg:     var(--ap-color-text-primary);
+  --ap-badge-border: var(--ap-color-border-default);
+
+  /* ── نقاط الحالات الخمس — سطران لكل حالة ───────────────────────────── */
+  --ap-badge-default-dot:  var(--ap-color-text-secondary);
+  --ap-badge-default-halo: var(--ap-color-border-default);
+
+  --ap-badge-processing-dot:  var(--ap-color-info-text);
+  --ap-badge-processing-halo: var(--ap-color-info-border);
+
+  --ap-badge-success-dot:  var(--ap-color-success-text);
+  --ap-badge-success-halo: var(--ap-color-success-border);
+
+  --ap-badge-warning-dot:  var(--ap-color-warning-text);
+  --ap-badge-warning-halo: var(--ap-color-warning-border);
+
+  --ap-badge-error-dot:  var(--ap-color-error-text);
+  --ap-badge-error-halo: var(--ap-color-error-border);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     DIALOG / MODAL
+     ----------------------------------------------------------------------
+     الأبعاد كلها مقيسة من لقطة المرجع المعتمدة (وهي بمقياس ‎1.5×‎، فكل رقم
+     فيها مقسوم على ‎1.5‎ قبل تقريبه إلى أقرب درجة في السلّم):
+
+       المقاس            لقطة   ÷1.5   المعتمد
+       عرض البطاقة        722    481    480px
+       الحشوة من الجهات    30     20     20px  (space-5)
+       نصف القطر           24     16     16px  (radius-xl)
+       حجم العنوان         28     19     20px  (font-size-2xl)
+       فجوة رأس/جسم/ذيل    24     16     16px  (space-4)
+       أيقونة الإغلاق      24     16     20px  (icon-lg)
+
+     ⚠️ الحشوة 20px لا 24px كما كانت: القيمة السابقة لم تُقس من أي مرجع،
+        والمرجع يفرض 20 — وهي أيضًا ما يجعل لوحة الملخّص الداخلية (حشوتها
+        16px) تُقرأ متداخلة في البطاقة لا مطابقة لها.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-dialog-bg:       var(--ap-color-bg-surface);
+  --ap-dialog-radius:   var(--ap-radius-xl);
+  --ap-dialog-padding:  var(--ap-space-5);
+  /* المسافة بين مجموعتَي حقول متتاليتين داخل الجسم. */
+  --ap-dialog-gap:      var(--ap-space-4);
+  /* عنوان النافذة ← الجسم، والجسم ← الذيل. مفصولتان عن -gap عمدًا: الأولى
+     تفصل عنوانًا عن محتوى، والثانية محتوى عن فعل — ولو كانتا اسمًا واحدًا
+     لاستحال تغيير إحداهما بلا الأخرى. وهذا الفصل هو ما سمح بالقيمتين
+     المختلفتين أدناه بلا لمس أي قاعدة. */
+  --ap-dialog-header-gap: var(--ap-space-4);
+  /*
+    الذيل أبعد من فجوة الحقول — 32px لا 16px.
+
+    ⚠️ والفرق ليس ذوقًا: بـ 16px يصير بُعد الزرَّين عن آخر حقل **مساويًا**
+       لبُعد الحقول بعضها عن بعض، فيُقرأ الذيل حقلًا خامسًا في الإيقاع نفسه
+       لا منطقةَ فعلٍ منفصلة. والحدّ الفاصل بينهما لا يظهر إلّا حين يفيض
+       الجسم، فالنماذج القصيرة — وهي الأغلب — كانت بلا أي فاصل.
+
+    والزيادة في هذا الطرف وحده: الرأس عنوانٌ يعلو محتواه، والقرب بينهما
+    صحيح. أمّا الفعل غير القابل للتراجع فيُبعَد عمّا قبله.
+
+    ⚠️ وكانت 24px، ورُفعت درجةً إلى 32px: 24 هي الدرجة التالية مباشرةً بعد
+       فجوة الحقول 16px، فيبقى الفرق بين «فاصل بين حقلين» و«فاصل عن منطقة
+       الفعل» درجةً واحدة — يُدرَك بالقياس لا بالنظر، وهو ما يُفترض أن يفصله
+       عن إيقاع النموذج. و32px ضِعف فجوة الحقول تمامًا، فتُقرأ العلاقة نسبةً
+       لا فرقًا.
+
+    ⚠️ ولم تُرفع إلى 40px رغم أنها الدرجة التالية: حشوة البطاقة نفسها 20px،
+       ففجوةٌ داخلية تبلغ ضعف حشوتها الخارجية تجعل الذيل يبدو طافيًا منفصلًا
+       عن البطاقة لا منطقةً فيها. و32px تبقى تحت ذلك الحدّ.
+
+    ⚠️ والقيمة واحدة لكل `<ap-modal>` في اللوحة — نوافذ إضافة العميل والمدرب
+       والمدير والمشرف، ونافذة البريد، والتأكيدات. لا تُكتب فجوة ذيل في ورقة
+       نافذة بعينها: الفرق بين نافذة وأخرى يصير عندها عطلًا يُكتشف بالمصادفة. */
+  --ap-dialog-footer-gap: var(--ap-space-8);
+  /* بين زرَّين متجاورين في الذيل. */
+  --ap-dialog-action-gap: var(--ap-space-3);
+  --ap-dialog-shadow:   var(--ap-elevation-modal);
+  --ap-dialog-backdrop: var(--ap-color-bg-overlay);
+  /* الطمس على الخلفية لا زخرف: البطاقة تعلو صفحة مكتظّة بالجداول والرسوم،
+     والتعتيم وحده يُبقي تفاصيلها مقروءة خلفها فتنافس المحتوى على الانتباه. */
+  --ap-dialog-backdrop-blur: 2px;
+  /* أدنى فراغ بين البطاقة وحافّة الشاشة — يحكم العرض على الجوّال قبل
+     -width-*، فلا تلامس البطاقة الحافّة أبدًا. */
+  --ap-dialog-margin:   var(--ap-space-4);
+  /* 480px هو مقاس المرجع، وهو المقاس الشائع (نموذج داخل نافذة). sm أضيق
+     منه بدرجة واحدة للتأكيدات، وlg لما يحمل جدولًا أو عمودين. */
+  --ap-dialog-width-sm: 400px;
+  --ap-dialog-width-md: 480px;
+  --ap-dialog-width-lg: 720px;
+  --ap-dialog-title-size:   var(--ap-font-size-2xl);
+  --ap-dialog-title-weight: var(--ap-font-weight-semibold);
+  --ap-dialog-title-color:  var(--ap-color-text-primary);
+  --ap-dialog-desc-size:    var(--ap-font-size-md);
+  --ap-dialog-desc-color:   var(--ap-color-text-secondary);
+  /* ── زرّ الإغلاق ─────────────────────────────────────────────────────
+     الأيقونة 20px محاذية لحافّة الحشوة تمامًا كما في المرجع، والصندوق
+     32px حولها يخرج 6px في الحشوة — فيُستوفى هدف اللمس (WCAG 2.5.8)
+     بلا أن تنزاح الأيقونة عن محاذاتها. */
+  --ap-dialog-close-size:      var(--ap-control-height-sm);
+  --ap-dialog-close-icon:      var(--ap-icon-lg);
+  --ap-dialog-close-radius:    var(--ap-radius-md);
+  --ap-dialog-close-fg:        var(--ap-color-text-secondary);
+  --ap-dialog-close-fg-hover:  var(--ap-color-text-primary);
+  --ap-dialog-close-bg-hover:  var(--ap-color-bg-hover);
+  /* يظهر عند فيض الجسم وحده — انظر تعليق `data-overflow` في ورقة المكوّن. */
+  --ap-dialog-divider:  var(--ap-color-border-subtle);
+  --ap-dialog-transition: var(--ap-duration-normal) var(--ap-ease-standard);
+  /* مسافة الصعود عند الفتح. */
+  --ap-dialog-enter-offset: var(--ap-space-2);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     TOOLTIP — مطابق لمظهر tippy الحالي (المستنسخ في .dn-tooltip)
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-tooltip-bg:        var(--ap-color-bg-inverse);
+  --ap-tooltip-fg:        var(--ap-color-text-inverse);
+  --ap-tooltip-radius:    var(--ap-radius-sm);
+  --ap-tooltip-padding-y: var(--ap-space-1-5);
+  --ap-tooltip-padding-x: var(--ap-space-2);
+  --ap-tooltip-font-size: var(--ap-font-size-xs);
+  --ap-tooltip-max-width: 280px;
+
+  /* ══════════════════════════════════════════════════════════════════════
+     ILLUSTRATION — <ap-illustration>
+     ----------------------------------------------------------------------
+     اثنتا عشرة رسمة مسطّحة ثنائية اللون، كلّها من سلّم البنفسج — فلا إعادة
+     تلوين ولا ترخيص ولا حصّة تنزيل. اختيرت بعد مقارنة أربعة ستايلات، وما
+     حسمها التغطية لا الشكل: أكثر حالة فارغة تكرارًا في اللوحة «الباقة لا
+     تشمل الميزة» (تسع نسخ يدوية)، ولا رسمة لها في الحزم الجاهزة المجّانية.
+
+     ⚠️ **هذه هي المخالفة الوحيدة المقصودة لقاعدة الطبقات في هذا الملف** —
+        النغمات الثلاث الفاتحة تقرأ بدائيًّا مباشرة (`--ap-purple-100/200/300`)
+        ولا تمرّ بطبقة دلالية. والسبب أن الطبقة الدلالية تغطّي خمسة أدوار:
+        سطح، ونصّ، وحدّ، وفعل، وحالة — وتدرّجُ تعبئةٍ داخل رسمٍ ليس واحدًا
+        منها. واختراع اسم دلاليّ له (`--ap-color-bg-illustration-mid`) توكنٌ
+        دلاليّ بمستهلكٍ واحد، أي توكن مكوّن يلبس اسم الطبقة الخطأ. السابقة
+        نفسها في `--ap-select-chip-fg`.
+
+     ⚠️ ولا نغمة حمراء ولا خضراء هنا: الحالة الفارغة هادئة بطبعها، ولون
+        الحالة يحوّلها إلى إنذار عن شيء لم يقع فيه خطأ.
+
+     والنغمة الوحيدة القويّة `accent` وهي عنصر واحد في كل رسمة — نقطةُ
+     ثقلٍ واحدة تُمسك العين، وتكرارها يجعل الرسمة صاخبة على سطحٍ يُفترض
+     أنه هادئ.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-illustration-ground:  var(--ap-color-border-subtle);
+  --ap-illustration-soft:    var(--ap-purple-100);
+  --ap-illustration-base:    var(--ap-purple-200);
+  --ap-illustration-deep:    var(--ap-purple-300);
+  --ap-illustration-accent:  var(--ap-color-action-primary);
+  --ap-illustration-neutral: var(--ap-color-border-default);
+  --ap-illustration-surface: var(--ap-color-bg-surface);
+
+  /*
+    مقياسان لا خطوتان في سلّم المسافات — كـ `--ap-empty-measure`
+    و`--ap-table-min-width`: هذا عرض **رسم**، يُقاس بما يكفي لقراءة أشكاله
+    لا بما يوافق شبكة الحشوات. و160px هو ما تبقى فيه أصغر تفصيلة في
+    المجموعة (نقاط الصندوق، قفل المزلاج) مقروءةً بعد التصغير من 320.
+  */
+  --ap-illustration-size:    200px;
+  --ap-illustration-size-sm: 132px;
+  --ap-illustration-ratio:   4 / 3;
+
+  /* ══════════════════════════════════════════════════════════════════════
+     EMPTY STATE — <ap-empty-state>
+     ----------------------------------------------------------------------
+     الجرد: 42 ملفًا فيه كتلة «لا يوجد …» بصنف خاصّ بها (`funnel-list__empty`
+     · `lectures-empty` · `sd-empty` · `rt-empty` …)، وتسعةُ ملفات أخرى
+     تنسخ كتلة «ترقية الباقة» بصورة `upgrade.png` وعنوان ووصف وزرّ. الشكلان
+     بنية واحدة: أيقونة، عنوان، وصف، فعل أو فعلان.
+
+     ⚠️ والمجموعة تخدم **الحالتين معًا** — الفارغة والمقفلة — لأنهما لا
+        تختلفان في المظهر بل في النصّ والأيقونة. ولا نغمة لونية هنا: الحالة
+        الفارغة هادئة بطبعها، ولونٌ عليها يحوّلها إلى إنذار.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-empty-bg:          var(--ap-color-bg-surface);
+  --ap-empty-border:      var(--ap-color-border-subtle);
+  --ap-empty-radius:      var(--ap-card-radius);
+  --ap-empty-padding-y:   var(--ap-space-12);
+  --ap-empty-padding-x:   var(--ap-space-6);
+  /* الحجم المضغوط: داخل بطاقة أو جدول لهما حدّهما وحشوتهما أصلًا. */
+  --ap-empty-padding-y-sm: var(--ap-space-8);
+
+  /* ── الأيقونة ────────────────────────────────────────────────────────
+     دائرة باهتة تحتها لا أيقونة عارية: خطٌّ رفيع بعرض 48px على سطح أبيض
+     يُقرأ رسمًا ناقصًا لا رسمًا مقصودًا، والدائرة هي ما يجعله كتلةً واحدة.
+
+     ⚠️ واللون `text-tertiary` لا `text-disabled`: الثاني 2.56:1، وهو وإن
+        كانت الأيقونة زخرفية (`aria-hidden`، والمعنى في العنوان) فهي أكبر
+        ما في الكتلة — فيبدو السطح كلّه معطَّلًا لا فارغًا. القاعدة نفسها
+        الموثّقة على `--ap-table-drag-fg`. */
+  --ap-empty-icon-size:     var(--ap-space-12);   /* 48px */
+  --ap-empty-icon-size-sm:  var(--ap-space-8);    /* 32px */
+  --ap-empty-icon-box:      var(--ap-space-20);   /* 80px */
+  --ap-empty-icon-box-sm:   var(--ap-space-16);   /* 64px */
+  --ap-empty-icon-color:    var(--ap-color-text-tertiary);
+  --ap-empty-icon-bg:       var(--ap-color-bg-muted);
+
+  /* ── الرسمة ──────────────────────────────────────────────────────────
+     منفذ ثانٍ إلى جانب الأيقونة لا بديل عنها، والسبب تقنيّ لا ذوقيّ:
+     أيقونة الكتلة تُكتب عليها `fill: none; stroke: currentcolor` — وهي
+     القاعدة الصحيحة لرسمٍ خطّيّ، وهي التي تمحو `<ap-illustration>` محوًا
+     تامًّا لأنها مسطّحة معبّأة. فالرسمة لها صندوقها، بلا دائرة تحتها
+     (الرسم يملك كتلته) وبلا قاعدة تعبئة أو حدّ.
+
+     ⚠️ والاثنان لا يجتمعان: أيقونةٌ فوق رسمة رسمان يقولان الشيء نفسه
+        مرّتين، ويُرمى في وضع التطوير إن أُسقِطا معًا. */
+  --ap-empty-illustration-gap:    var(--ap-space-6);
+  --ap-empty-illustration-gap-sm: var(--ap-space-4);
+
+  /* ── النصّ ───────────────────────────────────────────────────────────── */
+  --ap-empty-title-fg:      var(--ap-color-text-primary);
+  --ap-empty-title-size:    var(--ap-font-size-lg);
+  --ap-empty-title-weight:  var(--ap-font-weight-semibold);
+  --ap-empty-title-leading: var(--ap-leading-snug);
+  --ap-empty-text-color:    var(--ap-color-text-tertiary);
+  --ap-empty-text-size:     var(--ap-font-size-md);
+  --ap-empty-text-leading:  var(--ap-leading-relaxed);
+  /*
+    ⚠️ عرضٌ أقصى للنصّ — بخلاف وصف `<ap-page-header>` الذي لا حدّ له عمدًا.
+       والفرق سببه لا ذوق: وصف الرأس **جملة واحدة** محاذاة إلى البداية،
+       وهذا نصّ جارٍ **موسَّط** — والسطر الطويل الموسَّط يبدأ كل مرّة من موضع
+       مختلف، فتضيع العين في العودة إلى بدايته.
+
+    ⚠️ وبالبكسل لا بـ `ch`: وحدة `ch` عرضُ الرقم صفر، ولا تقارب متوسّط
+       الحرف العربي — فالقياس بها يختلف عن المقصود اختلافًا كبيرًا.
+       وهي **مقياس** لا خطوة في سلّم المسافات، كـ `--ap-table-min-width`. */
+  --ap-empty-measure:       520px;
+
+  /* ── الفجوات ─────────────────────────────────────────────────────────
+     متدرّجة: الأيقونة أبعد عن العنوان من العنوان عن وصفه، فتُقرأ الثلاثة
+     مجموعةً واحدة تحت رسمٍ لا أربعةَ أسطر متساوية البعد. */
+  --ap-empty-icon-gap:      var(--ap-space-5);
+  --ap-empty-title-gap:     var(--ap-space-2);
+  --ap-empty-actions-gap:   var(--ap-space-6);
+  --ap-empty-actions-inner-gap: var(--ap-space-3);
+  /* قائمة داخل الوصف — تعداد استثناءات الصلاحية مثلًا. */
+  --ap-empty-list-gap:      var(--ap-space-1);
+  --ap-empty-list-indent:   var(--ap-space-5);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     IMAGE UPLOAD — <ap-upload>
+     ----------------------------------------------------------------------
+     صورتان لحقل واحد: **قبل** الرفع منطقة إسقاط، و**بعد** الرفع بطاقة ملف.
+     ولذلك مجموعتان من الرموز لا واحدة — المنطقة حدّها متقطّع وحشوتها رأسية
+     كبيرة، والبطاقة حدّها متّصل وحشوتها ضيّقة كصفّ.
+
+     ⚠️ البطاقة ترث `--ap-card-*` لا `--ap-input-*`: هي **سطح** يحمل صورة
+        واسمًا وزرًّا، لا عنصر إدخال بارتفاع ثابت. ومنطقة الإسقاط ترث حدّ
+        الحقل ولونه، لأنها هي التي تقف مكان عنصر الإدخال في النموذج.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  /* ── منطقة الإسقاط — الحالة الفارغة ─────────────────────────────────
+     الحدّ **متقطّع** لا متّصل: هو الفرق البصري الوحيد بينها وبين بطاقةٍ
+     ساكنة، وهو ما يقول «ضع شيئًا هنا» قبل قراءة أي كلمة. */
+  --ap-upload-zone-bg:            var(--ap-color-bg-subtle);
+  --ap-upload-zone-bg-hover:      var(--ap-color-bg-muted);
+  --ap-upload-zone-bg-active:     var(--ap-color-action-primary-subtle);
+  --ap-upload-zone-border:        var(--ap-color-border-default);
+  --ap-upload-zone-border-hover:  var(--ap-color-border-strong);
+  --ap-upload-zone-border-active: var(--ap-color-border-brand);
+  --ap-upload-zone-border-error:  var(--ap-color-error);
+  /* أعرض من حدّ الحقل: الخطّ المتقطّع بسمك 1px يكاد يختفي على سطح باهت،
+     فيُقرأ إطارًا باهتًا لا دعوةً إلى الإسقاط. */
+  --ap-upload-zone-border-width:  var(--ap-border-width-medium);
+  --ap-upload-zone-radius:        var(--ap-card-radius);
+  /*
+    الحشوة والفجوة من بطاقة الملف نفسها، لا قيمًا مستقلّة.
+
+    المنطقة والبطاقة **صفٌّ واحد بمحتويين**: مربّع في البداية ثمّ نصّ. فلو
+    اختلفت حشوتاهما لقفز الصفّ عند وصول الصورة — وهي اللحظة التي يجب أن
+    يتغيّر فيها المحتوى وحده. والاشتقاق بالاسم لا بالقيمة: تعديل حشوة
+    البطاقة يصل إلى المنطقة بلا تعديل ثانٍ.
+  */
+  --ap-upload-zone-padding:       var(--ap-upload-file-padding);
+  --ap-upload-zone-gap:           var(--ap-upload-file-gap);
+
+  /* ── المربّع الفارغ ───────────────────────────────────────────────────
+     يقف في **موضع المصغَّرة ومقاسها**، فتحلّ الصورة محلّه بلا إزاحة. ولذلك
+     هو `<ap-avatar>` نفسه بلا `src`، لا رسمٌ مستقلّ: شكل الدائرة ونسبة
+     4:3 للعريض تأتيان من هناك، فلا تتباعد الهندستان.
+
+     ⚠️ والأيقونة **صورة دائمًا** حتى في الشكل الدائري: الدائرة هنا تصف ما
+        سيوضع فيها (صورة ملف شخصي)، لا من هو. وأيقونة الشخص كانت تقول
+        «شخص غائب» بدل «صورة غائبة». */
+  --ap-upload-placeholder-bg:   var(--ap-color-bg-muted);
+  --ap-upload-placeholder-fg:   var(--ap-color-text-tertiary);
+  --ap-upload-placeholder-icon: var(--ap-icon-lg);
+
+  /* ── نصّ المنطقة ───────────────────────────────────────────────────────
+     12px بوزن عادي — لا 14px بوزن متوسّط.
+
+     المطالبة **تعليمة لا قيمة**: هي تقول ماذا تفعل، بينما اسم الملف الذي
+     يحلّ محلّها بعد الرفع هو المحتوى نفسه. فمقاسان مختلفان يفصلان بينهما،
+     ويبقى اسم الملف وحده على مقاس الأساس (14px / 500).
+
+     ⚠️ ولا يتغيّر ارتفاع الصفّ بهذا: المربّع 40px هو ما يحدّده، والنصّ أقصر
+        منه في الحالتين. فالتصغير لا يُدخل قفزة بين «قبل» و«بعد».
+
+     ⚠️ و400 لا 500: الأوزان المحمّلة من Readex Pro أربعة (400/500/600/700)،
+        وأي قيمة خارجها تُصيَّر faux-bold وتشوّه الحروف العربية. */
+  --ap-upload-prompt-size:   var(--ap-font-size-xs);
+  --ap-upload-prompt-weight: var(--ap-font-weight-regular);
+  --ap-upload-prompt-fg:     var(--ap-color-text-secondary);
+  /*
+    كلمة «اختر من جهازك» بلون الفعل ومسطَّرة.
+
+    ⚠️ وهي **ليست زرًّا**: عنصر التحكّم الحقيقي هو `<input type="file">`
+       المخفيّ بصريًّا، والمنطقة كلّها تفتح المنتقي. زرٌّ حقيقي هنا كان
+       يعني عنصرَي تحكّم متجاورين لفعل واحد — ونقطتَي توقّف في ترتيب
+       التنقّل بدل واحدة.
+  */
+  --ap-upload-action-fg:     var(--ap-color-text-brand);
+
+  /* ── بطاقة الملف — بعد الرفع ────────────────────────────────────────
+     صفّ: مصغَّرة، ثمّ اسم وحجم، ثمّ زرّ الحذف في الطرف. */
+  --ap-upload-file-bg:           var(--ap-card-bg);
+  --ap-upload-file-bg-hover:     var(--ap-color-bg-subtle);
+  --ap-upload-file-border:       var(--ap-card-border);
+  --ap-upload-file-border-hover: var(--ap-card-border-hover);
+  --ap-upload-file-border-width: var(--ap-border-width-thin);
+  --ap-upload-file-radius:       var(--ap-card-radius);
+  --ap-upload-file-padding:      var(--ap-space-3);
+  --ap-upload-file-gap:          var(--ap-space-3);
+  --ap-upload-file-name-size:    var(--ap-font-size-md);
+  --ap-upload-file-name-weight:  var(--ap-font-weight-medium);
+  --ap-upload-file-name-fg:      var(--ap-color-text-primary);
+  --ap-upload-file-meta-size:    var(--ap-font-size-xs);
+  --ap-upload-file-meta-fg:      var(--ap-color-text-tertiary);
+  --ap-upload-file-meta-gap:     var(--ap-space-0-5);
+  --ap-upload-list-gap:          var(--ap-space-2);
+
+  /* ── زرّ الحذف ───────────────────────────────────────────────────────
+     نبرة الخطر مشروعة هنا لأن الزرّ **عارٍ بلا نصّ**: لا كلمة تحمل المعنى
+     فيحمله اللون. وهي القاعدة نفسها في `[apTableAction][data-tone='danger']`
+     — وعكسها داخل قائمة `⋯` حيث تجاور الأيقونةَ كلمةٌ تسمّي الفعل. */
+  --ap-upload-remove-size:      var(--ap-control-height-sm);
+  --ap-upload-remove-icon:      var(--ap-icon-lg);
+  --ap-upload-remove-fg:        var(--ap-color-action-danger);
+  --ap-upload-remove-fg-hover:  var(--ap-color-action-danger-hover);
+  --ap-upload-remove-bg-hover:  var(--ap-color-action-danger-subtle);
+  --ap-upload-remove-radius:    var(--ap-radius-sm);
+
+  /* ── شريط التقدّم ────────────────────────────────────────────────────
+     يحلّ محلّ الحجم في سطر البيانات الوصفية، فلا يزيد ارتفاع البطاقة أثناء
+     الرفع ثمّ ينقصه بعده — قفزةٌ تحت مؤشّر المستخدم. */
+  --ap-upload-progress-height: var(--ap-space-1);
+  --ap-upload-progress-radius: var(--ap-radius-full);
+  --ap-upload-progress-track:  var(--ap-color-bg-muted);
+  --ap-upload-progress-fill:   var(--ap-color-action-primary);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     PAGE LAYOUT
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-page-padding:      var(--ap-space-6);
+  --ap-page-max-width:    1200px;
+  --ap-page-header-gap:   var(--ap-space-6);
+
+  /* ── رأس الصفحة (<ap-page-header>) ──────────────────────────────────
+     عنوان + جملة تقول ما هذه الصفحة. الجملة ليست زينة: الجرد وجد 87 عنوان
+     صفحة بلا أي وصف، فمن يفتح الشاشة أوّل مرّة يستنتج وظيفتها من الجدول
+     الذي تحتها.
+
+     ⚠️ ولا حدّ لعرض الوصف: هو جملة واحدة لا فقرة جارية. الحدّ كان يقطعها
+        إلى سطرين وينزل رابطها وحده إلى الثاني. */
+  --ap-page-header-title-size:   var(--ap-font-size-3xl);   /* 24px */
+  --ap-page-header-title-weight: var(--ap-font-weight-semibold);
+  --ap-page-header-title-fg:     var(--ap-color-text-primary);
+  --ap-page-header-title-leading: var(--ap-leading-tight);
+  --ap-page-header-desc-size:    var(--ap-font-size-md);    /* 14px */
+  --ap-page-header-desc-fg:      var(--ap-color-text-secondary);  /* 7.50:1 */
+  --ap-page-header-desc-leading: var(--ap-leading-normal);
+  --ap-page-header-title-gap:    var(--ap-space-2);
+  --ap-page-header-actions-gap:  var(--ap-space-2);
+  --ap-section-gap:       var(--ap-space-6);
+  --ap-grid-gap:          var(--ap-space-4);
+  --ap-grid-min-column:   280px;
+}

@@ -1,0 +1,424 @@
+@use '../state' as state;
+
+/* ============================================================================
+   Acadimiat UI — أنماط النافذة المنبثقة
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-modal` — عدا استثناءً واحدًا موثَّقًا في آخر الملف
+      (قفل تمرير الصفحة، وهو بحكم تعريفه على `<html>`). الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-dialog-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+
+   ─── المسافات ──────────────────────────────────────────────────────────────
+   كلها من لقطة المرجع المعتمدة، ومقسومة على 1.5 (مقياس اللقطة) ثم مقرَّبة
+   إلى أقرب درجة في السلّم. جدول القياس كاملًا في
+   `src/styles/tokens/_components.css § DIALOG / MODAL`.
+
+       ┌─ 20px ───────────────────────────────────────┐
+       │  العنوان                              ✕      │  الأيقونة على حافّة
+       │                    ↕ 16px                     │  الحشوة تمامًا
+       │  الجسم — فجوات 16px بين مجموعاته              │
+       │                    ↕ 16px                     │
+       │  الذيل                                        │
+       └───────────────────────────────────────────────┘
+   ============================================================================ */
+
+/*
+  ⚠️ المكوّن يعلن box-sizing بنفسه ولا يعتمد على reset عالمي — القاعدة نفسها
+     الموثّقة في `ap-field.component.scss`: قاعدة bootstrap العالمية لا تعبر
+     الجذر الظلّي الذي يعزل مسرح المعاينة، فتُعرض البطاقة بصندوق مختلف عمّا
+     تظهر به في التطبيق — وهو أدقّ ما يُفترض أن تثبته معاينة نافذة.
+*/
+ap-modal,
+ap-modal * {
+  box-sizing: border-box;
+}
+
+/*
+  المضيف بلا صندوق: `<dialog>` وحده هو ما يُرسم، وهو يرتفع إلى الطبقة العليا
+  عند الفتح. أي صندوق على المضيف يبقى في تدفّق الصفحة بلا محتوى فيزيح ما حوله.
+*/
+ap-modal {
+  display: contents;
+}
+
+/* ---------------------------------------------------------------------------
+   الغلاف — `<dialog>` نفسه
+   ---------------------------------------------------------------------------
+   العنصر الأصلي افتراضًا بحجم محتواه، متوسّطًا بهوامش `auto`. هنا يُبسَط على
+   إطار العرض كاملًا وتصير البطاقة ابنه المتوسّط — لسببين:
+
+     • «هل وقعت النقرة خارج البطاقة؟» يصبح سؤالًا عن هدف الحدث (`event.target`
+       هو `<dialog>` عينه)، لا حسابًا لإحداثيات النقرة مقابل مستطيل البطاقة.
+     • الحشوة عليه هي أدنى فراغ عن حافّة الشاشة، فتحكم عرض البطاقة على الجوّال
+       قبل `--ap-dialog-width-*` بلا `@media` واحدة.
+   --------------------------------------------------------------------------- */
+ap-modal .ap-modal__dialog {
+  position: fixed;
+  inset: 0;
+  /*
+    ⚠️ العرض والارتفاع صراحةً — `inset: 0` وحده لا يكفي.
+
+    أنماط المتصفّح تعطي `<dialog>` قيمة `width: fit-content`، وهي ليست
+    `auto` — فلا يبسطها `inset: 0`، بل يصير الصندوق مقيَّدًا فوق طاقته
+    فيُهمَل أحد الطرفين ويلتصق العنصر بحافّة واحدة بحجم محتواه.
+
+    ورُصد هذا بالقياس لا بالنظر: كانت النافذة تُرسم بعرض 341px ملتصقة
+    بحافّة الشاشة، والأسوأ أن الحاجب — المرسوم على هذا العنصر — كان
+    يغطّي ذلك الشريط وحده فتبقى بقيّة الصفحة بلا تعتيم.
+  */
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: var(--ap-dialog-margin);
+  border: 0;
+  /*
+    الحاجب على العنصر لا على `::backdrop`.
+
+    `::backdrop` كان — حتى إصدارات متصفّحات ما زالت مستخدمة — يرث من العدم
+    لا من العنصر الأصلي، فأي `var(--ap-dialog-*)` داخله يتحوّل إلى قيمة غير
+    صالحة ويسقط الحاجب كلّه بلا إنذار. والعنصر هنا يملأ إطار العرض أصلًا،
+    فيؤدّي الدور نفسه ويرث الـ tokens وراثةً عادية مضمونة.
+  */
+  background: var(--ap-dialog-backdrop);
+  backdrop-filter: blur(var(--ap-dialog-backdrop-blur));
+  color: var(--ap-color-text-primary);
+  font-family: inherit;
+  /* شبكة العرض تُعلَن على `[open]` وحدها أدناه — انظر التعليق هناك. */
+  overflow: auto;
+  overscroll-behavior: contain;
+
+  opacity: 0;
+  transition:
+    opacity var(--ap-dialog-transition),
+    display var(--ap-dialog-transition) allow-discrete,
+    overlay var(--ap-dialog-transition) allow-discrete;
+}
+
+/* الحاجب الأصلي شفّاف: اللون على العنصر أعلاه، ولولا هذا لتراكبت تعتيمتان. */
+ap-modal .ap-modal__dialog::backdrop {
+  background: transparent;
+}
+
+/*
+  `display` على `[open]` وحدها — وهذا ليس تفصيلًا:
+  قاعدة المتصفّح `dialog:not([open]) { display: none }` هي ما يُخفي النافذة
+  المغلقة. إعلان `display: grid` بلا الشرط يهزمها فتظهر النافذة دائمًا.
+*/
+ap-modal .ap-modal__dialog[open] {
+  display: grid;
+  place-items: center;
+  /*
+    ⚠️ `minmax(0, 1fr)` لا `auto` — وبدونه ينهار تثبيت الرأس والذيل كلّه.
+
+    المسار الضمني `auto` **يُقاس بمحتواه**. فحين يطول النموذج يكبر المسار
+    فوق ارتفاع الحاوي، و`max-height: 100%` على البطاقة يُحسب من **المسار** لا
+    من الإطار — فيساوي ارتفاع المحتوى نفسه، أي لا يقيّد شيئًا. عندها لا يجد
+    الجسم سببًا للتمرير، فتفيض البطاقة ويتمرّر الـ `<dialog>` نفسه (وله
+    `overflow: auto`) — فيخرج الذيل من الشاشة ويخرج الرأس معه.
+
+    والعطل يظهر في النماذج الطويلة وحدها، وهي أكثر ما يحتاج التثبيت.
+
+    `minmax(0, 1fr)` يجعل المسار مساويًا للحاوي بالضبط: لا يكبر بمحتواه
+    (الحدّ الأدنى صفر لا `auto`)، ولا يصغر عنه. فيُقيَّد `max-height: 100%`
+    ويعود التمرير إلى الجسم حيث يجب — بين رأسٍ وذيلٍ ثابتين.
+
+    والعمود كذلك: بطاقةٌ فيها جدول عريض كانت تمدّ مساره وتُخرج النافذة عن
+    الشاشة أفقيًّا.
+  */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  opacity: 1;
+}
+
+@starting-style {
+  ap-modal .ap-modal__dialog[open] {
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   البطاقة
+   --------------------------------------------------------------------------- */
+ap-modal .ap-modal__panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--ap-dialog-width-md);
+  /* 100% من مساحة الشبكة، وهي إطار العرض ناقص الحشوة — فلا تلامس البطاقة
+     الحافّة ولا تفيض عنها، ويتولّى الجسم التمرير داخلها. */
+  max-height: 100%;
+  padding: var(--ap-dialog-padding);
+  border-radius: var(--ap-dialog-radius);
+  background: var(--ap-dialog-bg);
+  box-shadow: var(--ap-dialog-shadow);
+  text-align: start;
+  transition: translate var(--ap-dialog-transition);
+}
+
+@starting-style {
+  ap-modal .ap-modal__dialog[open] .ap-modal__panel {
+    translate: 0 var(--ap-dialog-enter-offset);
+  }
+}
+
+ap-modal .ap-modal__dialog[data-size='sm'] .ap-modal__panel {
+  max-width: var(--ap-dialog-width-sm);
+}
+
+ap-modal .ap-modal__dialog[data-size='lg'] .ap-modal__panel {
+  max-width: var(--ap-dialog-width-lg);
+}
+
+/*
+  العرض يتبع المحتوى، والمقاس سقفٌ له لا مقدارٌ يملؤه.
+
+  ⚠️ و`min-width` شرط: بلا حدّ أدنى تنكمش نافذةٌ قصيرة المحتوى إلى عرض
+     عنوانها، فتُقرأ تنبيهًا لا نافذة. و`min()` معه كي لا يفيض الحدّ الأدنى
+     نفسه عن شاشة ضيّقة.
+
+  ⛔ ولا تُستعمل في نافذة نموذج — انظر تعليق المدخل في المكوّن.
+*/
+ap-modal .ap-modal__dialog[data-fit='content'] .ap-modal__panel {
+  width: fit-content;
+  min-width: min(100%, var(--ap-dialog-width-sm));
+}
+
+/* ---------------------------------------------------------------------------
+   الرأس
+   --------------------------------------------------------------------------- */
+ap-modal .ap-modal__header {
+  display: flex;
+  /* `0 0 auto` كالذيل: الرأس لا ينكمش تحت ضغط جسمٍ طويل. الافتراضي
+     `0 1 auto` يسمح بالانكماش، فيضيع سطر من عنوانٍ من سطرين. */
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: var(--ap-dialog-action-gap);
+  margin-block-end: var(--ap-dialog-header-gap);
+}
+
+ap-modal .ap-modal__heading {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--ap-space-1);
+  /* يطابق ارتفاع زرّ الإغلاق، فيقع مركز العنوان على مركز الأيقونة بلا إزاحة
+     يدوية — والعنوان بسطر واحد هو الحالة الغالبة. */
+  min-height: var(--ap-dialog-close-size);
+  min-width: 0;
+}
+
+ap-modal .ap-modal__title {
+  margin: 0;
+  color: var(--ap-dialog-title-color);
+  font-size: var(--ap-dialog-title-size);
+  font-weight: var(--ap-dialog-title-weight);
+  line-height: var(--ap-leading-tight);
+}
+
+ap-modal .ap-modal__description {
+  margin: 0;
+  color: var(--ap-dialog-desc-color);
+  font-size: var(--ap-dialog-desc-size);
+  line-height: var(--ap-leading-snug);
+}
+
+/* ---------------------------------------------------------------------------
+   زرّ الإغلاق
+   --------------------------------------------------------------------------- */
+ap-modal .ap-modal__close {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-dialog-close-size);
+  height: var(--ap-dialog-close-size);
+  /*
+    الصندوق يخرج نصف الفارق بينه وبين الأيقونة إلى داخل الحشوة، فتستقرّ
+    الأيقونة على حافّة الحشوة تمامًا كما في المرجع — بينما يبقى هدف اللمس
+    32×32 كاملًا (WCAG 2.5.8).
+
+    القيمة محسوبة من الـ tokens لا مكتوبة: تغيير أي منهما يصحّح الإزاحة معه.
+  */
+  margin-inline-end: calc((var(--ap-dialog-close-size) - var(--ap-dialog-close-icon)) / -2);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ap-dialog-close-radius);
+  background: transparent;
+  color: var(--ap-dialog-close-fg);
+  cursor: pointer;
+  transition:
+    background-color var(--ap-dialog-transition),
+    color var(--ap-dialog-transition);
+
+  @include state.hover {
+    background: var(--ap-dialog-close-bg-hover);
+    color: var(--ap-dialog-close-fg-hover);
+  }
+
+  @include state.active {
+    background: var(--ap-color-bg-muted);
+  }
+
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-color-focus-ring);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+}
+
+/* الاصطلاح نفسه في المكتبة كلها: خطّية ترث لون النصّ، فتتبع كل حالة بلا
+   قاعدة لون إضافية. */
+ap-modal .ap-modal__close svg {
+  width: var(--ap-dialog-close-icon);
+  height: var(--ap-dialog-close-icon);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------------------
+   الجسم
+   ---------------------------------------------------------------------------
+   عمود بفجوة `--ap-dialog-gap` بين مجموعاته: المحتوى المسقَط يحصل على إيقاع
+   النافذة بلا أن يعرف عنها شيئًا، ولا يحتاج المستهلك إلى غلاف تخطيط خاصّ به.
+   --------------------------------------------------------------------------- */
+ap-modal .ap-modal__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--ap-dialog-gap);
+  /* `min-height: 0` شرط تمرير الابن داخل flex — بدونه يتمدّد الجسم بكامل
+     محتواه وتفيض البطاقة عن الشاشة بدل أن يتمرّر ما بداخلها. */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--ap-color-text-primary);
+  font-size: var(--ap-font-size-md);
+  line-height: var(--ap-leading-snug);
+
+  /*
+    ⚠️ صندوق التمرير كان يقصّ حلقة تركيز الحقول عند حوافّه.
+
+    `overflow-y: auto` يجعل `overflow-x` يُحسب `auto` كذلك — قاعدة CSS: إن
+    خرجت إحدى القيمتين عن `visible` لم تبقَ الأخرى كذلك. فالجسم صندوق تمرير
+    في **المحورين**، وما خرج عن صندوقه يُقصّ.
+
+    وحلقة الحقل تخرج عنه فعلًا: `--ap-input-focus-ring` ظلٌّ بامتداد
+    `--ap-focus-ring-width` خارج الحدّ، والحقل يملأ عرض الجسم. فكان المستخدم
+    يرى **جانبَي الحقل مقطوعين** لحظةَ النقر عليه — ومثلَه أعلى أوّل حقل
+    وأسفل آخره.
+
+    والعلاج مساحةٌ تُفتح بحشوة وتُسحب بهامش سالب مساوٍ لها: يتغيّر حدّ القصّ
+    وحده، ولا يتغيّر موضع أي عنصر ولا عرضه ولا الفجوة بين الجسم وجارَيه.
+  */
+  --ap-dialog-ring-bleed: calc(var(--ap-focus-ring-width) + var(--ap-focus-ring-offset));
+  margin: calc(var(--ap-dialog-ring-bleed) * -1);
+  padding: var(--ap-dialog-ring-bleed);
+}
+
+/*
+  الفاصلان عند الفيض وحده.
+
+  دائمًا: يُقسَم تأكيد من سطرين إلى ثلاث شرائح بلا سبب.
+  أبدًا: يُقصّ المحتوى عند حافّة الجسم بلا إشارة إلى أن تحته المزيد.
+
+  والامتداد إلى حافّتَي البطاقة لا إلى حافّتَي النصّ: خطّ يقف قبل الحافّة
+  يُقرأ إطارًا لصندوق داخلي، لا فاصلًا بين منطقتين.
+*/
+ap-modal .ap-modal__body[data-overflow='true'] {
+  /*
+    الحشوة الأفقية هنا أوسع من مساحة الحلقة أصلًا، فتغني عنها. أمّا الرأسية
+    فتُعاد كتابة هامشها إلى صفر: الفاصلان خطّان يجب أن يقفا على حافّتي منطقة
+    التمرير تمامًا، والهامش السالب كان يزحزحهما فوقها.
+  */
+  margin-inline: calc(var(--ap-dialog-padding) * -1);
+  margin-block: 0;
+  padding-inline: var(--ap-dialog-padding);
+  padding-block: var(--ap-dialog-gap);
+  border-block: var(--ap-border-width-thin) solid var(--ap-dialog-divider);
+}
+
+ap-modal .ap-modal__body:empty {
+  display: none;
+}
+
+/*
+  ⚠️ الحقول المتتالية تفقد هامشها داخل الجسم.
+
+  `<ap-field>` يفصل نفسه عن جارته بـ `margin-block-start: --ap-field-gap`
+  كي تنضبط المسافة في حاوٍ عادي بلا `gap`. لكن جسم النافذة عمود بـ `gap`،
+  فتُجمع المسافتان: 16 + 16 = 32.
+
+  ورُصد هذا بالقياس: أوّل فجوتين في المرجع كانتا 32px بدل 16px بينما بقيّة
+  الفجوات صحيحة — والفرق لا يُرى بالعين وحدها لأن الجدول يبقى «منتظمًا».
+
+  الفجوة تفوز لا الهامش: من يملك التخطيط هو من يملك المسافة بين أبنائه.
+*/
+ap-modal .ap-modal__body ap-field + ap-field {
+  margin-block-start: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   الذيل
+   ---------------------------------------------------------------------------
+   الأزرار تُسقَط فيه مباشرةً بسمة `apModalFooter` على كلٍّ منها — لا غلاف
+   تخطيط بينها وبين الذيل. الاصطلاح نفسه المتّبع في `apIconStart`.
+
+   `flex-end` منطقي لا فيزيائي: الأفعال عند نهاية السطر — يسارًا في RTL
+   ويمينًا في LTR، بقاعدة واحدة.
+   --------------------------------------------------------------------------- */
+ap-modal .ap-modal__footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ap-dialog-action-gap);
+  margin-block-start: var(--ap-dialog-footer-gap);
+}
+
+ap-modal .ap-modal__footer:empty {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+   تفضيل تقليل الحركة
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  ap-modal .ap-modal__dialog,
+  ap-modal .ap-modal__panel,
+  ap-modal .ap-modal__close {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   الألوان المفروضة (Windows High Contrast)
+   ---------------------------------------------------------------------------
+   الظلّ يختفي في هذا الوضع، فتفقد البطاقة حدّها الوحيد عن الخلفية وتذوب فيها.
+   --------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  ap-modal .ap-modal__panel {
+    border: var(--ap-border-width-thin) solid CanvasText;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   ⚠️ الاستثناء الوحيد من قاعدة بادئة `ap-modal` في هذا الملف
+   ---------------------------------------------------------------------------
+   `showModal()` يعطّل التفاعل مع ما خلف النافذة، لكنه **لا يمنع تمرير الصفحة**
+   بعجلة الفأرة. والصفحة التي تنزلق خلف نافذة ثابتة تُقرأ عطلًا.
+
+   السمة يكتبها هذا المكوّن وحده على `<html>` (بعدّاد يحتمل نافذتين
+   متداخلتين)، فلا تسرّب رغم أن المحدّد خارج البادئة — لا شيء آخر في المشروع
+   ولا في القالب المشترى يُنتج `data-ap-modal-open`.
+
+   و`scrollbar-gutter` معه: إخفاء شريط التمرير وحده يوسّع الصفحة بعرضه، فتقفز
+   خلف النافذة قفزة مرئية عند كل فتح وإغلاق.
+   --------------------------------------------------------------------------- */
+html[data-ap-modal-open] {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}

@@ -1,0 +1,66 @@
+@if (entry(); as doc) {
+  <article class="docs-article">
+    <header class="docs-pagehead">
+      <nav class="docs-crumbs" aria-label="مسار التصفّح">
+        <a [routerLink]="['/', docsRoot]">نظام التصميم</a>
+        @if (section(); as parent) {
+          <span class="docs-crumbs__sep" aria-hidden="true">/</span>
+          <a [routerLink]="['/', docsRoot, parent.id]">{{ parent.title }}</a>
+        }
+        @if (groupTitle(); as group) {
+          <span class="docs-crumbs__sep" aria-hidden="true">/</span>
+          <span>{{ group }}</span>
+        }
+      </nav>
+
+      <div class="docs-pagehead__row">
+        <h1 class="docs-pagehead__title">{{ doc.title }}</h1>
+        <app-docs-status-pill [status]="doc.status" />
+      </div>
+
+      @if (doc.titleEn) {
+        <p class="docs-pagehead__alt" dir="ltr">{{ doc.titleEn }}</p>
+      }
+
+      <p class="docs-pagehead__summary">{{ doc.summary }}</p>
+    </header>
+
+    <app-docs-toc [sections]="doc.sections" />
+
+    @for (block of doc.sections; track $index) {
+      <app-doc-section [section]="block" [index]="$index" />
+    }
+
+    <!--
+      روابط الجوار بترتيب الشريط الجانبي نفسه — القراءة المتسلسلة عبر النظام
+      كلّه ممكنة بلا رجوع إلى القائمة في كل مرة.
+    -->
+    @if (siblings().previous || siblings().next) {
+      <nav class="docs-pager" aria-label="التنقّل بين الصفحات">
+        @if (siblings().previous; as previous) {
+          <a class="docs-pager__link" [routerLink]="previous.path" data-dir="previous">
+            <span class="docs-pager__label">السابق</span>
+            <span class="docs-pager__title">{{ previous.title }}</span>
+          </a>
+        } @else {
+          <span></span>
+        }
+
+        @if (siblings().next; as next) {
+          <a class="docs-pager__link" [routerLink]="next.path" data-dir="next">
+            <span class="docs-pager__label">التالي</span>
+            <span class="docs-pager__title">{{ next.title }}</span>
+          </a>
+        }
+      </nav>
+    }
+  </article>
+} @else {
+  <div class="docs-empty">
+    <p class="docs-empty__title">هذه الصفحة غير موجودة</p>
+    <p class="docs-empty__body">
+      قد تكون لم تُوثَّق بعد، أو تغيّر مسارها. ابدأ من نظرة عامة على النظام.
+    </p>
+    <a class="docs-empty__action" [routerLink]="['/', docsRoot]">العودة إلى نظام التصميم</a>
+  </div>
+}

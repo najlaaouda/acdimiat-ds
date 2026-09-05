@@ -1,0 +1,67 @@
+<!--
+  ⚠️ كل كلاس هنا يبدأ بـ `docs-`.
+  ممنوع استخدام أي اسم من Bootstrap أو قالب لوحة الإدارة (btn · card · row ·
+  container · table · nav · alert · badge)، فتلك الأسماء يطابقها CSS عالمي
+  محمَّل على كل المسارات ولا نملكه.
+-->
+
+<a class="docs-skip" href="#docs-main" (click)="focusContent($event)">
+  تخطّي إلى المحتوى
+</a>
+
+<header class="docs-topbar">
+  <button
+    type="button"
+    class="docs-topbar__toggle"
+    [attr.aria-expanded]="navOpen()"
+    aria-controls="docs-sidebar"
+    (click)="toggleNav()"
+  >
+    <span aria-hidden="true">☰</span>
+    <span class="docs-sr-only">{{ navOpen() ? 'إغلاق قائمة التوثيق' : 'فتح قائمة التوثيق' }}</span>
+  </button>
+
+  <a class="docs-brand" [routerLink]="['/', docsRoot]">
+    <span class="docs-brand__mark" aria-hidden="true">◈</span>
+    <span class="docs-brand__text">
+      <span class="docs-brand__name">Acadimiat</span>
+      <span class="docs-brand__label">نظام التصميم</span>
+    </span>
+  </a>
+
+  <div class="docs-topbar__spacer"></div>
+
+  <span class="docs-topbar__meta">توثيق داخلي · لوحة الإدارة</span>
+</header>
+
+<div class="docs-body">
+  <!--
+    حجاب الدرج على الشاشات الضيّقة.
+    الشريط الجانبي المغلق يُخفى بـ `visibility: hidden` لا بالإزاحة وحدها،
+    فيخرج من ترتيب التنقّل بلوحة المفاتيح — وهو الخطأ الشائع في هذا النمط:
+    درج مخفيّ بصريًا لكنه ما يزال يبتلع عشرات الضغطات على Tab.
+  -->
+  <div
+    class="docs-scrim"
+    [class.docs-scrim--visible]="navOpen()"
+    (click)="closeNav()"
+    aria-hidden="true"
+  ></div>
+
+  <app-docs-sidebar
+    id="docs-sidebar"
+    class="docs-sidebar"
+    [class.docs-sidebar--open]="navOpen()"
+  />
+
+  <main
+    #scrollArea
+    id="docs-main"
+    class="docs-main"
+    tabindex="-1"
+  >
+    <div class="docs-main__inner">
+      <router-outlet />
+    </div>
+  </main>
+</div>

@@ -1,0 +1,143 @@
+/* ============================================================================
+   Acadimiat Design System — Foundations: FOCUS SYSTEM
+   ----------------------------------------------------------------------------
+   WCAG 2.1 — 2.4.7 Focus Visible (AA) · 2.4.11 Focus Appearance
+
+   ما تغيّر ولماذا:
+   ---------------
+   كان مؤشّر التركيز مُخفى افتراضيًا في التطبيق كله. القاعدة السابقة في
+   styles.scss كانت:
+
+       html:not([data-a11y-focus="default"]):not([data-a11y-focus="high"]) *:focus,
+       ... *:focus-visible, ... *:focus-within {
+         outline: none !important; box-shadow: none !important;
+       }
+
+   ومع `focusIndicator: 'off'` كقيمة افتراضية في AccessibilityService، كان
+   المحدّد يطابق دائمًا عند أول زيارة → مستخدم لوحة المفاتيح لا يرى أين هو.
+
+   ولا يُعالَج ذلك بجعله خيارًا يفعّله المستخدم: المعيار يقيس السلوك
+   الافتراضي، ومن يحتاج المؤشّر غالبًا لا يستطيع بلوغ زرّ تفعيله بلوحة
+   المفاتيح أصلًا — مفارقة دائرية.
+
+   المنطق الآن مقلوب:                                                 [D-12]
+     • التركيز ظاهر افتراضيًا لمستخدم لوحة المفاتيح.
+     • الـ a11y FAB يقدّم مستويين: "افتراضي" و"أوضح" — لا خيار إخفاء.
+     • مستخدم الفأرة لا يرى شيئًا (:focus-visible وحده).
+
+   عن استخدام !important هنا:
+   -------------------------
+   استثناء متعمّد ومحدود. المشروع يحوي 206 إعلان `outline: none/0`، كثير منها
+   بـ !important (Bootstrap، القالب المشترى، أنماط مكوّنات). بلا !important
+   لن يظهر المؤشّر على العناصر الأكثر استخدامًا.
+
+   هذا الاستثناء يتقلّص مع كل مرحلة ترحيل: كلما هاجر مكوّن إلى النظام الجديد
+   حُذفت قاعدة outline:none الخاصة به. الهدف النهائي: إزالة !important من هنا
+   في Phase 11 (التنظيف).
+
+   التوثيق: docs/design-system/ACCESSIBILITY-AUDIT.md → A-01, A-02, A-03
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   1) مستخدم الفأرة: لا حلقة تركيز.
+   قاعدة صحيحة كانت موجودة أصلًا — يُحافَظ عليها كما هي.
+   --------------------------------------------------------------------------- */
+:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   2) الافتراضي: حلقة تركيز مرئية لمستخدم لوحة المفاتيح — في كل مكان.
+
+   قيمة الاحتياط (#0066cc) هي اللون الذي كان يستخدمه النظام القديم عند
+   تفعيله، فتبقى واجهات الموقع العام (خارج .ap-admin) على مظهرها المتوقّع.
+   داخل .ap-admin يُحلّ --ap-color-focus-ring إلى بنفسجي العلامة (8.03:1).
+   --------------------------------------------------------------------------- */
+:focus-visible {
+  outline: var(--ap-focus-ring-width, 3px) solid
+           var(--ap-color-focus-ring, var(--focus-color, #0066cc)) !important;
+  outline-offset: var(--ap-focus-ring-offset, 2px) !important;
+}
+
+/* الأفعال المدمِّرة تأخذ حلقة حمراء — إشارة سياق إضافية غير لونية بحتة،
+   لأن الحلقة تصاحب نصًّا وأيقونة يدلّان على الحذف. */
+.ap-admin .btn-danger:focus-visible,
+.ap-admin [data-ap-destructive]:focus-visible {
+  outline-color: var(--ap-color-focus-ring-danger, #dc2626) !important;
+}
+
+/* حلقة فاتحة — للعناصر التي تُرسم حلقتها *فوق* خلفية بنفسجية ممتلئة.
+   الشرط هو ما خلف الحلقة لا لون العنصر: حلقة بحدّ خارجي (offset موجب)
+   تقع على خلفية الصفحة البيضاء فتبقى بنفسجية (8.03:1)، أما الحلقة
+   الداخلية (offset سالب) فتقع على تعبئة العنصر نفسه.
+
+   الحالة الحقيقية الوحيدة اليوم: عنصر السايدبار النشط — خلفيته #702ea4
+   وحلقته داخلية (deznav-native.component.scss يضبط offset: -3px لأن
+   حاوية التنقّل تقصّ الفائض). حلقة بنفسجية داخله = 1:1، غير مرئية. */
+.ap-admin .dn-active:focus-visible,
+.ap-admin [data-ap-inset-on-brand]:focus-visible {
+  outline-color: var(--ap-color-focus-ring-inverse, #ffffff) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   3) المستوى "أوضح" — يختاره المستخدم من الـ a11y FAB.
+   يضيف سماكة وإزاحة وهالة، ولا يلغي شيئًا.
+   --------------------------------------------------------------------------- */
+html[data-a11y-focus='high'] :focus-visible {
+  outline-width: 4px !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 4px rgb(0 95 204 / 0.35),
+              0 0 12px 2px rgb(0 95 204 / 0.25) !important;
+}
+
+/* داخل لوحة الإدارة تكون الهالة ببنفسجي العلامة لا بأزرق النظام */
+html[data-a11y-focus='high'] .ap-admin :focus-visible,
+html[data-a11y-focus='high'] .ap-admin:focus-visible {
+  box-shadow: 0 0 0 4px rgb(112 46 164 / 0.35),
+              0 0 12px 2px rgb(112 46 164 / 0.25) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   4) وضع الألوان القسري (Windows High Contrast) — يجب استخدام ألوان النظام.
+   --------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   5) Skip link — رابط تخطّي المحتوى (WCAG 2.4.1 Bypass Blocks).
+   كان معلّقًا في admin.component.html وفي styles.scss. أُعيد تفعيله: مع
+   سايدبار يحوي عشرات الروابط، غيابه يعني المرور بالقائمة كاملة قبل بلوغ
+   المحتوى في كل انتقال بين الصفحات.
+
+   خصائص منطقية (inset-inline-start) فتعمل في RTL و LTR بلا مِرآة يدوية.
+   --------------------------------------------------------------------------- */
+.ap-skip-link {
+  position: absolute;
+  inset-inline-start: var(--ap-space-2, 8px);
+  top: -100%;
+  z-index: var(--ap-z-toast, 1300);
+  padding: var(--ap-space-2, 8px) var(--ap-space-4, 16px);
+  border-radius: var(--ap-radius-md, 8px);
+  background: var(--ap-color-action-primary, #702ea4);
+  color: var(--ap-color-action-on-primary, #fff);
+  font-size: var(--ap-font-size-md, 0.875rem);
+  font-weight: var(--ap-font-weight-medium, 500);
+  text-decoration: none;
+  transition: top var(--ap-duration-fast, 150ms) var(--ap-ease-standard, ease);
+}
+
+.ap-skip-link:focus-visible {
+  top: var(--ap-space-2, 8px);
+  color: var(--ap-color-action-on-primary, #fff);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-skip-link {
+    transition: none;
+  }
+}

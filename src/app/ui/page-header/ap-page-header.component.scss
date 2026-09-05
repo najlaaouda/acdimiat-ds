@@ -1,0 +1,88 @@
+/* ============================================================================
+   Acadimiat UI — أنماط رأس الصفحة
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-page-header`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-page-header-*`.
+
+   لا حالات تفاعلية هنا: الرأس نصّ، وما فيه من أزرار وروابط يحمل حالاته من
+   `[apButton]`. ولذلك لا استيراد لـ `_state.scss`.
+   ============================================================================ */
+
+ap-page-header,
+ap-page-header * {
+  /* يعلن box-sizing بنفسه — القاعدة العالمية لا تعبر الجذر الظلّي في مسرح
+     المعاينة، وهي الملاحظة نفسها الموثّقة في `ap-field.component.scss`. */
+  box-sizing: border-box;
+}
+
+ap-page-header {
+  display: flex;
+  /* يلتفّ على الشاشة الضيّقة فتنزل الأفعال تحت النصّ بدل أن تنسحق بجانبه. */
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ap-page-header-actions-gap);
+  margin-block-end: var(--ap-page-header-gap);
+}
+
+ap-page-header .ap-page-header__text {
+  /* `min-width: 0` شرط لا تحسين: بدونه يرفض عنصر flex أن ينكمش دون عرض
+     محتواه، فيدفع الأفعال خارج الصفّ بدل أن يلتفّ. */
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+ap-page-header .ap-page-header__title {
+  margin: 0;
+  color: var(--ap-page-header-title-fg);
+  font-size: var(--ap-page-header-title-size);
+  font-weight: var(--ap-page-header-title-weight);
+  /* ضيّق: العنوان سطر أو سطران، والتباعد الواسع يفكّهما. */
+  line-height: var(--ap-page-header-title-leading);
+}
+
+ap-page-header .ap-page-header__description {
+  margin: var(--ap-page-header-title-gap) 0 0;
+  /*
+    ⚠️ لا حدّ لعرض الوصف: هو **جملة واحدة** لا فقرة جارية، والحدّ المعتاد
+       (~65ch لراحة العين في العودة إلى بداية السطر) يخصّ النصّ الطويل —
+       وهنا كان يقطع الجملة القصيرة إلى سطرين بلا سبب، ويُنزل رابط «اقرأ
+       المقال» وحده إلى سطر ثانٍ فيبدو عنصرًا منفصلًا لا امتدادًا للجملة.
+
+       والالتفاف يبقى قائمًا على الشاشة الضيّقة — لا `white-space: nowrap`:
+       تلك تُفيض النصّ خارج الصفحة بدل أن تلفّه.
+  */
+  color: var(--ap-page-header-desc-fg);
+  font-size: var(--ap-page-header-desc-size);
+  line-height: var(--ap-page-header-desc-leading);
+}
+
+/*
+  الرابط المُسقَط داخل الجملة يجري معها في السطر نفسه.
+
+  ⚠️ `[apButton]` يعلن `display: inline-flex` وارتفاعًا كاملًا — وهو ما يصحّ
+     لزرّ قائم بذاته لا لكلمتين داخل فقرة. والنوع `link` وحده يُستثنى هنا:
+     يعود إلى `baseline` فلا يزيح سطر الجملة، ويأخذ حجمها لا حجم الزرّ.
+*/
+ap-page-header .ap-page-header__description [apButton][data-variant='link'] {
+  height: auto;
+  padding: 0;
+  vertical-align: baseline;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* ---------------------------------------------------------------------------
+   الأفعال
+   --------------------------------------------------------------------------- */
+ap-page-header .ap-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ap-page-header-actions-gap);
+}
+
+/* يُخفى حين لا يُسقَط فيه شيء — انظر تعليق القالب. */
+ap-page-header .ap-page-header__actions:empty {
+  display: none;
+}

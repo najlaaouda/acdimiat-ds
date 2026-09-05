@@ -1,0 +1,62 @@
+@if (section(); as parent) {
+  <article class="docs-article">
+    <header class="docs-pagehead">
+      <nav class="docs-crumbs" aria-label="مسار التصفّح">
+        <a [routerLink]="['/', docsRoot]">نظام التصميم</a>
+      </nav>
+
+      <div class="docs-pagehead__row">
+        <h1 class="docs-pagehead__title">{{ parent.title }}</h1>
+      </div>
+
+      <p class="docs-pagehead__summary">{{ parent.description }}</p>
+    </header>
+
+    @for (block of groups(); track $index) {
+      <section class="docs-block">
+        @if (block.group) {
+          <h2 class="docs-block__title">{{ block.group.title }}</h2>
+        }
+        <div class="docs-cards">
+          @for (entry of block.entries; track entry.slug) {
+            <a class="docs-card" [routerLink]="['/', docsRoot, entry.category, entry.slug]">
+              <span class="docs-card__head">
+                <span class="docs-card__title">{{ entry.title }}</span>
+                <app-docs-status-pill [status]="entry.status" />
+              </span>
+              <span class="docs-card__body">{{ entry.summary }}</span>
+            </a>
+          }
+        </div>
+      </section>
+    }
+
+    @if (emptyGroups().length) {
+      <section class="docs-block">
+        <h2 class="docs-block__title">لم يُوثَّق بعد</h2>
+        <p class="docs-prose">
+          مجموعات معلنة في بنية النظام ولم تُكتب صفحاتها بعد. مذكورة هنا كي
+          يكون النقص معلومًا لا مفاجئًا.
+        </p>
+        <ul class="docs-list">
+          @for (group of emptyGroups(); track group.id) {
+            <li class="docs-list__item">{{ group.title }}</li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (!groups().length && !emptyGroups().length) {
+      <div class="docs-empty">
+        <p class="docs-empty__title">لا صفحات في هذا القسم بعد</p>
+        <p class="docs-empty__body">سيظهر محتواه هنا فور تسجيل أول صفحة فيه.</p>
+      </div>
+    }
+  </article>
+} @else {
+  <div class="docs-empty">
+    <p class="docs-empty__title">هذا القسم غير موجود</p>
+    <p class="docs-empty__body">تحقّق من الرابط، أو ابدأ من نظرة عامة على النظام.</p>
+    <a class="docs-empty__action" [routerLink]="['/', docsRoot]">العودة إلى نظام التصميم</a>
+  </div>
+}

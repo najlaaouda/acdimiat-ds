@@ -1,0 +1,146 @@
+<!--
+  منطقة الإسقاط — الحالة الفارغة.
+
+  ⚠️ صفٌّ لا عمود، وبالبنية نفسها التي تأخذها بطاقة الملف: مربّع في البداية
+     ثمّ نصّ. فالصورة حين تصل تحلّ **محلّ المربّع في موضعه ومقاسه**، ولا
+     يتحرّك شيء آخر. التخطيط المتمركز (أيقونة فوق نصّ) كان يعيد بناء الصفّ
+     من الصفر عند أوّل رفع، فيقفز الحقل وما تحته.
+
+  div لا button ولا label: عنصر التحكّم القابل للتركيز هو input[type=file]
+  أسفلَه، والنقر هنا يوكَّل إليه. زرٌّ حقيقي كان يضيف نقطة توقّف ثانية في
+  ترتيب التنقّل لفعل واحد، وlabel ثانٍ كان يضمّ نصّه إلى اسم الحقل.
+-->
+@if (showZone()) {
+  <div
+    class="ap-upload__zone"
+    [attr.data-dragging]="dragging() ? 'true' : null"
+    (click)="openPicker($event)"
+    (dragenter)="onDragOver($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <!--
+      المربّع الفارغ هو <ap-avatar> نفسه بلا src، لا رسمٌ مستقلّ: الدائرة
+      ونسبة 4:3 للعريض تأتيان من هناك، فلا تتباعد هندسة «قبل» عن «بعد».
+
+      والأيقونة مُسقَطة في منفذ الأفاتار عمدًا: الأفاتار الدائري يرسم بديلًا
+      على هيئة **شخص**، وهو خطأ هنا — الدائرة تصف ما سيوضع فيها (صورة ملف
+      شخصي) لا من هو، و«شخص غائب» ليست «صورة غائبة».
+    -->
+    <ap-avatar class="ap-upload__placeholder" [shape]="shapeValue()" size="md">
+      <svg viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <circle cx="8.5" cy="9.5" r="1.5" />
+        <path d="m3 16 4.5-4.5a2 2 0 0 1 2.8 0L16 17M14 14l1.5-1.5a2 2 0 0 1 2.8 0L21 15" />
+      </svg>
+    </ap-avatar>
+
+    <p class="ap-upload__prompt">
+      {{ promptValue() }}
+      <!--
+        «اختر من جهازك» بلون الفعل ومسطَّرة — هي الجزء القابل للنقر في جملة
+        نصفُها وصف. وليست عنصرًا تفاعليًّا: المنطقة كلّها تفتح المنتقي.
+      -->
+      <span class="ap-upload__prompt-action">{{ actionText }}</span>
+    </p>
+  </div>
+}
+
+<!--
+  عنصر التحكّم الحقيقي — مخفيّ بصريًّا لا محذوف. انظر تعليق رأس المكوّن.
+
+  خارج المنطقة عمدًا: في الوضع المتعدّد تبقى المنطقة والبطاقات معًا، ولا
+  يصحّ أن يعيش الـ input داخل ما قد يختفي.
+-->
+<input
+  #picker
+  class="ap-upload__input"
+  type="file"
+  [id]="controlId()"
+  [attr.name]="nameValue()"
+  [attr.accept]="acceptValue()"
+  [attr.aria-describedby]="describedBy()"
+  [attr.aria-required]="requiredValue() ? 'true' : null"
+  [attr.aria-invalid]="ariaInvalid() ? 'true' : null"
+  [multiple]="multipleValue()"
+  [disabled]="disabledValue()"
+  (change)="onPicked($event)"
+/>
+
+@if (filesValue().length) {
+  <ul class="ap-upload__list">
+    @for (file of filesValue(); track file.name + $index) {
+      <li class="ap-upload__file">
+        <!--
+          المصغَّرة زخرفية دائمًا: الاسم مكتوب بجوارها، ولو حملت alt لقُرئ
+          مرّتين متتاليتين. القاعدة نفسها في ap-media-cell.
+        -->
+        <ap-avatar class="ap-upload__thumb" [shape]="shapeValue()" [src]="file.url || ''" size="md" />
+
+        <span class="ap-upload__meta">
+          <span class="ap-upload__name" [attr.title]="file.name">{{ file.name }}</span>
+
+          @if (progressValue() !== null) {
+            <!--
+              «جارٍ الرفع…» يحلّ محلّ الحجم لا يُضاف تحته: الارتفاع لا يتغيّر
+              أثناء الرفع ثمّ يعود بعده، فلا تقفز البطاقة تحت المؤشّر.
+
+              والشريط aria-hidden: النسبة مكتوبة بجواره، ومنطقة حيّة تُعلن كل
+              واحد بالمئة تُغرق قارئ الشاشة. الإعلان يقع مرّة واحدة عند
+              الانتهاء، من منطقة الحالة أسفل المكوّن.
+            -->
+            <span class="ap-upload__progress-line">
+              <span class="ap-upload__progress-text"
+                >جارٍ الرفع… <span dir="ltr">{{ progressValue() }}%</span></span
+              >
+              <span class="ap-upload__progress" aria-hidden="true">
+                <span class="ap-upload__progress-fill" [style.width.%]="progressValue()"></span>
+              </span>
+            </span>
+          } @else if (sizeLabel(file)) {
+            <!--
+              ⚠️ الاتّجاه على **النصّ** لا على الصندوق.
+
+              «200 KB» سلسلة لاتينية واحدة، وبلا `dir` تُقرأ «KB 200». لكن
+              وضع `dir="ltr"` على الصندوق نفسه يقلب معه `text-align: start`
+              إلى **اليسار**، فيهرب الحجم إلى الطرف المقابل لاسم الملف فوقه
+              ويُقرآن سطرين لا شيئًا واحدًا.
+
+              فالصندوق يبقى RTL، والمدى اللاتيني وحده يُلفّ بـ `<span dir>`.
+              القاعدة نفسها التي تحكم خلايا البريد والهاتف في `<ap-table>`.
+            -->
+            <span class="ap-upload__size"><span dir="ltr">{{ sizeLabel(file) }}</span></span>
+          }
+        </span>
+
+        <!--
+          نبرة الخطر مشروعة لأن الزرّ عارٍ بلا نصّ — انظر تعليق الرمز في
+          _components.css. والاسم المتاح على صيغة الزرّ النصّي: «حذف الصورة»
+          لا «زرّ الحذف».
+        -->
+        <button
+          class="ap-upload__remove"
+          type="button"
+          [attr.aria-label]="removeLabel(file)"
+          [disabled]="disabledValue()"
+          (click)="onRemove($index, file)"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+            <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          </svg>
+        </button>
+      </li>
+    }
+  </ul>
+}
+
+<!--
+  منطقة الحالة: البطاقة تظهر للعين ولا تقول شيئًا لقارئ الشاشة، والتركيز
+  يبقى على الـ input بعد الاختيار. فارغة حتى أوّل تفاعل — نصٌّ فيها عند أوّل
+  تصيير يُعلَن عند فتح الصفحة بلا سبب.
+-->
+<p class="ap-upload__sr" role="status">{{ liveMessage() }}</p>

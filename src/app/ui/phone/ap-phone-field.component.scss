@@ -1,0 +1,311 @@
+@use '../state' as state;
+@use '../select/menu';
+
+/* ============================================================================
+   Acadimiat UI — أنماط حقل رقم الجوال
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-phone-field`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — من `--ap-phone-*` و`--ap-input-*` و`--ap-select-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+
+   ⚠️ الصفّ مقلوب إلى LTR (`ltrRow()`)، فالخصائص المنطقية داخله تُحلّ مقابل
+      LTR لا مقابل الصفحة. من يكتب `inset-inline-start` هنا متخيّلًا RTL يضع
+      العنصر في الجهة المقلوبة.
+
+   ⚠️ هذا المكوّن لا يرسم حدّه: يعلن `affixed` فيأخذ معاملة الصفّ الملاصق من
+      `ap-field.component.scss` — الحدّ والتعبئة والاستدارة وحلقة التركيز
+      وحالتا الخطأ والتعطيل. رسم حدّ هنا ينتج صندوقًا داخل صندوق.
+   ============================================================================ */
+
+ap-phone-field,
+ap-phone-field * {
+  box-sizing: border-box;
+}
+
+ap-phone-field {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+/* الحقل صفّ مرن، والمكوّن عنصر فيه يملأ ما تبقّى ولا ينكمش دون محتواه. */
+ap-field .ap-field__control ap-phone-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+ap-phone-field .ap-phone__row {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  height: var(--ap-input-height-md);
+}
+
+/* ---------------------------------------------------------------------------
+   زرّ الدولة
+   يشبه اللاصقة بصريًا — خلفية رمادية وفاصل — لكنه تفاعلي: له مؤشّر وhover
+   وحلقة تركيز. اللاصقة نصّ ثابت `aria-hidden`، وهذا زرّ يفتح قائمة.
+   --------------------------------------------------------------------------- */
+ap-phone-field .ap-phone__country {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--ap-phone-country-gap);
+  padding-inline: var(--ap-phone-country-padding-x);
+  border: 0;
+  /* الفاصل عن حقل الرقم. منطقيّ، ويُحلّ مقابل LTR الصفّ فيقع على اليمين. */
+  border-inline-end: var(--ap-input-border-width) solid var(--ap-input-border);
+  background: var(--ap-phone-country-bg);
+  color: var(--ap-phone-country-fg);
+  font-family: var(--ap-font-sans);
+  font-size: var(--ap-input-font-size);
+  line-height: var(--ap-leading-none);
+  cursor: pointer;
+  transition: background-color var(--ap-button-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ap-phone-field .ap-phone__country,
+  ap-phone-field .ap-phone__chevron {
+    transition: none;
+  }
+}
+
+ap-phone-field .ap-phone__country {
+  @include state.hover {
+    background: var(--ap-phone-country-bg-hover);
+  }
+
+  /*
+    حلقة **داخلية** لا خارجية.
+
+    الصفّ كلّه يحمل حلقة `:focus-within` تقول «أنا في هذا الحقل»؛ وهذه تقول
+    «أيّ الجزأين سيستقبل ضغطة Enter». والخارجية كانت ستخرج عن حدّ الصفّ
+    فتبدو كأن الزرّ انفصل عن الحقل.
+
+    وهي `:focus-visible` عبر الـ mixin، فلا تظهر لمستخدم الفأرة.
+  */
+  @include state.focus {
+    box-shadow: var(--ap-focus-ring-shadow-inset);
+    outline: none;
+  }
+
+  @include state.disabled {
+    color: var(--ap-input-fg-disabled);
+    cursor: not-allowed;
+  }
+}
+
+/* رمز الاتّصال أوضح من لون اللاصقة: قيمة تُقرأ لا زخرفة. */
+ap-phone-field .ap-phone__dial {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* الغلاف يختفي حين لا يُرجع المصدر علمًا، فلا يأكل `gap`. */
+ap-phone-field .ap-phone__flag:empty {
+  display: none;
+}
+
+ap-phone-field .ap-phone__flag {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+/*
+  العلم بمقاس ثابت مهما اختلف مصدره — svg أو إيموجي أو شارة رمز — فلا يقفز
+  عرض الزرّ عند تبديل الدولة.
+
+  ⛔ ولا `apIconFlip` عليه أبدًا: العلم دلالي لا اتجاهي، وقلبه في RTL يعكس
+     ترتيب ألوانه فيصير علم دولة أخرى أحيانًا.
+*/
+ap-phone-field .ap-phone__flag-img {
+  display: block;
+  width: var(--ap-phone-flag-size);
+  height: auto;
+  border-radius: var(--ap-phone-flag-radius);
+  /* العلم صورة لا أيقونة: `object-fit` يمنع تشوّهه مهما اختلفت نسب الملف. */
+  object-fit: cover;
+}
+
+ap-phone-field .ap-phone__flag-emoji {
+  font-size: var(--ap-phone-flag-size);
+  line-height: 1;
+}
+
+/* شارة الرمز — الافتراضي حين لا مصدر أعلام. حتمية على كل منصّة. */
+ap-phone-field .ap-phone__flag-code {
+  font-size: var(--ap-font-size-2xs);
+  font-weight: var(--ap-font-weight-semibold);
+  letter-spacing: 0;
+}
+
+ap-phone-field .ap-phone__chevron {
+  display: flex;
+  flex: 0 0 auto;
+  color: var(--ap-select-arrow-fg);
+  transition: rotate var(--ap-control-transition);
+}
+
+ap-phone-field .ap-phone__country[aria-expanded='true'] .ap-phone__chevron {
+  rotate: 180deg;
+}
+
+ap-phone-field .ap-phone__chevron svg {
+  display: block;
+  width: var(--ap-select-arrow-size);
+  height: var(--ap-select-arrow-size);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* مخفيّ بصريًا لا محذوف — يكمل اسم الزرّ في قارئ الشاشة. */
+ap-phone-field .ap-phone__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   حقل الرقم
+   بلا حدّ ولا تعبئة — الصفّ يملكهما.
+   --------------------------------------------------------------------------- */
+ap-phone-field .ap-phone__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline: var(--ap-input-padding-x);
+  border: 0;
+  background: none;
+  color: var(--ap-input-fg);
+  font-family: var(--ap-font-sans);
+  font-size: var(--ap-input-font-size);
+  /* الأرقام بعرض ثابت فتصطفّ المنازل ولا تهتزّ أثناء الكتابة. */
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+/*
+  ⚠️ `outline: none` أعلاه لا يكفي: `foundations/_focus.css` يفرض حلقة على كل
+     عنصر مركَّز بـ `!important`، ولا تُهزم بالخصوصية وحدها.
+
+     والقاعدة صحيحة في ذاتها — وُضعت لتبطل `* { outline: none }` في الورقة
+     القديمة. لكنها تفترض أن العنصر المركَّز **هو** ما يراه المستخدم حقلًا،
+     وهنا ليس كذلك: المركَّز `<input>` عارٍ داخل صفّ، والصفّ هو الحقل في عينه.
+     فتظهر حلقتان: واحدة حول الصفّ وأخرى حول جزء منه.
+
+     ولا يظهر ذلك في معاينات التوثيق: مسرحها جذر ظلّي لا تعبره الأوراق
+     العامة. العطل يعيش في اللوحة وحدها.
+
+     ⚠️ ولا يُنسخ هذا إلى زرّ الدولة: ذاك يُركَّز وحده ويحتاج حلقته.
+*/
+ap-phone-field .ap-phone__input:focus,
+ap-phone-field .ap-phone__input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+ap-phone-field .ap-phone__input::placeholder {
+  color: var(--ap-input-placeholder);
+  opacity: 1;
+}
+
+ap-phone-field .ap-phone__input:disabled {
+  color: var(--ap-input-fg-disabled);
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------------
+   لوحة الدول — الشكل من الجزء المشترك مع القوائم الأخرى
+   --------------------------------------------------------------------------- */
+ap-phone-field .ap-phone__panel {
+  position: fixed;
+  @include menu.panel;
+  @include menu.panel-placement;
+  /* اللوحة عمود: بحث ثابت فوق، ولائحة تمرّ تحته. */
+  display: flex;
+  flex-direction: column;
+  /* التمرير ينتقل إلى اللائحة وحدها كي يثبت البحث. */
+  overflow: hidden;
+}
+
+/*
+  البحث لا يمرّ مع اللائحة: من يكتب حرفًا ثم يمرّر يفقد حقل بحثه من الشاشة،
+  فلا يعرف بمَ صفّى.
+*/
+ap-phone-field .ap-phone__search {
+  flex: 0 0 auto;
+  margin-inline: var(--ap-select-option-padding-x);
+  margin-block-end: var(--ap-select-menu-padding-y);
+  padding-inline: var(--ap-input-padding-x);
+  height: var(--ap-input-height-sm);
+  border: var(--ap-input-border-width) solid var(--ap-input-border);
+  border-radius: var(--ap-input-radius-sm);
+  background: var(--ap-input-bg);
+  color: var(--ap-input-fg);
+  font-family: var(--ap-font-sans);
+  font-size: var(--ap-font-size-xs);
+}
+
+ap-phone-field .ap-phone__search {
+  @include state.focus {
+    border-color: var(--ap-input-border-focus);
+    background: var(--ap-input-bg-focus);
+    box-shadow: var(--ap-input-focus-ring);
+    outline: none;
+  }
+}
+
+ap-phone-field .ap-phone__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/*
+  صفّ الخيار RTL — اللوحة خارج الصفّ المقلوب، فترث اتجاه الصفحة.
+  الاسم العربي أولًا ثم الرمز اللاتيني.
+*/
+ap-phone-field .ap-phone__option {
+  @include menu.option;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ap-space-3);
+}
+
+ap-phone-field .ap-phone__option[data-active='true'] {
+  @include menu.option-active;
+}
+
+ap-phone-field .ap-phone__option[aria-selected='true'] {
+  @include menu.option-selected;
+}
+
+ap-phone-field .ap-phone__option-name {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* الرمز ثانوي: القيمة التي يبحث بها المستخدم هي الاسم غالبًا. */
+ap-phone-field .ap-phone__option-dial {
+  flex: 0 0 auto;
+  color: var(--ap-color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+ap-phone-field .ap-phone__empty {
+  margin: 0;
+  @include menu.empty;
+}

@@ -1,0 +1,151 @@
+<!--
+  ⚠️ كل معاينة أدناه تستهلك الـ token عبر `var()` في `[style]` مباشرةً.
+     ممنوع تمرير قيمة محسوبة إلى النمط — لو فعلنا لصارت المعاينة نسخةً عن
+     الحقيقة قابلة للانحراف، بدل أن تكون الحقيقة نفسها.
+-->
+
+@if (hasUnclassified()) {
+  <div class="docs-callout" data-tone="warning" role="note">
+    <p class="docs-callout__title">tokens غير مصنَّفة</p>
+    <p class="docs-callout__body">
+      عجز الاستنتاج عن تحديد نوع الـ tokens في مجموعة «غير مصنَّف» أدناه من
+      أسمائها. هذا خلل في انضباط التسمية لا في التوثيق — الاسم في نظام ناضج
+      يجب أن يكشف النوع.
+    </p>
+  </div>
+}
+
+@for (group of groups(); track group.type) {
+  <div class="docs-tokens">
+    <p class="docs-tokens__group">{{ group.label }}</p>
+
+    <ul class="docs-tokens__list">
+      @for (row of group.rows; track row.name) {
+        <li class="docs-tokens__row" [attr.data-type]="row.type">
+
+          <!-- ── المعاينة ─────────────────────────────────────────────── -->
+          <span class="docs-tokens__preview">
+            @switch (row.type) {
+              @case ('color') {
+                <span
+                  class="docs-swatch"
+                  [style.background]="'var(' + row.name + ')'"
+                ></span>
+              }
+              @case ('spacing') {
+                <span class="docs-bar">
+                  <span class="docs-bar__fill" [style.width]="'var(' + row.name + ')'"></span>
+                </span>
+              }
+              @case ('size') {
+                <span class="docs-bar">
+                  <span class="docs-bar__fill" [style.width]="'var(' + row.name + ')'"></span>
+                </span>
+              }
+              @case ('radius') {
+                <span
+                  class="docs-radius"
+                  [style.border-radius]="'var(' + row.name + ')'"
+                ></span>
+              }
+              @case ('border-width') {
+                <span
+                  class="docs-borderbox"
+                  [style.border-width]="'var(' + row.name + ')'"
+                ></span>
+              }
+              @case ('shadow') {
+                <span
+                  class="docs-shadowbox"
+                  [style.box-shadow]="'var(' + row.name + ')'"
+                ></span>
+              }
+              @case ('font-size') {
+                <span class="docs-typesample" [style.font-size]="'var(' + row.name + ')'">
+                  نصّ Ag
+                </span>
+              }
+              @case ('font-weight') {
+                <span class="docs-typesample" [style.font-weight]="'var(' + row.name + ')'">
+                  نصّ Ag
+                </span>
+              }
+              @case ('font-family') {
+                <span class="docs-typesample" [style.font-family]="'var(' + row.name + ')'">
+                  نصّ Ag
+                </span>
+              }
+              @case ('line-height') {
+                <span class="docs-leadsample" [style.line-height]="'var(' + row.name + ')'">
+                  سطر أوّل<br />سطر ثانٍ
+                </span>
+              }
+              @case ('opacity') {
+                <span class="docs-swatch docs-swatch--brand" [style.opacity]="'var(' + row.name + ')'"></span>
+              }
+              @default {
+                <span class="docs-tokens__noprev" aria-hidden="true">—</span>
+              }
+            }
+          </span>
+
+          <!-- ── الاسم ────────────────────────────────────────────────── -->
+          <button
+            type="button"
+            class="docs-tokens__name"
+            dir="ltr"
+            [attr.title]="'نسخ var(' + row.name + ')'"
+            (click)="copy(row.name)"
+          >{{ row.name }}</button>
+
+          <!-- ── القيمة المحسوبة ──────────────────────────────────────── -->
+          <span class="docs-tokens__value" dir="ltr">
+            @if (row.value) {
+              {{ row.value }}
+            } @else {
+              <span class="docs-tokens__pending" title="تُقرأ في المتصفّح بعد الترطيب">—</span>
+            }
+          </span>
+
+          <!-- ── التباين ──────────────────────────────────────────────── -->
+          <!--
+            رقم التباين بلا اتجاه رقم غامض. الشارة تصرّح بما قيس:
+            «على السطح» للون نصّ، و«النصّ فوقه» للون خلفية.
+          -->
+          <span class="docs-tokens__contrast">
+            @if (row.contrast; as contrast) {
+              <span
+                class="docs-ratio"
+                [attr.data-pass]="contrast.aa ? 'aa' : contrast.aaLarge ? 'aa-large' : 'fail'"
+                [attr.title]="
+                  row.role === 'foreground'
+                    ? 'تباين هذا اللون كنصّ على سطح البطاقة'
+                    : row.onColor === 'light'
+                      ? 'أفضل تباين فوق هذا اللون: نصّ فاتح'
+                      : 'أفضل تباين فوق هذا اللون: نصّ داكن'
+                "
+              >
+                <span class="docs-ratio__dir">
+                  @if (row.role === 'foreground') {
+                    على السطح
+                  } @else if (row.onColor === 'light') {
+                    نصّ فاتح
+                  } @else {
+                    نصّ داكن
+                  }
+                </span>
+                <span dir="ltr">{{ contrast.ratio }}:1</span>
+                <span class="docs-ratio__label">
+                  @if (contrast.aaa) { AAA }
+                  @else if (contrast.aa) { AA }
+                  @else if (contrast.aaLarge) { AA كبير }
+                  @else { دون الحدّ }
+                </span>
+              </span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  </div>
+}

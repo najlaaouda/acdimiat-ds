@@ -1,0 +1,68 @@
+<nav class="docs-nav" aria-label="أقسام نظام التصميم">
+  <a
+    class="docs-nav__home"
+    [routerLink]="['/', docsRoot]"
+    routerLinkActive="docs-nav__home--active"
+    [routerLinkActiveOptions]="{ exact: true }"
+  >
+    نظرة عامة
+  </a>
+
+  @for (branch of tree(); track branch.section.id) {
+    <section class="docs-nav__section">
+      <!--
+        عنوان التصنيف رابط بذاته إلى صفحة الفهرس، لا نصّ ميّت.
+        هذا يجعل كل مستوى في الشجرة قابلًا للوصول بضغطة واحدة.
+      -->
+      <a
+        class="docs-nav__heading"
+        [routerLink]="['/', docsRoot, branch.section.id]"
+        routerLinkActive="docs-nav__heading--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <span class="docs-nav__icon" aria-hidden="true">{{ branch.section.icon }}</span>
+        <span class="docs-nav__heading-text">{{ branch.section.title }}</span>
+        <span class="docs-nav__count" aria-hidden="true">{{ branch.count }}</span>
+      </a>
+
+      @if (branch.looseEntries.length) {
+        <ul class="docs-nav__list">
+          @for (link of branch.looseEntries; track link.slug) {
+            <li>
+              <a
+                class="docs-nav__link"
+                [routerLink]="link.path"
+                routerLinkActive="docs-nav__link--active"
+                [routerLinkActiveOptions]="{ exact: true }"
+              >
+                <span class="docs-nav__link-text">{{ link.title }}</span>
+                <app-docs-status-pill [status]="link.status" [compact]="true" />
+              </a>
+            </li>
+          }
+        </ul>
+      }
+
+      @for (group of branch.groups; track group.group.id) {
+        <div class="docs-nav__group">
+          <p class="docs-nav__group-title">{{ group.group.title }}</p>
+          <ul class="docs-nav__list">
+            @for (link of group.entries; track link.slug) {
+              <li>
+                <a
+                  class="docs-nav__link"
+                  [routerLink]="link.path"
+                  routerLinkActive="docs-nav__link--active"
+                  [routerLinkActiveOptions]="{ exact: true }"
+                >
+                  <span class="docs-nav__link-text">{{ link.title }}</span>
+                  <app-docs-status-pill [status]="link.status" [compact]="true" />
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
+  }
+</nav>

@@ -1,0 +1,132 @@
+@use '../state' as state;
+
+/* ============================================================================
+   Acadimiat UI — أنماط مسار التنقّل
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-breadcrumbs`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقة `--ap-breadcrumbs-*`.
+   ⛔ ممنوع `&:hover` مباشرةً — الحالات عبر mixins من `ui/_state.scss`.
+
+   ─── المسافات ─────────────────────────────────────────────────────────────
+   مقيسة من المرجع البصري ومردودة إلى السلّم: 8px حول الشيفرون = space-2،
+   وارتفاع 32px = space-8، وشيفرون 14px = icon-sm. لا خطوة خارج السلّم.
+
+   ─── لماذا `flex-wrap` هنا و`nowrap` في شريط التبويب ──────────────────────
+   هناك شريط سفلي يربط الروابط بخطّ واحد، فسطران يكسران العلاقة. وهنا لا
+   خطّ ولا علاقة بصرية بين الدرجات غير الترتيب — والالتفاف يبقيها كلها
+   مرئية بلا تمرير ولا JavaScript. واسم دورة طويل يفيض بلا هذا.
+   ============================================================================ */
+
+ap-breadcrumbs,
+ap-breadcrumbs * {
+  /* يعلن box-sizing بنفسه — القاعدة العالمية لا تعبر الجذر الظلّي في مسرح
+     المعاينة، وهي الملاحظة نفسها الموثّقة في `ap-field.component.scss`. */
+  box-sizing: border-box;
+}
+
+ap-breadcrumbs {
+  display: block;
+}
+
+ap-breadcrumbs .ap-breadcrumbs__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ap-breadcrumbs-gap);
+  min-height: var(--ap-breadcrumbs-min-height);
+  /* ⚠️ القائمة تحتاج تصفير حشوتها ونقاطها صراحةً: `bootstrap.css` يضبط
+     `ol { padding-inline-start: 2rem }`، وتصفيره هنا (0,0,2) يغلبه بلا
+     `!important` وبلا تعديل الورقة القديمة. */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ap-breadcrumbs .ap-breadcrumbs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ap-breadcrumbs-gap);
+  /* اسم الدرجة لا يُقسَم على سطرين — الالتفاف يقع **بين** الدرجات. */
+  white-space: nowrap;
+  font-size: var(--ap-breadcrumbs-font-size);
+}
+
+/* ---------------------------------------------------------------------------
+   الفاصل
+   ---------------------------------------------------------------------------
+   ⚠️ مرسوم LTR كما تُرسم كل أيقونة اتجاهية في المكتبة، ويُعكس في RTL —
+      فيشير دائمًا إلى الدرجة التالية في اتجاه القراءة، لا إلى الوراء.
+   --------------------------------------------------------------------------- */
+ap-breadcrumbs .ap-breadcrumbs__separator {
+  flex: none;
+  width: var(--ap-breadcrumbs-separator-size);
+  height: var(--ap-breadcrumbs-separator-size);
+  color: var(--ap-breadcrumbs-separator-fg);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+ap-breadcrumbs .ap-breadcrumbs__separator:dir(rtl) {
+  transform: scaleX(-1);
+}
+
+/* ---------------------------------------------------------------------------
+   الدرجات
+   --------------------------------------------------------------------------- */
+ap-breadcrumbs .ap-breadcrumbs__link,
+ap-breadcrumbs .ap-breadcrumbs__ellipsis {
+  border: 0;
+  border-radius: var(--ap-breadcrumbs-link-radius);
+  background: transparent;
+  color: var(--ap-breadcrumbs-link-fg);
+  font: inherit;
+  font-weight: var(--ap-breadcrumbs-link-weight);
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--ap-breadcrumbs-duration) var(--ap-breadcrumbs-ease);
+
+  /*
+    تسطير عند المرور لا خلفية: المسار سطر واحد خفيف فوق المحتوى، وحبّة
+    ملوّنة تحت المؤشّر تُثقله وتشبه شريط التبويب — وهما شيئان مختلفان.
+  */
+  @include state.hover {
+    color: var(--ap-breadcrumbs-link-fg-hover);
+    text-decoration: underline;
+  }
+
+  @include state.focus {
+    outline: var(--ap-focus-ring-width) solid var(--ap-breadcrumbs-focus-ring-color);
+    outline-offset: var(--ap-focus-ring-offset);
+  }
+}
+
+ap-breadcrumbs .ap-breadcrumbs__text {
+  color: var(--ap-breadcrumbs-link-fg);
+  font-weight: var(--ap-breadcrumbs-link-weight);
+}
+
+/*
+  الحالي يختلف بفارقين: أدكن **وأثقل**. اللون وحده يسقط لمن لا يميّزه
+  (WCAG 1.4.1)، والوزن يسنده. ولا قفزة تخطيط هنا لأن الحالي لا يتبدّل
+  داخل الصفحة — بخلاف شريط التبويب حيث الوزن ثابت لهذا السبب بعينه.
+*/
+ap-breadcrumbs .ap-breadcrumbs__current {
+  color: var(--ap-breadcrumbs-current-fg);
+  font-weight: var(--ap-breadcrumbs-current-weight);
+}
+
+/* ---------------------------------------------------------------------------
+   الألوان المفروضة
+   ---------------------------------------------------------------------------
+   في `forced-colors` تُوحَّد ألوان النصّ، فيبقى الوزن وحده مميّزًا للحالي —
+   وهو يكفي لأن الفارق لم يكن لونيًّا وحده أصلًا.
+   --------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  ap-breadcrumbs .ap-breadcrumbs__separator {
+    color: CanvasText;
+  }
+}

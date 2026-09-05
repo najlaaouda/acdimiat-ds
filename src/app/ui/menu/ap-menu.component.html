@@ -1,0 +1,22 @@
+<!--
+  قالب خارجي لا `template:` سطري — أي backtick داخل قالب سطري (ولو في تعليق)
+  يُغلق النصّ الحرفي وينتج جدارًا من أخطاء TS تشير إلى أسطر خاطئة.
+
+  ⚠️ اللوحة **دائمًا في الشجرة** ولا تُلفّ بـ `@if`: `showPopover()` تحتاج
+     العنصر موجودًا، ولفّها يعني إنشاءه وطلب عرضه في اللحظة نفسها. وهي
+     مخفيّة بحكم سمة `popover` حتى تُعرض، فلا تكلفة تخطيط لوجودها.
+
+  ⚠️ ولا `role` هنا: الدور يخصّ المحتوى لا اللوحة — انظر تعليق المكوّن.
+-->
+<div
+  #panel
+  class="ap-menu__panel"
+  popover="auto"
+  [attr.data-placement]="placement()"
+  [attr.data-match-width]="matchWidth()"
+  [style.top.px]="panelTop()"
+  [style.left.px]="panelLeft()"
+  [style.width.px]="matchWidth() ? panelWidth() : null"
+  [style.maxHeight.px]="panelMaxHeight()"
+  (toggle)="onToggle($event)"
+><ng-content /></div>

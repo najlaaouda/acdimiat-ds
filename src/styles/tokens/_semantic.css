@@ -1,0 +1,241 @@
+/* ============================================================================
+   Acadimiat Design System — Layer 2: SEMANTIC
+   ----------------------------------------------------------------------------
+   معنى داخل الواجهة، بلا ارتباط بمكوّن بعينه.
+   تشير إلى Primitives فقط — لا تحمل أي قيمة hex/rgba مباشرة.
+
+   ⚠️ النطاق: .ap-admin عمدًا.                                         [D-10]
+      لا يوجد أي عزل CSS بين الـ Admin والموقع العام في هذا المشروع
+      (admin.component.scss فارغ، وangular.json يحمّل كل شيء على كل مسار).
+      حصر الطبقة الدلالية تحت .ap-admin يمنع تسرّب هوية لوحة الإدارة إلى
+      الموقع العام — الذي له هوية خضراء قابلة للتخصيص لكل أكاديمية.
+
+      عند ترحيل الموقع لاحقًا: تُكتب .ap-site بنفس أسماء هذه الـ tokens
+      وبقيم مختلفة، فتعمل كل المكوّنات في الطرفين بلا أي تعديل.      [D-14]
+
+   📖 نطاق ثانٍ: .ap-docs                                            [D-15]
+      موقع توثيق نظام التصميم (/design-system) يستهلك نفس الطبقة حرفيًا،
+      فيبقى مصدر الحقيقة واحدًا: ما يُوثَّق هو ما يُرسم، بلا نسخ ولا انحراف.
+      لم يُنسخ شيء ولم تتغيّر أي قيمة — أُضيف اسم إلى المحدّد فقط، فالأثر
+      البصري على لوحة الإدارة صفر.
+   ============================================================================ */
+
+.ap-admin,
+.ap-docs {
+  /* ══════════════════════════════════════════════════════════════════════
+     SURFACES
+     ══════════════════════════════════════════════════════════════════════ */
+  /*
+    خلفية الكانفاس التي تطفو فوقها الأسطح البيضاء.                    [D-16]
+
+    وهي ‎--ap-slate-75‎ ⇒ ‎#F6F8FA‎ — 1.07:1 مقابل الأبيض. والفصل لا يأتي منها
+    وحدها بل من **حدّ البطاقة** معها: ‎--ap-shell-card-border‎ = ‎slate-200‎ ⇒
+    ‎#e2e8f0‎ (1.23:1). وهي أغمق ممّا سبقها (‎L 0.936‎ مقابل ‎0.979‎)، فالبطاقة
+    البيضاء تُقرأ فوقها لا فيها.
+
+    ⚠️ وكانت قبلها ‎color-mix(purple-700 4%, slate-50)‎ ⇒ ‎#f3f2f8‎ (1.11:1):
+       مسحةٌ بنفسجية وُضعت يوم كانت البطاقة تُفصل بظلّ لا بحدّ — والظلّ يذوب
+       تحت أي طبقة معتمة تمرّ فوقه، فكانت المسحة تعوّضه. وقد سقط ذلك السبب
+       يوم صار للبطاقة حدّ يرسم حافّتها بنفسه.
+
+    ⚠️ وترتيبها مع ‎-bg-subtle‎ (تعبئة الحقل داخل البطاقة، ‎L 0.954‎):
+       الكانفاس أغمق بدرجة، فالحقل يقع **داخل** سطح أفتح منه ولا يُقرأ ثقبًا فيه.
+  */
+  --ap-color-bg-page:     var(--ap-slate-75);
+  --ap-color-bg-surface:  var(--ap-white);
+  --ap-color-bg-subtle:   var(--ap-slate-50);
+  --ap-color-bg-muted:    var(--ap-slate-100);
+  --ap-color-bg-hover:    var(--ap-slate-100);
+  --ap-color-bg-selected: var(--ap-purple-50);
+  /*
+    درجة أعمق للمحدَّد الذي **يبقى**: صفّ الشريط الجانبي هو الصفحة المفتوحة،
+    لا اختيارٌ مؤقّت يتبع المؤشّر.
+
+    ⚠️ و`purple-50` لا يصلح هنا بالقياس لا بالذوق: يقيس `L 0.921`، أي أفتح
+       من الهافر `slate-100` (`0.908`) — فصفٌّ يمرّ عليه المؤشّر يبدو أغمق من
+       الصفحة المفتوحة نفسها. وفرقه عن الكانفاس `1.02:1`، أي لا يكاد يُرى.
+
+    و`purple-100` عند `L 0.825` يصحّح الترتيب: محدَّد ⟩ هافر ⟩ كانفاس
+    (`1.10:1` و`1.13:1`)، ولون الفعل عليه `6.69:1`.
+  */
+  --ap-color-bg-selected-bold: var(--ap-purple-100);
+  /*
+    أخفّ من -selected بدرجة: صفّ محدَّد في جدول طويل تتكرّر خلفيته عشرات
+    المرّات، فما يصلح لعنصر واحد في قائمة يصير ثقيلًا هنا.
+
+    ⚠️ `color-mix` لا `rgb(… / alpha)` — والفرق ليس أسلوبيًا:
+
+    اللون الشفّاف يُركَّب مع ما تحته عند كل رسم. وخليّة الجدول المثبَّتة
+    ترث خلفية صفّها وتعيد رسمها فوقه (لأنها تحتاج سطحًا معتمًا يحجب ما
+    ينزلق تحتها) — فيُركَّب اللون **مرّتين** ويخرج أغمق من جيرانه. النتيجة
+    صفّ بلونين: غامق عند الأعمدة المثبَّتة وفاتح فيما بينها.
+
+    ولم يُرصد ذلك بقراءة `getComputedStyle`: القيمتان متطابقتان نصًّا،
+    والفرق يقع في التركيب لا في الحساب. البكسل وحده أظهره.
+
+    و`color-mix` يُنتج لونًا **صلبًا** بالنسبة نفسها، فرسمه مرّتين لا يغيّره.
+  */
+  --ap-color-bg-selected-subtle: color-mix(in srgb, var(--ap-purple-700) 5%, var(--ap-white));
+  /* درجة أقوى للصفّ المحدَّد تحت المؤشّر. */
+  --ap-color-bg-selected-strong: color-mix(in srgb, var(--ap-purple-700) 9%, var(--ap-white));
+
+  /* عائلة السطح المعكوس — يستهلكها شريط التحديد الجماعي والتلميح.
+     ⚠️ -text-inverse-muted للنصّ الثانوي على داكن فقط (7.0:1 على
+        slate-900)، ولا يصلح على سطح فاتح إطلاقًا. */
+  --ap-color-bg-inverse-hover:   var(--ap-slate-800);
+  --ap-color-text-inverse-muted: var(--ap-slate-400);
+  /* ⚠️ red-500 لا red-600: مرساة الخطر مقيسة على سطح **فاتح** (4.83:1 مع
+        أبيض)، وعلى slate-900 تهبط إلى 3.70:1 فتسقط WCAG 1.4.3. وred-400
+        يمرّ بـ 7.46:1 لكنه سلموني لا يُقرأ أحمر أصلًا، فيضيع المعنى الذي
+        وُضع اللون له. red-500 أقرب درجة إلى هويّة الأحمر تبقى مقروءة على
+        الداكن: 5.17:1. */
+  --ap-color-danger-on-inverse:  var(--ap-red-500);   /*  5.17:1 على slate-900 */
+  --ap-color-bg-inverse:  var(--ap-slate-900);
+  --ap-color-bg-overlay:  rgb(var(--ap-rgb-slate-900) / 0.55);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     TEXT
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-color-text-primary:   var(--ap-slate-900);  /* 17.85:1 */
+  --ap-color-text-secondary: var(--ap-slate-600);  /*  7.50:1 */
+  --ap-color-text-tertiary:  var(--ap-slate-500);  /*  4.76:1 — ≥14px */
+  --ap-color-text-disabled:  var(--ap-slate-400);  /*  2.56:1 — معطَّل فقط
+                                                      (مستثنى من WCAG 1.4.3) */
+  --ap-color-text-inverse:   var(--ap-white);
+  --ap-color-text-link:      var(--ap-blue-700);   /*  6.34:1 */
+  --ap-color-text-brand:     var(--ap-purple-700); /*  8.03:1 */
+  --ap-color-text-placeholder: var(--ap-slate-500);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     BORDERS
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-color-border-subtle:  var(--ap-slate-200);
+  --ap-color-border-default: var(--ap-slate-300);
+  --ap-color-border-strong:  var(--ap-slate-400);
+  --ap-color-border-brand:   var(--ap-purple-700);
+  --ap-color-border-inverse: var(--ap-slate-700);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     ACTIONS                                                         [D-03]
+     الأزرار الأساسية موحّدة على البنفسجي. .btn-primary كان #000 أسود
+     و:hover بنفس اللون (بلا استجابة بصرية) — يُستبدل هنا.
+     الأسود المقصود تصميميًا (إن وُجد) يصبح variant صريحًا: neutral.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-color-action-primary:        var(--ap-purple-700);
+  --ap-color-action-primary-hover:  var(--ap-purple-800);
+  --ap-color-action-primary-active: var(--ap-purple-900);
+  --ap-color-action-primary-subtle: var(--ap-purple-50);
+  --ap-color-action-on-primary:     var(--ap-white);
+
+  --ap-color-action-secondary:        var(--ap-white);
+  --ap-color-action-secondary-hover:  var(--ap-slate-50);
+  --ap-color-action-secondary-active: var(--ap-slate-100);
+  --ap-color-action-secondary-border: var(--ap-slate-300);
+  --ap-color-action-on-secondary:     var(--ap-slate-800);
+
+  --ap-color-action-tertiary-hover:  var(--ap-slate-100);
+  --ap-color-action-on-tertiary:     var(--ap-slate-700);
+
+  --ap-color-action-danger:        var(--ap-red-600);   /* 4.83:1 مع أبيض */
+  --ap-color-action-danger-hover:  var(--ap-red-700);
+  --ap-color-action-danger-active: var(--ap-red-800);
+  --ap-color-action-danger-subtle: var(--ap-red-50);
+  --ap-color-action-on-danger:     var(--ap-white);
+
+  --ap-color-action-neutral:       var(--ap-slate-800);
+  --ap-color-action-neutral-hover: var(--ap-slate-900);
+  --ap-color-action-on-neutral:    var(--ap-white);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     SEMANTIC STATES
+     كل زوج (خلفية + نص) هنا مقيس ويمرّ AA. لا تخلط عبر الأزواج.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-color-success:        var(--ap-teal-700);   /* 5.36:1 مع نص أبيض */
+  --ap-color-success-text:   var(--ap-teal-800);   /* على -50 → 7.2:1 */
+  --ap-color-success-bg:     var(--ap-teal-50);
+  --ap-color-success-border: var(--ap-teal-200);
+
+  --ap-color-error:        var(--ap-red-600);      /* حدّ الحقل — 4.83:1 */
+  --ap-color-error-text:   var(--ap-red-700);      /* نص الخطأ — 6.79:1 */
+  --ap-color-error-bg:     var(--ap-red-50);
+  --ap-color-error-border: var(--ap-red-200);
+
+  /* ⚠️ لا يوجد كهرماني يقبل نصًا أبيض. -warning للتعبئة الزخرفية فقط،
+        والنص دائمًا -warning-text. */
+  --ap-color-warning:        var(--ap-amber-500);
+  --ap-color-warning-text:   var(--ap-amber-900);  /* على -50 → 9.09:1 */
+  --ap-color-warning-bg:     var(--ap-amber-50);
+  --ap-color-warning-border: var(--ap-amber-200);
+
+  --ap-color-info:        var(--ap-blue-600);
+  --ap-color-info-text:   var(--ap-blue-700);
+  --ap-color-info-bg:     var(--ap-blue-50);
+  --ap-color-info-border: var(--ap-blue-200);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     FOCUS                                                           [D-12]
+     أهم مجموعة tokens في النظام كله. راجع foundations/_focus.css
+     WCAG 2.4.7 (AA) — كان مؤشّر التركيز مُخفى افتراضيًا في التطبيق كله.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-color-focus-ring:        var(--ap-purple-700);
+  --ap-color-focus-ring-danger: var(--ap-red-600);
+  --ap-color-focus-ring-inverse: var(--ap-white);
+  --ap-focus-ring-width:  3px;
+  --ap-focus-ring-offset: 2px;
+  --ap-focus-ring-shadow: 0 0 0 var(--ap-focus-ring-width)
+                          rgb(var(--ap-rgb-purple-700) / 0.35);
+  /* حلقة التركيز على عنصر في حالة خطأ. تعيش هنا لا في طبقة المكوّنات: كانت
+     مكرّرة حرفيًا في الحقل والقائمة، وكلٌّ منهما يقرأ الدرجة الخام مباشرةً —
+     أي قفزٌ فوق الطبقة الدلالية. الشفافية 0.25 لا 0.35 لأن الأحمر أثقل
+     بصريًا من البنفسجي عند العرض نفسه. */
+  --ap-focus-ring-shadow-danger: 0 0 0 var(--ap-focus-ring-width)
+                                 rgb(var(--ap-rgb-red-600) / 0.25);
+  /* حلقة **داخلية** لجزء مركَّز داخل صندوق واحد.
+
+     الحقل المركّب (هاتف، نطاق تاريخ) يحمل حلقة `:focus-within` على صفّه
+     كلّه — وهي تجيب «أين أنا في النموذج؟». لكنها لا تجيب «أيّ الجزأين
+     سيستقبل ضغطة Enter؟». الحلقة الداخلية تجيب الثانية بلا أن تلغي الأولى،
+     ولو كانت خارجية لخرجت عن حدّ الصفّ وبدت كأن العنصر انفصل عنه. */
+  --ap-focus-ring-shadow-inset: inset 0 0 0 var(--ap-focus-ring-width)
+                                rgb(var(--ap-rgb-purple-700) / 0.35);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     ELEVATION (دلالي)
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-elevation-flat:     var(--ap-shadow-none);
+  --ap-elevation-card:     var(--ap-shadow-xs);
+  --ap-elevation-raised:   var(--ap-shadow-sm);
+  /* lg لا md: القائمة بطاقة عائمة بلا حدّ، فالظلّ وحده هو ما يفصلها عن
+     الصفحة. الدرجة الأخفّ كانت تتركها تبدو ملتصقة بما تحتها. */
+  --ap-elevation-dropdown: var(--ap-shadow-lg);
+  --ap-elevation-drawer:   var(--ap-shadow-lg);
+  --ap-elevation-modal:    var(--ap-shadow-xl);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     DATA VISUALIZATION                                              [A-13]
+     سلسلة قاطعة مميّزة بالدرجة اللونية — لا بالشفافية.
+     النمط الحالي (4 درجات شفافية من نفس البنفسجي + legend مخفي) يخالف
+     WCAG 1.4.1: الفرق بين 80% و 60% ≈ 1.3:1، غير قابل للتمييز.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-chart-1: var(--ap-purple-700);
+  --ap-chart-2: var(--ap-teal-600);
+  --ap-chart-3: var(--ap-amber-500);
+  --ap-chart-4: var(--ap-blue-600);
+  --ap-chart-5: var(--ap-purple-400);
+  --ap-chart-6: var(--ap-slate-500);
+
+  --ap-chart-positive: var(--ap-teal-700);
+  --ap-chart-negative: var(--ap-red-600);
+  --ap-chart-neutral:  var(--ap-slate-400);
+
+  --ap-chart-grid: var(--ap-slate-200);
+  --ap-chart-axis: var(--ap-slate-500);
+
+  /* ══════════════════════════════════════════════════════════════════════
+     OPACITY (دلالي)
+     يستبدل 10 قيم شفافية مختلفة للحالة المعطَّلة (0.35 → 0.9).
+     0.5 تعطي 3.41:1 للنص الأساسي — أدنى حدّ مقبول للقراءة.
+     ══════════════════════════════════════════════════════════════════════ */
+  --ap-opacity-disabled: 0.5;
+  --ap-opacity-muted:    0.7;
+}

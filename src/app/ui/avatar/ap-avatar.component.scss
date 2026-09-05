@@ -1,0 +1,314 @@
+/* ============================================================================
+   Acadimiat UI — أنماط الأفاتار وخليّة الوسائط
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-avatar` أو `ap-media-cell`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — كل شيء من طبقتَي `--ap-avatar-*` و`--ap-media-*`.
+
+   الملفان في ورقة واحدة لأن خليّة الوسائط لا تُستعمل بلا أفاتار، وفصلهما
+   كان سيعني على المستهلك استيرادين لبنية واحدة.
+   ============================================================================ */
+
+ap-avatar,
+ap-avatar *,
+ap-media-cell,
+ap-media-cell * {
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------------------------
+   الأفاتار
+   --------------------------------------------------------------------------- */
+ap-avatar {
+  display: inline-flex;
+  /* لا ينكمش داخل صفّ مرن — الصورة المسحوقة تُشوّه الوجه. */
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: var(--ap-avatar-size-md);
+  height: var(--ap-avatar-size-md);
+  font-size: var(--ap-avatar-font-size-lg);
+  overflow: hidden;
+  border-radius: var(--ap-avatar-radius-circle);
+  background: var(--ap-avatar-bg);
+  color: var(--ap-avatar-fg);
+  font-weight: var(--ap-avatar-font-weight);
+  /* الأحرف لاتينية أو عربية، ومحاذاتها إلى المنتصف لا تتبع الاتجاه. */
+  text-align: center;
+  /* الأحرف العربية لا توصَل هنا (حرفان منفصلان)، لكن القيمة تبقى صفرًا
+     اتّساقًا مع أساس الطباعة — والمسافة تأتي من `letter-spacing` لا تأتي. */
+  letter-spacing: var(--ap-tracking-normal);
+  user-select: none;
+}
+
+/*
+  الحلقة **داخلية** لا حدّ خارجي.
+
+  الصورة الفاتحة على سطح أبيض تفقد حافّتها فتبدو معلّقة بلا شكل. والحدّ
+  الخارجي كان سيزيد المقاس بـ 2px، فيختلّ اصطفاف عمود من الأفاتارات مع
+  ارتفاع الصفّ — و`inset` يرسم داخل الصندوق بلا أن يمسّ أبعاده.
+*/
+ap-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--ap-border-width-thin) var(--ap-avatar-ring);
+  pointer-events: none;
+}
+
+ap-avatar .ap-avatar__img {
+  width: 100%;
+  height: 100%;
+  /* يملأ الإطار بلا تشويه: الصورة غير المربّعة تُقصّ ولا تُسحق. */
+  object-fit: cover;
+  /* الوجه في أعلى الصورة غالبًا، فالقصّ من الأسفل أسلم من القصّ من الوسط. */
+  object-position: center top;
+  display: block;
+}
+
+/*
+  ⚠️ لا font-size هنا — يرثه من المضيف.
+
+  المضيف يحسبه أصلًا من المقاس (`calc(size * font-scale)`)، فإعادة الحساب
+  على الابن بـ `100%` تضربه في المعامل **مرّتين**: أفاتار 32px يعطي
+  32×0.44×0.44 ≈ 6.2px بدل 14px.
+
+  ولم يُرصد هذا بالنظر لأن العطل تناسبي: الأحرف تكبر وتصغر مع المقاس كما
+  يُتوقّع، لكنها صغيرة دائمًا. القياس وحده أظهره.
+*/
+ap-avatar .ap-avatar__initials {
+  line-height: 1;
+}
+
+/* مخفيّ بصريًا لا محذوف — النمط نفسه المستعمل في `<ap-field>`. */
+ap-avatar .ap-avatar__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── الشكلان ─────────────────────────────────────────────────────────────
+   دائري لشخص، بزوايا لشيء. انظر تعليق `ap-avatar.component.ts`. */
+ap-avatar[data-shape='circle'] {
+  border-radius: var(--ap-avatar-radius-circle);
+}
+
+ap-avatar[data-shape='rounded'] {
+  border-radius: var(--ap-avatar-radius-rounded);
+}
+
+/*
+  المستطيل: الارتفاع من المقاس، والعرض منه بالنسبة.
+
+  ⚠️ العرض محسوب من الارتفاع لا مُعلَن قيمةً: صفّ الجدول يحكمه الارتفاع
+     (تستوي الصور مع الأفاتارات الدائرية في العمود المجاور)، والعرض يتبع.
+     ولذلك لا تُستعمل خاصية aspect-ratio هنا — هو يشتقّ أحدهما من الآخر بحسب
+     أيّهما auto، وكلاهما مُعلَن في المقاسات أدناه.
+*/
+ap-avatar[data-shape='wide'] {
+  width: calc(var(--ap-avatar-size-md) * var(--ap-avatar-wide-ratio));
+  border-radius: var(--ap-avatar-radius-wide);
+}
+
+ap-avatar[data-shape='wide'][data-size='xs'] {
+  width: calc(var(--ap-avatar-size-xs) * var(--ap-avatar-wide-ratio));
+}
+
+ap-avatar[data-shape='wide'][data-size='sm'] {
+  width: calc(var(--ap-avatar-size-sm) * var(--ap-avatar-wide-ratio));
+}
+
+ap-avatar[data-shape='wide'][data-size='md'] {
+  width: calc(var(--ap-avatar-size-md) * var(--ap-avatar-wide-ratio));
+}
+
+ap-avatar[data-shape='wide'][data-size='lg'] {
+  width: calc(var(--ap-avatar-size-lg) * var(--ap-avatar-wide-ratio));
+}
+
+/* الصورة المستطيلة تُقصّ من الوسط لا من الأعلى: قاعدة «الوجه في الأعلى»
+   تخصّ الأشخاص، والغلاف موضوعه في وسطه. */
+ap-avatar[data-shape='wide'] .ap-avatar__img {
+  object-position: center;
+}
+
+/* ---------------------------------------------------------------------------
+   منفذ الأيقونة
+   ---------------------------------------------------------------------------
+   بديل ثالث حين لا صورة ولا اسم يُشتقّ منه حرف — مجلّد، ملف، مستخدم مجهول.
+   ويرث لون الأفاتار فيتبع أي إعادة ثيم بلا قاعدة لون خاصّة به.
+   --------------------------------------------------------------------------- */
+ap-avatar .ap-avatar__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ap-avatar-fg);
+}
+
+ap-avatar .ap-avatar__icon:empty {
+  display: none;
+}
+
+/*
+  الأيقونة المُسقَطة تُخفي البديل التلقائي — أحرفًا كان أو أيقونة صورة —
+  فلا يظهر بديلان معًا.
+
+  والشقيق **العامّ** (~) لا المباشر (+): كتل @if في القالب تضع معلّقات بين
+  العناصر، والمباشر يتخطّاها في بعض الحالات فتفشل القاعدة صامتةً.
+*/
+ap-avatar .ap-avatar__icon:not(:empty) ~ .ap-avatar__initials,
+ap-avatar .ap-avatar__icon:not(:empty) ~ .ap-avatar__fallback {
+  display: none;
+}
+
+/* أيقونة الصورة النائبة — بديل الأشياء حين لا غلاف. تتبع مقاس الأيقونة
+   المُسقَطة نفسه، ولونها لون الأفاتار فتبهت مع خلفيته لا تنافسها. */
+ap-avatar .ap-avatar__fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ap-avatar-fg);
+}
+
+ap-avatar .ap-avatar__fallback svg {
+  width: calc(var(--ap-avatar-size-md) * var(--ap-avatar-icon-scale));
+  height: calc(var(--ap-avatar-size-md) * var(--ap-avatar-icon-scale));
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+ap-avatar .ap-avatar__icon svg {
+  /* المقاس الفعلي تحسمه قواعد data-size أدناه — هذه أرضية للحالة الافتراضية. */
+  width: calc(var(--ap-avatar-size-md) * var(--ap-avatar-icon-scale));
+  height: calc(var(--ap-avatar-size-md) * var(--ap-avatar-icon-scale));
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--ap-border-width-medium);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── المقاسات ─────────────────────────────────────────────────────────── */
+ap-avatar[data-size='xs'] {
+  width: var(--ap-avatar-size-xs);
+  height: var(--ap-avatar-size-xs);
+  font-size: var(--ap-avatar-font-size-sm);
+}
+
+ap-avatar[data-size='xs'] .ap-avatar__icon svg,
+ap-avatar[data-size='xs'] .ap-avatar__fallback svg {
+  width: calc(var(--ap-avatar-size-xs) * var(--ap-avatar-icon-scale));
+  height: calc(var(--ap-avatar-size-xs) * var(--ap-avatar-icon-scale));
+}
+
+ap-avatar[data-size='sm'] {
+  width: var(--ap-avatar-size-sm);
+  height: var(--ap-avatar-size-sm);
+  font-size: var(--ap-avatar-font-size-sm);
+}
+
+ap-avatar[data-size='sm'] .ap-avatar__icon svg,
+ap-avatar[data-size='sm'] .ap-avatar__fallback svg {
+  width: calc(var(--ap-avatar-size-sm) * var(--ap-avatar-icon-scale));
+  height: calc(var(--ap-avatar-size-sm) * var(--ap-avatar-icon-scale));
+}
+
+ap-avatar[data-size='md'] {
+  width: var(--ap-avatar-size-md);
+  height: var(--ap-avatar-size-md);
+  font-size: var(--ap-avatar-font-size-lg);
+}
+
+ap-avatar[data-size='md'] .ap-avatar__icon svg,
+ap-avatar[data-size='md'] .ap-avatar__fallback svg {
+  width: calc(var(--ap-avatar-size-md) * var(--ap-avatar-icon-scale));
+  height: calc(var(--ap-avatar-size-md) * var(--ap-avatar-icon-scale));
+}
+
+ap-avatar[data-size='lg'] {
+  width: var(--ap-avatar-size-lg);
+  height: var(--ap-avatar-size-lg);
+  font-size: var(--ap-avatar-font-size-lg);
+}
+
+ap-avatar[data-size='lg'] .ap-avatar__icon svg,
+ap-avatar[data-size='lg'] .ap-avatar__fallback svg {
+  width: calc(var(--ap-avatar-size-lg) * var(--ap-avatar-icon-scale));
+  height: calc(var(--ap-avatar-size-lg) * var(--ap-avatar-icon-scale));
+}
+
+/* ---------------------------------------------------------------------------
+   خليّة الوسائط
+   ---------------------------------------------------------------------------
+   صورة/أفاتار + عنوان + سطر ثانوي. هي النمط الغالب في عمود «الاسم» و«المنتج»
+   في جداول الإدارة، وكان مكرَّرًا يدويًا في كل جدول بمسافات مختلفة.
+   --------------------------------------------------------------------------- */
+ap-media-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-media-gap);
+  /* لا يتمدّد أكثر من خليّته — وإلّا دفع عمود الاسم بقيّة الأعمدة. */
+  min-width: 0;
+}
+
+ap-media-cell .ap-media-cell__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-media-text-gap);
+  /* شرط عمل `text-overflow` داخل flex: بدونه لا ينكمش العنصر دون محتواه. */
+  min-width: 0;
+}
+
+/*
+  القصّ بثلاث نقاط لا لفّ إلى سطرين.
+
+  اسم طويل يلفّ يجعل ارتفاع الصفوف غير متساوٍ، فيصير مسح العمود بالعين
+  أصعب — وهو الغرض الوحيد من الجدول. والنصّ الكامل يبقى في `title` على
+  العنصر، ويصل لقارئ الشاشة كاملًا لأن القصّ بصريّ لا في الـ DOM.
+*/
+ap-media-cell .ap-media-cell__title {
+  overflow: hidden;
+  color: var(--ap-media-title-fg);
+  font-size: var(--ap-media-title-size);
+  font-weight: var(--ap-media-title-weight);
+  line-height: var(--ap-leading-snug);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+ap-media-cell .ap-media-cell__subtitle {
+  overflow: hidden;
+  color: var(--ap-media-subtitle-fg);
+  font-size: var(--ap-media-subtitle-size);
+  line-height: var(--ap-leading-snug);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* يُخفى بلا سطر ثانوي، فلا يأكل الفجوة ويزيح العنوان عن منتصف الأفاتار. */
+/* مخفيّ بصريًا لا محذوف — يحمل الاسم كاملًا حين يُقصّ المعروض بالكلمات. */
+ap-media-cell .ap-media-cell__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+ap-media-cell .ap-media-cell__subtitle:empty {
+  display: none;
+}

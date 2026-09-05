@@ -1,0 +1,204 @@
+/* ============================================================================
+   Acadimiat UI — أنماط مجموعة الخيارات
+   ----------------------------------------------------------------------------
+   ⛔ كل محدّد يبدأ بـ `ap-choice-group`. الورقة بلا تغليف.
+   ⛔ صفر قيمة خام — الأبعاد من `--ap-control-*` و`--ap-field-*`.
+   ============================================================================ */
+
+ap-choice-group,
+ap-choice-group * {
+  box-sizing: border-box;
+}
+
+ap-choice-group {
+  display: block;
+  /* مرجع تموضع الـ legend المخفيّ بصريًا. */
+  position: relative;
+}
+
+ap-choice-group + ap-choice-group,
+ap-field + ap-choice-group,
+ap-choice-group + ap-field {
+  margin-block-start: var(--ap-field-gap);
+}
+
+/*
+  تصفير `<fieldset>`.
+
+  المتصفّح يعطيه حدًّا وحشوة، و`bootstrap.css` يضيف هوامش على `<legend>`
+  ويجعله عريضًا بعرض كامل. المطلوب منه هنا معناه الدلالي وحده — أمّا شكله
+  فيُبنى من الصفر كأي عنصر آخر.
+*/
+ap-choice-group .ap-choice-group__set {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+/*
+  `<legend>` بعرض المحتوى لا بعرض الحاوي، وبلا هوامش موروثة.
+
+  `float` غير مستخدم عمدًا: بعض المتصفّحات تتجاهل `display` على `<legend>`
+  وتُبقي تموضعه الخاص داخل الحدّ، لكن مع حدّ مُصفَّر يصبح السلوك الافتراضي
+  مقبولًا في كل المتصفّحات المستهدفة.
+*/
+ap-choice-group .ap-choice-group__legend {
+  display: flex;
+  align-items: center;
+  gap: var(--ap-space-1);
+  width: auto;
+  padding: 0;
+  margin-block-end: var(--ap-field-label-gap);
+  color: var(--ap-field-label-color);
+  font-size: var(--ap-field-label-size);
+  font-weight: var(--ap-field-label-weight);
+  line-height: var(--ap-leading-snug);
+}
+
+/* مخفيّ بصريًا لا محذوف: حذفه يُفقد المجموعة اسمها في قارئ الشاشة. */
+ap-choice-group .ap-choice-group__legend--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+ap-choice-group .ap-choice-group__required {
+  color: var(--ap-field-required-color);
+  font-size: var(--ap-font-size-xs);
+  font-weight: var(--ap-font-weight-regular);
+  white-space: nowrap;
+}
+
+ap-choice-group .ap-choice-group__hint {
+  margin: 0 0 var(--ap-field-label-gap);
+  color: var(--ap-field-hint-color);
+  font-size: var(--ap-field-hint-size);
+  line-height: var(--ap-leading-snug);
+}
+
+ap-choice-group .ap-choice-group__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ap-control-group-gap);
+  min-width: 0;
+}
+
+/*
+  الأفقي `wrap` لا صفّ صلب: خياران عربيان طويلان على شاشة ضيّقة يفيضان
+  خارج الحاوي، والالتفاف يُنزلهما سطرًا بدل أن يقصّهما.
+*/
+ap-choice-group[data-orientation='horizontal'] .ap-choice-group__options {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--ap-control-group-gap) var(--ap-control-group-gap-inline);
+}
+
+/* الهامش بين الخيارات تملكه المجموعة عبر `gap`، فيُلغى هامش التتابع. */
+ap-choice-group .ap-choice-group__options ap-choice + ap-choice {
+  margin-block-start: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   مظهر البطاقات
+   ---------------------------------------------------------------------------
+   كل خيار في بطاقة بحدّ، والحدّ يُلوَّن عند الاختيار. والفرق عن الصفّ العاري
+   ليس زينة: الخيار هنا يحمل وصفًا وتفصيلًا يظهر عند اختياره، فيحتاج صندوقًا
+   يقول أين يبدأ وأين ينتهي.
+
+   ⚠️ والحدّ **حاضر دائمًا** ويتغيّر لونه وحده — لا يُضاف عند الاختيار.
+      إضافته تزيد مقاس البطاقة لحظة النقر فيقفز ما تحتها.
+
+   ⚠️ والاختيار يُقرأ من العنصر الأصلي عبر :has(:checked) لا من صنف يكتبه
+      المستهلك: مصدر الحقيقة واحد، فلا مسار يُنتج بطاقةً تبدو مختارة
+      وراديوها فارغ.
+   --------------------------------------------------------------------------- */
+/* البطاقات تتباعد — الصفر صحيح للصفّ العاري وحده، انظر التعليق على الـ token. */
+ap-choice-group[data-appearance='card'] .ap-choice-group__options {
+  gap: var(--ap-choice-card-gap);
+}
+
+ap-choice-group[data-appearance='card'] ap-choice {
+  padding: var(--ap-choice-card-padding);
+  border: var(--ap-choice-card-border-width) solid var(--ap-choice-card-border);
+  border-radius: var(--ap-choice-card-radius);
+  background: var(--ap-choice-card-bg);
+  cursor: pointer;
+  transition:
+    border-color var(--ap-duration-fast) var(--ap-ease-standard),
+    background-color var(--ap-duration-fast) var(--ap-ease-standard);
+}
+
+ap-choice-group[data-appearance='card'] ap-choice:hover {
+  border-color: var(--ap-choice-card-border-hover);
+}
+
+ap-choice-group[data-appearance='card'] ap-choice:has(.ap-choice__native:checked) {
+  border-color: var(--ap-choice-card-border-selected);
+  background: var(--ap-choice-card-bg-selected);
+}
+
+/*
+  حلقة التركيز على البطاقة لا على الشكل وحده: هدف النقر صار البطاقة كلّها،
+  وحلقةٌ حول شكل 18px داخل صندوق بعرض النافذة لا تُرى.
+
+  ⚠️ ورفع الأولوية شرطُ إلغاء الحلقة العامّة المفروضة في
+     foundations/_focus.css — الاستثناء نفسه الموصوف على [apInput].
+*/
+ap-choice-group[data-appearance='card'] ap-choice:has(.ap-choice__native:focus-visible) {
+  outline: none !important;
+  border-color: var(--ap-choice-card-border-selected);
+  box-shadow: var(--ap-focus-ring-shadow);
+}
+
+/*
+  اسم الخيار في البطاقة أثقل قليلًا — 500 لا 400.
+
+  ⚠️ والوزن هنا وحده لا في الصفّ العاري: هناك عشرون خيارًا بسطر واحد لكلٍّ،
+     ووزنٌ أثقل عليها يجعل القائمة كلّها تصرخ. أمّا البطاقة فعنوانٌ فوق شرح،
+     فيحتاج ما يفصله عمّا يشرحه.
+*/
+ap-choice-group[data-appearance='card'] .ap-choice__label {
+  font-weight: var(--ap-choice-card-label-weight);
+}
+
+/*
+  النقر على البطاقة كلّها يختار — لا على الشكل وحده.
+
+  الطريقة: تمديد الـ label نفسه فوق البطاقة بطبقة شفّافة. والـ label مربوط
+  بـ `for` بالعنصر الأصلي، فالنقر عليه ينشّطه — بلا معالج نقر ولا سطر
+  TypeScript، ويعمل بالفأرة واللمس معًا.
+
+  ⚠️ ولا يُجعل الصندوق كلّه `<label>`: التفصيل داخله قائمة، ولفّ قائمة
+     بـ label يضمّ نصّها كلّه إلى الاسم المقروء للخيار — فيُعلَن «مشرف، جميع
+     الصلاحيات باستثناء، إخفاء الأكاديمية…» عند كل تنقّل بين الخيارات.
+     والطبقة تلتقط النقر ولا تدخل في الاسم.
+*/
+ap-choice-group[data-appearance='card'] ap-choice .ap-choice__label::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* لا لون: طبقةٌ تلتقط النقر وحده. */
+  cursor: pointer;
+}
+
+/* البطاقة المعطَّلة لا تُوهم بأنها قابلة للنقر. */
+ap-choice-group[data-appearance='card'] ap-choice:has(.ap-choice__native:disabled) {
+  background: var(--ap-choice-card-bg-disabled);
+  cursor: not-allowed;
+}
+
+ap-choice-group .ap-choice-group__message {
+  display: flex;
+  margin: var(--ap-field-message-gap) 0 0;
+  color: var(--ap-field-error-color);
+  font-size: var(--ap-field-error-size);
+  line-height: var(--ap-leading-snug);
+}
