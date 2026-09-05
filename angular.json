@@ -16,28 +16,57 @@
             "outputPath": "dist/acdimiat-ds",
             "index": "src/index.html",
             "main": "src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
-            "assets": ["src/assets"],
+            "assets": [
+              "src/assets"
+            ],
             "styles": [
               "src/styles/tokens/index.css",
               "src/styles/foundations/index.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "react",
+              "react-dom",
+              "react-dom/client"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "1.5mb", "maximumError": "3mb" },
-                { "type": "anyComponentStyle", "maximumWarning": "50kb", "maximumError": "150kb" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "1.5mb",
+                  "maximumError": "3mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "50kb",
+                  "maximumError": "150kb"
+                }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/app/design-system/inspector/system-inspector.loader.ts",
+                  "with": "src/app/design-system/inspector/system-inspector.loader.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "styles": [
+                "src/styles/tokens/index.css",
+                "src/styles/foundations/index.css",
+                "src/styles.scss",
+                "src/styles/inspector/color-inspector.css"
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -45,14 +74,20 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
-            "production": { "buildTarget": "acdimiat-ds:build:production" },
-            "development": { "buildTarget": "acdimiat-ds:build:development" }
+            "production": {
+              "buildTarget": "acdimiat-ds:build:production"
+            },
+            "development": {
+              "buildTarget": "acdimiat-ds:build:development"
+            }
           },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": { "buildTarget": "acdimiat-ds:build" }
+          "options": {
+            "buildTarget": "acdimiat-ds:build"
+          }
         }
       }
     }

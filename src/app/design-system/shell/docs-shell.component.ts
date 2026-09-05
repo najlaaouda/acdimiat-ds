@@ -13,6 +13,7 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { Subscription, filter } from 'rxjs';
 
 import { DOCS_ROOT } from '../core/docs-nav.config';
+import { DocsSystemInspectorComponent } from '../inspector/docs-system-inspector.component';
 import { DocsSidebarComponent } from './docs-sidebar.component';
 
 /* ============================================================================
@@ -39,7 +40,7 @@ import { DocsSidebarComponent } from './docs-sidebar.component';
 @Component({
   selector: 'app-docs-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, DocsSidebarComponent],
+  imports: [RouterOutlet, RouterLink, DocsSidebarComponent, DocsSystemInspectorComponent],
   templateUrl: './docs-shell.component.html',
   styleUrl: './docs-shell.component.scss',
   encapsulation: ViewEncapsulation.None,
