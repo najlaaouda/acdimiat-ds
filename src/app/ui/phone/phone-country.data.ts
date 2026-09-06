@@ -24,22 +24,6 @@ export interface ApPhoneCountry {
   nameEn: string;
 }
 
-/**
- * الدول المتصدّرة للقائمة.
- *
- * ليست تفضيلًا تجاريًا بل توفير خطوات: أغلب مستخدمي المنصّة في الخليج ومصر،
- * وإجبارهم على تمرير 250 دولة للوصول إلى السعودية كلفة تتكرّر في كل نموذج.
- */
-export const AP_PHONE_PREFERRED_COUNTRIES: readonly CountryCode[] = [
-  'SA',
-  'AE',
-  'KW',
-  'QA',
-  'BH',
-  'OM',
-  'EG',
-  'JO',
-];
 
 /*
   يُبنى مرّة واحدة ويُخزَّن: `Intl.DisplayNames` ليست رخيصة، والقائمة ثابتة
@@ -72,19 +56,20 @@ export function getApPhoneCountries(): readonly ApPhoneCountry[] {
   }));
 
   /*
-    الترتيب: المفضَّلة بترتيبها المعلَن، ثم الباقي أبجديًا **عربيًا**.
+    الترتيب أبجديّ **عربيّ** بحتًا، بلا دول متصدّرة.
+
+    كانت ثماني دول خليجية تتقدّم القائمة، ثم عُنونت «الأكثر استخدامًا» كي لا
+    تُقرأ عطلًا في الفرز. وسقط الاثنان معًا: الكشف التلقائي لدولة المستخدم
+    (`AP_PHONE_COUNTRY_DETECTOR`) يفتح الحقل على دولته أصلًا، فالتصدير كان
+    يوفّر تمريرًا لم يعد أحد يحتاجه — وترتيبٌ واحد معلوم أسهل من ترتيبين.
+
+    ⚠️ ولا يُعاد التصدير بلا عنوان: قائمة تخرق الأبجدية صامتةً تُقرأ خطأً في
+       الفرز، وهو ما كان العنوان يعالجه.
+
     `localeCompare('ar')` لا المقارنة الافتراضية: الأخيرة ترتّب بترتيب نقاط
     اليونيكود فتضع «الأردن» و«الإمارات» في مواضع لا يتوقّعها قارئ عربي.
   */
-  const preferred = AP_PHONE_PREFERRED_COUNTRIES;
-  const rank = (iso2: CountryCode) => {
-    const at = preferred.indexOf(iso2);
-    return at === -1 ? preferred.length : at;
-  };
-
-  cache = list.sort(
-    (a, b) => rank(a.iso2) - rank(b.iso2) || a.name.localeCompare(b.name, 'ar'),
-  );
+  cache = list.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
   return cache;
 }
 

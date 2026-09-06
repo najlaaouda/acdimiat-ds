@@ -4,6 +4,67 @@
 -->
 
 <!--
+  شارة العلم — قالب واحد يستهلكه الزنّاد وكل خيار في اللوحة.
+
+  ⚠️ نسخُه في الموضعين هو ما يُنتج زنّادًا بشارة دائرية وقائمةً بشارة أخرى بعد
+     أوّل تعديل يمسّ أحدهما. والقالب يجعلهما نصًّا واحدًا لا نصّين متطابقين.
+
+  والصندوق **ثابت المقاس** أيًّا كان مصدره — svg أو إيموجي أو رمز — فلا يتغيّر
+  عرض الزرّ عند تبديل الدولة، ولا تتسنَّن حافّة عمود من 250 شارة.
+-->
+<ng-template #flagChip let-country>
+  <span class="ap-phone__flag" aria-hidden="true">
+    @if (flagFor(country.iso2); as f) {
+      @if (f.kind === 'svg') {
+        <img
+          class="ap-phone__flag-img"
+          [src]="f.url"
+          alt=""
+          loading="lazy"
+          (error)="onFlagError(country.iso2)"
+        />
+      } @else {
+        <span class="ap-phone__flag-emoji">{{ f.glyph }}</span>
+      }
+    } @else {
+      <span class="ap-phone__flag-code">{{ country.iso2 }}</span>
+    }
+  </span>
+</ng-template>
+
+<!--
+  صفّ الخيار — قالب أيضًا، لأنه يُعرض مرّة داخل مجموعة معنونة ومرّة مباشرةً
+  تحت اللائحة في وضع البحث. و`index` موضعه في `filtered()` لا في المجموعة.
+-->
+<ng-template #optionRow let-country let-index="index">
+  <div
+    class="ap-phone__option"
+    role="option"
+    [id]="optionId(index)"
+    [attr.aria-selected]="country.iso2 === selected().iso2"
+    [attr.data-active]="index === activeIndex() ? 'true' : null"
+    (pointerenter)="activeIndex.set(index)"
+    (click)="choose(country)"
+  >
+    <ng-container *ngTemplateOutlet="flagChip; context: { $implicit: country }" />
+    <span class="ap-phone__option-name">{{ country.name }}</span>
+    <!--
+      الرمز اللاتيني داخل صفّ عربي يحتاج `dir="ltr"` صراحةً — بدونه يُعرض
+      «966+» معكوسًا. وعلى النصّ لا على الصفّ: `dir` على الصندوق يقلب
+      `text-align: start` فيه فتنفصل أعمدته عن بعضها.
+    -->
+    <span class="ap-phone__option-dial" dir="ltr">+{{ country.dialCode }}</span>
+    <!--
+      العلامة محجوزة المكان دائمًا (`opacity` لا `display`): إظهارها بالحذف
+      والإضافة يغيّر عرض عمود الاسم بين صفّ وآخر، فتهتزّ القائمة عند كل تبديل.
+    -->
+    <span class="ap-phone__check" aria-hidden="true"
+      ><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" /></svg
+    ></span>
+  </div>
+</ng-template>
+
+<!--
   `role="group"` مع `aria-labelledby` إلى الـ label هو ما يربط عنصرَي التحكّم.
 
   بدونه يصل مستخدم قارئ الشاشة إلى زرّ الدولة بـ Shift+Tab فيسمع «السعودية،
@@ -23,22 +84,9 @@
     (click)="onTriggerClick()"
     (keydown)="onTriggerKeydown($event)"
   >
-    <!--
-      منفذ العلم — صفر مسافة بيضاء داخله.
+    <ng-container *ngTemplateOutlet="flagChip; context: { $implicit: selected() }" />
 
-      يُخفى بـ `:empty` حين لا يُرجع المصدر شيئًا، ومسافة واحدة تُبطل ذلك
-      فيبقى غلاف فارغ يأكل `gap` ويزيح الرمز عن مكانه.
-    -->
-    <span class="ap-phone__flag" aria-hidden="true">@if (flag(); as f) {
-      @if (f.kind === 'svg') {
-        <img class="ap-phone__flag-img" [src]="f.url" alt="" (error)="onFlagError()" />
-      } @else {
-        <span class="ap-phone__flag-emoji">{{ f.glyph }}</span>
-      }
-    } @else {
-      <span class="ap-phone__flag-code">{{ selected().iso2 }}</span>
-    }</span
-    ><span class="ap-phone__dial" dir="ltr">+{{ selected().dialCode }}</span>
+    <span class="ap-phone__dial" dir="ltr">+{{ selected().dialCode }}</span>
 
     <!--
       اسم الدولة مخفيّ بصريًا لا محذوف: هو ما يكمل اسم الزرّ في قارئ الشاشة
@@ -89,43 +137,52 @@
     (toggle)="onPanelToggle($event)"
   >
     <!--
-      نمط combobox قابل للتحرير: التركيز ينتقل إلى البحث، والأسهم تحرّك
-      التمييز في اللائحة بـ `aria-activedescendant` والتركيز باقٍ هنا.
+      شريط البحث لا يمرّ مع اللائحة: من يكتب حرفًا ثم يمرّر يفقد حقل بحثه من
+      الشاشة، فلا يعرف بمَ صفّى. والفاصل السفلي هو ما يجعله أداةً فوق القائمة
+      لا صفًّا أوّل فيها.
     -->
-    <input
-      #search
-      class="ap-phone__search"
-      type="text"
-      role="combobox"
-      aria-expanded="true"
-      aria-autocomplete="list"
-      [attr.aria-controls]="listboxId()"
-      [attr.aria-activedescendant]="activeOptionId()"
-      [attr.aria-label]="searchLabel"
-      [placeholder]="searchLabel"
-      [value]="query()"
-      (input)="onSearchInput($event)"
-      (keydown)="onSearchKeydown($event)"
-    />
+    <div class="ap-phone__search-bar">
+      <!--
+        نمط combobox قابل للتحرير: التركيز ينتقل إلى البحث، والأسهم تحرّك
+        التمييز في اللائحة بـ `aria-activedescendant` والتركيز باقٍ هنا.
+      -->
+      <span class="ap-phone__search-icon" aria-hidden="true"
+        ><svg viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" /></svg
+      ></span>
+      <input
+        #search
+        class="ap-phone__search"
+        type="text"
+        role="combobox"
+        aria-expanded="true"
+        aria-autocomplete="list"
+        [attr.aria-controls]="listboxId()"
+        [attr.aria-activedescendant]="activeOptionId()"
+        [attr.aria-label]="searchLabel"
+        [placeholder]="searchLabel"
+        [value]="query()"
+        (input)="onSearchInput($event)"
+        (keydown)="onSearchKeydown($event)"
+      />
+    </div>
 
-    <div class="ap-phone__list" role="listbox" [id]="listboxId()">
+    <!--
+      لائحة واحدة مسطّحة بترتيب أبجديّ عربيّ.
+
+      كانت مجموعتين: «الأكثر استخدامًا» فوق ثماني دول خليجية ثم «كل الدول».
+      وسقطتا مع الترتيب المتصدّر نفسه — الحقل يفتح الآن على دولة المستخدم
+      المكتشَفة، فالتصدير كان يوفّر تمريرًا لم يعد أحد يحتاجه.
+
+      ⚠️ ولا يُعاد الترتيب المتصدّر بلا عنوان يسمّيه: قائمة تخرق الأبجدية
+         صامتةً تُقرأ خطأً في الفرز، وهو ما كان العنوان يعالجه.
+    -->
+    <div class="ap-phone__list" role="listbox" [id]="listboxId()" [attr.aria-label]="listLabel">
       @for (country of filtered(); track country.iso2; let i = $index) {
-        <div
-          class="ap-phone__option"
-          role="option"
-          [id]="optionId(i)"
-          [attr.aria-selected]="country.iso2 === selected().iso2"
-          [attr.data-active]="i === activeIndex() ? 'true' : null"
-          (pointerenter)="activeIndex.set(i)"
-          (click)="choose(country)"
-        >
-          <span class="ap-phone__option-name">{{ country.name }}</span>
-          <!--
-            الرمز اللاتيني داخل صفّ عربي يحتاج `dir="ltr"` صراحةً — بدونه
-            يُعرض «966+» معكوسًا.
-          -->
-          <span class="ap-phone__option-dial" dir="ltr">+{{ country.dialCode }}</span>
-        </div>
+        <ng-container
+          *ngTemplateOutlet="optionRow; context: { $implicit: country, index: i }"
+        />
       } @empty {
         <p class="ap-phone__empty" role="status">لا توجد دولة بهذا الاسم</p>
       }

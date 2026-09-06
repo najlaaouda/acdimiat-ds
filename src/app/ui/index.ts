@@ -52,8 +52,12 @@ export {
   provideApPhoneSvgFlags,
   svgFlagSource,
 } from './phone/ap-phone-flag';
+export {
+  AP_PHONE_COUNTRY_DETECTOR,
+  ApPhoneCountryDetector,
+} from './phone/ap-phone-country-detector';
 export type { ApPhoneFlag, ApPhoneFlagSource } from './phone/ap-phone-flag';
-export { AP_PHONE_PREFERRED_COUNTRIES, getApPhoneCountries } from './phone/phone-country.data';
+export { getApPhoneCountries } from './phone/phone-country.data';
 export type { ApPhoneCountry } from './phone/phone-country.data';
 
 export { ApChoiceComponent } from './choice/ap-choice.component';

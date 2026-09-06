@@ -1,9 +1,11 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
+  OnInit,
   ViewChild,
   ViewEncapsulation,
   computed,
@@ -24,14 +26,16 @@ import type { CountryCode } from 'libphonenumber-js';
 import { ApFieldControl } from '../field/ap-field-control';
 import { attachViewportSync, computePopoverPosition } from '../select/popover-position';
 import { AP_PHONE_FLAG_SOURCE, ApPhoneFlag } from './ap-phone-flag';
+import { AP_PHONE_COUNTRY_DETECTOR } from './ap-phone-country-detector';
 import { ApPhoneCountry, getApPhoneCountries, matchesCountry } from './phone-country.data';
 import {
-  digitsOnly,
+  examplePlaceholder,
   formatNational,
   interpretInput,
   isValidPhone,
   parseE164,
   toE164,
+  toNationalDigits,
 } from './phone-value';
 
 /* ============================================================================
@@ -64,6 +68,7 @@ import {
 @Component({
   selector: 'ap-phone-field',
   standalone: true,
+  imports: [NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   templateUrl: './ap-phone-field.component.html',
@@ -76,7 +81,7 @@ import {
 })
 export class ApPhoneFieldComponent
   extends ApFieldControl
-  implements ControlValueAccessor, Validator
+  implements ControlValueAccessor, Validator, OnInit
 {
   /** يأخذ معاملة الصفّ الملاصق — الحدّ للصفّ لا للعنصرين. */
   override readonly affixed = true;
@@ -85,8 +90,10 @@ export class ApPhoneFieldComponent
   override readonly indicator = 'none' as const;
 
   protected readonly searchLabel = 'ابحث عن دولة';
+  protected readonly listLabel = 'الدول';
 
   private readonly flagSource = inject(AP_PHONE_FLAG_SOURCE);
+  private readonly countryDetector = inject(AP_PHONE_COUNTRY_DETECTOR);
 
   @ViewChild('trigger') private triggerRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('panel') private panelRef?: ElementRef<HTMLElement>;
@@ -99,7 +106,7 @@ export class ApPhoneFieldComponent
   private readonly national$ = signal('');
   private readonly display$ = signal('');
   private readonly disabled$ = signal(false);
-  private readonly placeholder$ = signal('5X XXX XXXX');
+  private readonly placeholder$ = signal<string | null>(null);
   private readonly flagBroken$ = signal(new Set<string>());
 
   private readonly open$ = signal(false);
@@ -125,13 +132,22 @@ export class ApPhoneFieldComponent
   private onTouched: () => void = () => {};
   private onValidatorChange: () => void = () => {};
 
-  /** الدولة الافتراضية قبل أي إدخال. */
+  /**
+   * الدولة الافتراضية قبل أي إدخال.
+   *
+   * ⚠️ تمريرها يُلغي الكشف التلقائي: من كتبها اتّخذ القرار، وكشفٌ يتجاوزه بعد
+   *    ثانية يبدّل ما طلبه صراحةً.
+   */
   @Input()
   set defaultCountry(value: CountryCode) {
     if (value && !this.national$()) {
+      this.countryExplicit = true;
       this.countryIso$.set(value);
     }
   }
+
+  /** `true` ⇐ الدولة جاءت من `defaultCountry` أو من قيمة الحقل، فلا يمسّها الكشف. */
+  private countryExplicit = false;
 
   @Input()
   set placeholder(value: string) {
@@ -144,7 +160,18 @@ export class ApPhoneFieldComponent
   }
 
   protected readonly disabledValue = this.disabled$.asReadonly();
-  protected readonly placeholderValue = this.placeholder$.asReadonly();
+
+  /**
+   * النائب يتبع الدولة ما لم يُكتب صراحةً.
+   *
+   * النائب الثابت «‎5X XXX XXXX‎» شكل الجوّال السعودي وحده — يقف فوق حقل على
+   * بريطانيا فيعِد بعشرة أرقام تبدأ بـ 5، والبريطاني أحد عشر يبدأ بـ 07، فيُقرأ
+   * الرفض خطأً في الرقم لا في النائب. وهو الوعد نفسه الذي يربط نائب البحث
+   * بالحقول التي يصفّيها: مكتوبٌ فوق الحقل ⇐ عقدٌ على ما يقبله.
+   */
+  protected readonly placeholderValue = computed(
+    () => this.placeholder$() ?? examplePlaceholder(this.countryIso$()),
+  );
   protected readonly requiredValue = this.required$.asReadonly();
   protected readonly invalidValue = this.invalid$.asReadonly();
   protected readonly describedBy = this.describedBy$.asReadonly();
@@ -167,11 +194,26 @@ export class ApPhoneFieldComponent
       ?? this.countries[0],
   );
 
-  /** `null` ⇐ شارة الرمز. انظر `ap-phone-flag.ts`. */
-  protected readonly flag = computed<ApPhoneFlag | null>(() => {
-    const iso2 = this.selected().iso2;
-    return this.flagBroken$().has(iso2) ? null : this.flagSource(iso2);
+  /**
+   * وصف علم كل دولة مرّة واحدة — لا نداء لكل صفّ في كل تمرير كشف.
+   *
+   * اللوحة تعرض الآن علمًا في **كل** خيار (250 صفًّا)، فنداء المصدر من القالب
+   * كان سيصير 250 نداءً في كل دورة. والخريطة تُبنى ثانيةً حين يفشل تحميل ملف
+   * فقط — أي مرّات معدودة في عمر الصفحة.
+   */
+  private readonly flagMap = computed(() => {
+    const broken = this.flagBroken$();
+    const map = new Map<string, ApPhoneFlag | null>();
+    for (const country of this.countries) {
+      map.set(country.iso2, broken.has(country.iso2) ? null : this.flagSource(country.iso2));
+    }
+    return map;
   });
+
+  /** `null` ⇐ شارة الرمز. انظر `ap-phone-flag.ts`. */
+  protected flagFor(iso2: string): ApPhoneFlag | null {
+    return this.flagMap().get(iso2) ?? null;
+  }
 
   protected readonly filtered = computed(() =>
     this.countries.filter(c => matchesCountry(c, this.query$())),
@@ -182,6 +224,51 @@ export class ApPhoneFieldComponent
     const at = this.activeIndex();
     return at >= 0 && at < list.length ? this.optionId(at) : null;
   });
+
+  /**
+   * الحقل يفتح على دولة **هذا المستخدم**، لا على السعودية لكل الناس.
+   *
+   * الترتيب مقصود، والأصدق أولًا: قيمة الحقل (رقم العميل نفسه) ثم
+   * `defaultCountry` المكتوبة صراحةً، ثم الكشف، ثم السعودية.
+   *
+   * ⚠️ ثلاثة شروط تحرس التبديل، وكلٌّ منها عطل لولاه:
+   *
+   *   • `countryExplicit` — قيمةٌ وردت أو دولةٌ كُتبت أو اختارها المستخدم من
+   *     القائمة: الكشف يصل بعدها بثانية فيبدّل ما قرّره صاحب الشأن.
+   *   • `national$()` فارغ — من بدأ يكتب رقمه لا تُبدَّل دولته تحت يده، وإلّا
+   *     صار الرقم المكتوب رقمًا في بلد آخر بلا أن يطلب.
+   *   • `destroyed` — الوعد قد يُحلّ بعد إزالة المكوّن، وكتابة إشارة عندها
+   *     تسريب صامت.
+   *
+   * والفشل يعني «لا أعرف» لا خطأً: الحقل يبقى على ما هو عليه بلا رسالة.
+   * أمّا على الخادم فالكاشف الافتراضي يعيد `null`، فلا فرق بين ما يُرسَم هناك
+   * وما يُرسَم هنا قبل وصول الجواب.
+   */
+  ngOnInit(): void {
+    if (this.countryExplicit) {
+      return;
+    }
+    void this.countryDetector()
+      .then(iso2 => {
+        if (!iso2 || this.countryExplicit || this.national$() || this.destroyed) {
+          return;
+        }
+        if (!this.countries.some(country => country.iso2 === iso2)) {
+          return;
+        }
+        this.countryIso$.set(iso2);
+      })
+      .catch(() => {
+        /* «لا أعرف» — الحقل يبقى على دولته الحالية. */
+      });
+  }
+
+  private destroyed = false;
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.detachViewport?.();
+  }
 
   /* ── عقد `ApFieldControl` ───────────────────────────────────────────── */
 
@@ -212,6 +299,8 @@ export class ApPhoneFieldComponent
   writeValue(value: string | null): void {
     const parts = parseE164(value);
     if (parts) {
+      /* رقم العميل نفسه أصدق مصدر للدولة — يسبق الكشف و`defaultCountry` معًا. */
+      this.countryExplicit = true;
       this.countryIso$.set(parts.country);
       this.national$.set(parts.national);
       this.display$.set(formatNational(parts.country, parts.national));
@@ -263,7 +352,9 @@ export class ApPhoneFieldComponent
       return;
     }
 
-    this.setNational(digitsOnly(raw));
+    /* ⚠️ لا `digitsOnly` هنا — انظر `toNationalDigits`: بعد أوّل blur يعرض
+       الحقل «‎051 234 5678‎»، فالتجريد الخام يبتلع الصفر الوطني في القيمة. */
+    this.setNational(toNationalDigits(this.countryIso$(), raw));
   }
 
   /**
@@ -294,8 +385,10 @@ export class ApPhoneFieldComponent
    * وهذا ما يجعل مجموعة **جزئية** خيارًا مشروعًا: من يضع أعلام الخليج وحدها
    * يحصل عليها، وتظهر البقية رموزًا — بدل أن يُجبَر على 250 ملفًا أو لا شيء.
    */
-  protected onFlagError(): void {
-    const iso2 = this.selected().iso2;
+  protected onFlagError(iso2: string): void {
+    if (this.flagBroken$().has(iso2)) {
+      return;
+    }
     this.flagBroken$.update(set => new Set(set).add(iso2));
   }
 
@@ -368,6 +461,7 @@ export class ApPhoneFieldComponent
   }
 
   protected choose(country: ApPhoneCountry): void {
+    this.countryExplicit = true;
     this.countryIso$.set(country.iso2);
     this.close();
     this.emit();
